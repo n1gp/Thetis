@@ -650,6 +650,7 @@ namespace Thetis
                                     LoadRouterAll((void*)0, 0, 7, 2, 8, pstreams, pfunction, pcallid);
                                 break;
 
+                            case HPSDRModel.HPSDR:
                             case HPSDRModel.HERMES:
                             case HPSDRModel.ANAN10:
                             case HPSDRModel.ANAN100:
@@ -725,6 +726,7 @@ namespace Thetis
                                     LoadRouterAll((void*)0, 0, 7, 1, 8, pstreams, pfunction, pcallid);
                                 break;
 
+                            case HPSDRModel.HPSDR:
                             case HPSDRModel.HERMES:
                             case HPSDRModel.ANAN10:
                             case HPSDRModel.ANAN100:
@@ -751,9 +753,6 @@ namespace Thetis
                                 };
                                 fixed (int* pstreams = &HermesE_nstreams[0], pfunction = &HermesE_Function[0], pcallid = &HermesE_Callid[0])
                                     LoadRouterAll((void*)0, 0, 2, 2, 8, pstreams, pfunction, pcallid);
-                                break;
-                            case HPSDRModel.HPSDR:
-
                                 break;
                         }
                     }

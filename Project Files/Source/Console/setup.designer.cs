@@ -7781,6 +7781,7 @@
             this.comboRadioModel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboRadioModel.FormattingEnabled = true;
             this.comboRadioModel.Items.AddRange(new object[] {
+            "HPSDR",
             "HERMES",
             "ANAN-10",
             "ANAN-10E",
@@ -21614,6 +21615,7 @@
             this.grpVersion.Controls.Add(this.lblMercury2FWVer);
             this.grpVersion.Controls.Add(this.lblPenelopeFWVer);
             this.grpVersion.Controls.Add(this.lblMercuryFWVer);
+            this.grpVersion.Controls.Add(this.lblMetisCodeVersion);
             this.grpVersion.Controls.Add(this.lblOzyFWVer);
             this.grpVersion.Controls.Add(this.lblOzyFX2);
             this.grpVersion.Location = new System.Drawing.Point(346, 118);

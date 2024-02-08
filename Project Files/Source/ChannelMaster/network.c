@@ -673,7 +673,7 @@ void CmdGeneral() { // port 1024
 	// Bits - Atlas bus configuration
 	packetbuf[56] = 0x00;
 	// Bits - 10MHz ref source
-	packetbuf[57] = 0x00;
+	packetbuf[57] = 0x01; // default to Penelope
 	// Bits - PA, Apollo, Mercury, Clock source
 	packetbuf[58] = (!prn->tx[0].pa) & 0x01;
 	// Bits - Alex(n) enable, 1 = enable, 0 = disable
@@ -802,9 +802,8 @@ void CmdHighPriority() { // port 1027
 	packetbuf[1402] = prn->user_dig_out & 0xf;
 
 	// Mercury Attenuator (20dB)
-	packetbuf[1403] = prn->rx[1].preamp << 1 |
-		prn->rx[0].preamp;
-
+	packetbuf[1403] = !prn->rx[1].preamp << 1 | !prn->rx[0].preamp;
+	
 	// Alex1 data 
 	packetbuf[1428] = (prbpfilter2->bpfilter >> 24) & 0xff; // [31:24] TXANT
 	packetbuf[1429] = (prbpfilter2->bpfilter >> 16) & 0xff; // [23:16] TXANT

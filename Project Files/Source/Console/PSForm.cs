@@ -482,6 +482,8 @@ namespace Thetis
                 // as the related text box stores all the data in the form save/recover system (Common.SaveForm)
                 if (console.CurrentHPSDRHardware == HPSDRHW.Saturn)
                     PSdefpeak(0.6121);
+                else if (console.CurrentHPSDRHardware == HPSDRHW.Atlas)
+                    PSdefpeak(0.3636);
                 else
                     PSdefpeak(0.2899);
             }

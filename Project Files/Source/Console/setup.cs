@@ -712,10 +712,21 @@ namespace Thetis
             {
                 if (!comboAudioSampleRate1.Items.Contains(384000))
                     comboAudioSampleRate1.Items.Add(384000);
-                if (!comboAudioSampleRate1.Items.Contains(768000))
-                    comboAudioSampleRate1.Items.Add(768000);
-                if (!comboAudioSampleRate1.Items.Contains(1536000))
-                    comboAudioSampleRate1.Items.Add(1536000);
+
+                if (console.CurrentHPSDRModel == HPSDRModel.HPSDR)
+                {
+                    if (comboAudioSampleRate1.Items.Contains(768000))
+                        comboAudioSampleRate1.Items.Remove(768000);
+                    if (comboAudioSampleRate1.Items.Contains(1536000))
+                        comboAudioSampleRate1.Items.Remove(1536000);
+                }
+                else
+                {
+                    if (!comboAudioSampleRate1.Items.Contains(768000))
+                        comboAudioSampleRate1.Items.Add(768000);
+                    if (!comboAudioSampleRate1.Items.Contains(1536000))
+                        comboAudioSampleRate1.Items.Add(1536000);
+                }
             }
             else
             {
@@ -742,10 +753,20 @@ namespace Thetis
             {
                 if (!comboAudioSampleRateRX2.Items.Contains(384000))
                     comboAudioSampleRateRX2.Items.Add(384000);
-                if (!comboAudioSampleRateRX2.Items.Contains(768000))
-                    comboAudioSampleRateRX2.Items.Add(768000);
-                if (!comboAudioSampleRateRX2.Items.Contains(1536000))
-                    comboAudioSampleRateRX2.Items.Add(1536000);
+                if (console.CurrentHPSDRModel == HPSDRModel.HPSDR)
+                {
+                    if (comboAudioSampleRateRX2.Items.Contains(768000))
+                        comboAudioSampleRateRX2.Items.Remove(768000);
+                    if (comboAudioSampleRateRX2.Items.Contains(1536000))
+                        comboAudioSampleRateRX2.Items.Remove(1536000);
+                }
+                else
+                {
+                    if (!comboAudioSampleRateRX2.Items.Contains(768000))
+                        comboAudioSampleRateRX2.Items.Add(768000);
+                    if (!comboAudioSampleRateRX2.Items.Contains(1536000))
+                        comboAudioSampleRateRX2.Items.Add(1536000);
+                }
             }
             else
             {
@@ -5925,7 +5946,8 @@ namespace Thetis
 
             if (console.CurrentHPSDRModel == HPSDRModel.ANAN200D || console.CurrentHPSDRModel == HPSDRModel.ANAN100D ||
                 console.CurrentHPSDRModel == HPSDRModel.ANAN8000D || console.CurrentHPSDRModel == HPSDRModel.ANAN7000D ||
-                console.CurrentHPSDRModel == HPSDRModel.ANAN_G2 || console.CurrentHPSDRModel == HPSDRModel.ANAN_G2_1K)
+                console.CurrentHPSDRModel == HPSDRModel.ANAN_G2 || console.CurrentHPSDRModel == HPSDRModel.ANAN_G2_1K ||
+                console.CurrentHPSDRModel == HPSDRModel.HPSDR)
             {
                 if (!tcGeneral.TabPages.Contains(tpADC))
                 {
@@ -13244,8 +13266,14 @@ namespace Thetis
             if (console.PowerOn && console.CurrentHPSDRModel == HPSDRModel.HPSDR)
             {
                 grpVersion.Visible = true;
+                console.RX2PreampPresent = NetworkIO.Merc1Version != 0;
                 lblMercury2FWVer.Visible = console.RX2PreampPresent;
-
+                lblMetisCodeVersion.Text = "Metis: " + NetworkIO.MetisVersion.ToString("0\\.0");
+                lblPenelopeFWVer.Text = "Penny: " + NetworkIO.PenVersion.ToString("0\\.0");
+                lblMercuryFWVer.Text = "Mercury0: " + NetworkIO.Merc0Version.ToString("0\\.0");
+                if (lblMercury2FWVer.Visible)
+                    lblMercury2FWVer.Text = "Mercury1: " + NetworkIO.Merc1Version.ToString("0\\.0");
+                lblOzyFWVer.Visible = false;
                 lblOzyFX2.Text = "";
             }
             else grpVersion.Visible = false;
@@ -18853,6 +18881,8 @@ namespace Thetis
         {
             switch (sModel.ToUpper())
             {
+                case "HPSDR":
+                    return HPSDRModel.HPSDR;
                 case "HERMES":
                     return HPSDRModel.HERMES;
                 case "ANAN-10":
@@ -18896,6 +18926,44 @@ namespace Thetis
 
             switch (stringModelToEnum(comboRadioModel.Text))
             {
+                case HPSDRModel.HPSDR:
+                    console.CurrentHPSDRModel = HPSDRModel.HPSDR;
+                    chkPennyPresent.Enabled = true;
+                    chkPennyPresent.Visible = true;
+                    chkPennyLane.Enabled = true;
+                    chkPennyLane.Visible = true;
+                    chkMercuryPresent.Enabled = true;
+                    chkMercuryPresent.Visible = true;
+                    chkAlexPresent.Enabled = true;
+                    chkApolloPresent.Enabled = false;
+                    chkApolloPresent.Visible = false;
+                    chkGeneralRXOnly.Visible = true;
+                    chkHermesStepAttenuator.Enabled = false; // turn this off MW0LGE_21d
+                    udHermesStepAttenuatorData.Enabled = false;
+                    chkRX2StepAtt.Checked = false;
+                    chkRX2StepAtt.Enabled = false;
+                    udHermesStepAttenuatorDataRX2.Enabled = false;
+                    groupBoxRXOptions.Text = "HPSDR Options";
+                    grpMetisAddr.Text = "HPSDR Address";
+                    grpHermesStepAttenuator.Text = "Hermes Step Attenuator";
+                    chkAutoPACalibrate.Checked = false;
+                    chkAutoPACalibrate.Visible = false;
+                    labelRXAntControl.Text = "  RX1   RX2    XVTR";
+                    RXAntChk1Name = "RX1";
+                    RXAntChk2Name = "RX2";
+                    RXAntChk3Name = "XVTR";
+                    labelATTOnTX.Visible = true;
+                    udATTOnTX.Visible = true;
+                    chkRxOutOnTx.Text = "RX 1 OUT on Tx";
+                    chkEXT1OutOnTx.Text = "RX 2 IN on Tx";
+                    chkEXT2OutOnTx.Text = "RX 1 IN on Tx";
+                    chkEXT2OutOnTx.Visible = true;
+                    groupBoxHPSDRHW.Visible = true;
+                    chkDisableRXOut.Visible = false;
+                    chkBPF2Gnd.Visible = false;
+                    radDDC0ADC2.Enabled = true;
+                    radDDC1ADC2.Enabled = true;
+                    break;
                 case HPSDRModel.HERMES:
                     console.CurrentHPSDRModel = HPSDRModel.HERMES;
                     chkAlexPresent.Enabled = true;
@@ -19482,6 +19550,7 @@ namespace Thetis
 
             switch (console.CurrentHPSDRModel)
             {
+                case HPSDRModel.HPSDR:
                 case HPSDRModel.HERMES:
                 case HPSDRModel.ANAN10:
                 case HPSDRModel.ANAN10E:
