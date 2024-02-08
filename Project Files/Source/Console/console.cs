@@ -7737,8 +7737,8 @@ namespace Thetis
                             SyncEnable = DDC1;
                             Rate[0] = rx1_rate;
                             Rate[1] = rx1_rate;
-                            cntrl1 = 0;
-                            cntrl2 = 0;
+                            cntrl1 = rx_adc_ctrl1 & 0xff;
+                            cntrl2 = rx_adc_ctrl2 & 0x3f;
                         }
                     }
                     else
@@ -7765,8 +7765,8 @@ namespace Thetis
                             SyncEnable = DDC1;
                             Rate[0] = rx1_rate;
                             Rate[1] = rx1_rate;
-                            cntrl1 = 0;
-                            cntrl2 = 0;
+                            cntrl1 = rx_adc_ctrl1 & 0xff;
+                            cntrl2 = rx_adc_ctrl2 & 0x3f;
                         }
                         else // transmitting and PS is ON
                         {
