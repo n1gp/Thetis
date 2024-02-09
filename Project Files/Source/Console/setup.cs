@@ -12100,10 +12100,51 @@ namespace Thetis
 
         private void chkPennyLane_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (!chkPennyLane.Checked)
+            {
+                //console.PennyLanePresent = false;
+                grpPennyExtCtrl.Enabled = false;
+                chkPennyExtCtrl.Checked = false;
+                chkPennyExtCtrl.Enabled = false;
+            }
+            else
+            {
+                chkPennyPresent.Checked = false;
+                chkPennyExtCtrl.Enabled = true;
+                if (chkPennyExtCtrl.Checked)
+                {
+                    grpPennyExtCtrl.Enabled = true;
+                }
+                console.PennyPresent = false;
+                //console.PennyLanePresent = true;
+                // chkGeneralRXOnly.Enabled = true;
+                // chkGeneralRXOnly.Enabled = false;
+            }
+            console.PennyLanePresent = chkPennyLane.Checked;
         }
 
         private void chkPennyPresent_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (!chkPennyPresent.Checked)
+            {
+                //console.PennyPresent = false;
+                grpPennyExtCtrl.Enabled = false;
+                chkPennyExtCtrl.Checked = false;
+                chkPennyExtCtrl.Enabled = false;
+            }
+            else
+            {
+                chkPennyLane.Checked = false;
+                chkPennyExtCtrl.Enabled = true;
+                if (chkPennyExtCtrl.Checked)
+                {
+                    grpPennyExtCtrl.Enabled = true;
+                }
+                //console.PennyPresent = true;
+                // chkGeneralRXOnly.Enabled = true;
+                console.PennyLanePresent = false;
+            }
+            console.PennyPresent = chkPennyPresent.Checked;
         }
 
         private void checkHPSDRDefaults(object sender, System.EventArgs e)
