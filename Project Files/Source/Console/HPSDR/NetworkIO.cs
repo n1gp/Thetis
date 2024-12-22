@@ -74,6 +74,10 @@ namespace Thetis
         public static HPSDRHW BoardID { get; set; } = HPSDRHW.Hermes;
         public static byte FWCodeVersion { get; set; } = 0;
         public static byte BetaVersion { get; set; } = 0;
+        public static byte Merc0Version { get; set; } = 0;
+        public static byte Merc1Version { get; set; } = 0;
+        public static byte MetisVersion { get; set; } = 0;
+        public static byte PenVersion { get; set; } = 0;
         public static byte ProtocolSupported { get; set; } = 0;        
         public static string EthernetHostIPAddress { get; set; } = "";
         public static int EthernetHostPort { get; set; } = 0;
@@ -265,6 +269,10 @@ namespace Thetis
             BoardID = hpsdrd[chosenDevice].deviceType;
             FWCodeVersion = hpsdrd[chosenDevice].codeVersion;
             BetaVersion = hpsdrd[chosenDevice].betaVersion;
+            Merc0Version = hpsdrd[chosenDevice].MercuryVersion_0;
+            Merc1Version = hpsdrd[chosenDevice].MercuryVersion_1;
+            PenVersion = hpsdrd[chosenDevice].PennyVersion;
+            MetisVersion = hpsdrd[chosenDevice].MetisVersion;
             ProtocolSupported = hpsdrd[chosenDevice].protocolSupported;
             HpSdrHwIpAddress = hpsdrd[chosenDevice].IPAddress;
             HpSdrHwMacAddress = hpsdrd[chosenDevice].MACAddress;

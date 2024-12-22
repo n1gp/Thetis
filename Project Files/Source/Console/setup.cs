@@ -822,8 +822,10 @@ namespace Thetis
             bool include_extra_p1_rate = false;
             int[] p1_rates = include_extra_p1_rate ? new int[] { 48000, 96000, 192000, 384000 } : new int[] { 48000, 96000, 192000 };
             int[] p2_rates = { 48000, 96000, 192000, 384000, 768000, 1536000 };
+            int[] atlas_p2_rates = { 48000, 96000, 192000, 384000 };
 
-            int[] rates = NetworkIO.CurrentRadioProtocol == RadioProtocol.ETH ? p2_rates : p1_rates;
+            int[] rates = (NetworkIO.CurrentRadioProtocol == RadioProtocol.ETH &&
+                           console.CurrentHPSDRHardware != HPSDRHW.Atlas) ? p2_rates : atlas_p2_rates;
 
             foreach (int rate in rates)
             {
@@ -5059,6 +5061,12 @@ namespace Thetis
             set { chkAlexPresent.Checked = value; }
         }
 
+        public bool ExcaliburPresent
+        {
+            get { return chkExcaliburPresent.Checked; }
+            set { chkExcaliburPresent.Checked = value; }
+        }
+
         public bool MercuryPresent
         {
             get { return chkMercuryPresent.Checked; }
@@ -6270,7 +6278,7 @@ namespace Thetis
             if (console.CurrentHPSDRModel == HPSDRModel.ANAN200D || console.CurrentHPSDRModel == HPSDRModel.ANAN100D ||
                 console.CurrentHPSDRModel == HPSDRModel.ANAN8000D || console.CurrentHPSDRModel == HPSDRModel.ANAN7000D ||
                 console.CurrentHPSDRModel == HPSDRModel.ANAN_G2 || console.CurrentHPSDRModel == HPSDRModel.ANAN_G2_1K ||
-                console.CurrentHPSDRModel == HPSDRModel.ANVELINAPRO3)
+                console.CurrentHPSDRModel == HPSDRModel.HPSDR || console.CurrentHPSDRModel == HPSDRModel.ANVELINAPRO3)
             {
                 if (!tcGeneral.TabPages.Contains(tpADC))
                 {
@@ -12531,10 +12539,18 @@ namespace Thetis
         }
         private void chkPennyLane_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (chkPennyLane.Checked)
+            {
+                chkPennyPresent.Checked = false;
+            }
         }
 
         private void chkPennyPresent_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (chkPennyPresent.Checked)
+            {
+                chkPennyLane.Checked = false;
+            }
         }
 
         private void checkHPSDRDefaults(object sender, System.EventArgs e)
@@ -12568,6 +12584,19 @@ namespace Thetis
             console.SetComboPreampForHPSDR();
 
             udHermesStepAttenuatorData_ValueChanged(this, EventArgs.Empty);
+        }
+
+        private void chkExcaliburPresent_CheckedChanged(object sender, System.EventArgs e)
+        {
+            if (chkExcaliburPresent.Checked)
+            {
+                //radAtlas10MHz.Checked = true;
+                //groupBox10MhzClock.Enabled = false;
+            }
+            else
+            {
+                //groupBox10MhzClock.Enabled = true;
+            }
         }
 
         public byte BandBBitMask = 0x70; // 4x3 split
@@ -13881,8 +13910,14 @@ namespace Thetis
             if (console.PowerOn && console.CurrentHPSDRModel == HPSDRModel.HPSDR)
             {
                 grpVersion.Visible = true;
+                console.RX2PreampPresent = NetworkIO.Merc1Version != 0;
                 lblMercury2FWVer.Visible = console.RX2PreampPresent;
-
+                lblMetisCodeVersion.Text = "Metis: " + NetworkIO.MetisVersion.ToString("0\\.0");
+                lblPenelopeFWVer.Text = "Penny: " + NetworkIO.PenVersion.ToString("0\\.0");
+                lblMercuryFWVer.Text = "Mercury0: " + NetworkIO.Merc0Version.ToString("0\\.0");
+                if (lblMercury2FWVer.Visible)
+                    lblMercury2FWVer.Text = "Mercury1: " + NetworkIO.Merc1Version.ToString("0\\.0");
+                lblOzyFWVer.Visible = false;
                 lblOzyFX2.Text = "";
             }
             else grpVersion.Visible = false;
@@ -19648,6 +19683,56 @@ namespace Thetis
 
             switch (Common.StringModelToEnum(comboRadioModel.Text))
             {
+                case HPSDRModel.HPSDR:
+                    console.CurrentHPSDRModel = HPSDRModel.HPSDR;
+                    chkPennyPresent.Enabled = true;
+                    chkPennyPresent.Visible = true;
+                    chkPennyLane.Enabled = true;
+                    chkPennyLane.Visible = true;
+                    //radPenny10MHz.Checked = true;
+                    //rad12288MHzPenny.Checked = true;
+                    chkMercuryPresent.Enabled = true;
+                    chkMercuryPresent.Visible = true;
+                    chkExcaliburPresent.Enabled = true;
+                    chkExcaliburPresent.Visible = true;
+                    chkAlexPresent.Enabled = true;
+                    chkApolloPresent.Enabled = false;
+                    chkApolloPresent.Visible = false;
+                    //groupBox10MhzClock.Visible = true;
+                    //groupBox122MHz.Visible = true;
+                    //groupBoxMicSource.Visible = true;
+                    chkGeneralRXOnly.Visible = true;
+                    chkHermesStepAttenuator.Enabled = false; // turn this off MW0LGE_21d
+                    udHermesStepAttenuatorData.Enabled = false;
+                    chkRX2StepAtt.Checked = false;
+                    chkRX2StepAtt.Enabled = false;
+                    udHermesStepAttenuatorDataRX2.Enabled = false;
+                    groupBoxRXOptions.Text = "HPSDR Options";
+                    grpMetisAddr.Text = "HPSDR Address";
+                    grpHermesStepAttenuator.Text = "Hermes Step Attenuator";
+                    chkAutoPACalibrate.Checked = false;
+                    chkAutoPACalibrate.Visible = false;
+                    labelRXAntControl.Text = "  RX1   RX2    XVTR";
+                    RXAntChk1Name = "RX1";
+                    RXAntChk2Name = "RX2";
+                    RXAntChk3Name = "XVTR";
+                    labelATTOnTX.Visible = true;
+                    udATTOnTX.Visible = true;
+                    chkRxOutOnTx.Text = "RX 1 OUT on Tx";
+                    chkEXT1OutOnTx.Text = "RX 2 IN on Tx";
+                    chkEXT2OutOnTx.Text = "RX 1 IN on Tx";
+                    chkEXT2OutOnTx.Visible = true;
+                    groupBoxHPSDRHW.Visible = true;
+                    chkDisableRXOut.Visible = false;
+                    chkBPF2Gnd.Visible = false;
+                    radDDC0ADC2.Enabled = true;
+                    radDDC1ADC2.Enabled = true;
+                    radDDC2ADC2.Enabled = true;
+                    radDDC3ADC2.Enabled = true;
+                    radDDC4ADC2.Enabled = true;
+                    radDDC5ADC2.Enabled = true;
+                    radDDC6ADC2.Enabled = true;
+                    break;
                 case HPSDRModel.HERMES:
                     console.CurrentHPSDRModel = HPSDRModel.HERMES;
                     chkAlexPresent.Enabled = true;
@@ -20351,6 +20436,11 @@ namespace Thetis
 
             switch (console.CurrentHPSDRModel)
             {
+                case HPSDRModel.HPSDR:
+                    bADC0 = true;
+                    if(NetworkIO.Merc1Version != 0)
+                        bADC1 = true;
+                    break;
                 case HPSDRModel.HERMES:
                 case HPSDRModel.ANAN10:
                 case HPSDRModel.ANAN10E:

@@ -266,6 +266,7 @@
             this.groupBoxHPSDRHW = new System.Windows.Forms.GroupBoxTS();
             this.chkApolloPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkPennyLane = new System.Windows.Forms.CheckBoxTS();
+            this.chkExcaliburPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkAlexPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkMercuryPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkPennyPresent = new System.Windows.Forms.CheckBoxTS();
@@ -8542,6 +8543,7 @@
             this.comboRadioModel.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboRadioModel.FormattingEnabled = true;
             this.comboRadioModel.Items.AddRange(new object[] {
+            "HPSDR",
             "HERMES",
             "ANAN-10",
             "ANAN-10E",
@@ -8626,6 +8628,7 @@
             // 
             this.groupBoxHPSDRHW.Controls.Add(this.chkApolloPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkPennyLane);
+            this.groupBoxHPSDRHW.Controls.Add(this.chkExcaliburPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkAlexPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkMercuryPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkPennyPresent);
@@ -8663,6 +8666,18 @@
             this.chkPennyLane.UseVisualStyleBackColor = true;
             this.chkPennyLane.Visible = false;
             this.chkPennyLane.CheckedChanged += new System.EventHandler(this.chkPennyLane_CheckedChanged);
+            //
+            // chkExcaliburPresent
+            //
+            this.chkExcaliburPresent.AutoSize = true;
+            this.chkExcaliburPresent.Image = null;
+            this.chkExcaliburPresent.Location = new System.Drawing.Point(25, 120);
+            this.chkExcaliburPresent.Name = "chkExcaliburPresent";
+            this.chkExcaliburPresent.Size = new System.Drawing.Size(69, 17);
+            this.chkExcaliburPresent.TabIndex = 2;
+            this.chkExcaliburPresent.Text = "Excalibur";
+            this.chkExcaliburPresent.UseVisualStyleBackColor = true;
+            this.chkExcaliburPresent.CheckedChanged += new System.EventHandler(this.chkExcaliburPresent_CheckedChanged);
             // 
             // chkAlexPresent
             // 
@@ -23345,6 +23360,7 @@
             this.grpVersion.Controls.Add(this.lblMercury2FWVer);
             this.grpVersion.Controls.Add(this.lblPenelopeFWVer);
             this.grpVersion.Controls.Add(this.lblMercuryFWVer);
+            this.grpVersion.Controls.Add(this.lblMetisCodeVersion);
             this.grpVersion.Controls.Add(this.lblOzyFWVer);
             this.grpVersion.Controls.Add(this.lblOzyFX2);
             this.grpVersion.Location = new System.Drawing.Point(346, 118);
@@ -67886,6 +67902,7 @@
         private TrackBarTS tbMultiRXFilterAlpha;
         private CheckBoxTS chkWheelTuneVFOB;
         private CheckBoxTS chkAlexPresent;
+        private CheckBoxTS chkExcaliburPresent;
         private CheckBoxTS chkPennyPresent;
         private CheckBoxTS chkMercuryPresent;
         private GroupBoxTS grpHPSDRFreqCalDbg;

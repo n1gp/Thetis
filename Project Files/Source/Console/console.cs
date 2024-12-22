@@ -7851,6 +7851,78 @@ namespace Thetis
                         Rate[3] = rx2_rate;
                     }
                     break;
+
+                case HPSDRModel.HPSDR:
+                    P1_rxcount = 4;                     // RX4 used for puresignal feedback
+                    nddc = 4;
+                    if (!_mox)
+                    {
+                        if (!diversity2)
+                        {
+                            P1_DDCConfig = 4;
+                            DDCEnable = DDC0;
+                            SyncEnable = 0;
+                            Rate[0] = rx1_rate;
+                            cntrl1 = rx_adc_ctrl1 & 0xff;
+                            cntrl2 = rx_adc_ctrl2 & 0x3f;
+
+                            if (rx2_enabled)
+                            {
+                                DDCEnable += DDC1;
+                                Rate[1] = rx2_rate;
+                            }
+                        }
+                        else
+                        {
+                            P1_DDCConfig = 5;
+                            DDCEnable = DDC0;
+                            SyncEnable = DDC1;
+                            Rate[0] = rx1_rate;
+                            Rate[1] = rx1_rate;
+                            cntrl1 = rx_adc_ctrl1 & 0xff;
+                            cntrl2 = rx_adc_ctrl2 & 0x3f;
+                        }
+                    }
+                    else
+                    {
+                        if (!diversity2 && !psform.PSEnabled)
+                        {
+                            P1_DDCConfig = 4;
+                            DDCEnable = DDC0;
+                            SyncEnable = 0;
+                            Rate[0] = rx1_rate;
+                            cntrl1 = 0;
+                            cntrl2 = 0;
+
+                            if (rx2_enabled)
+                            {
+                                DDCEnable += DDC1;
+                                Rate[1] = rx2_rate;
+                            }
+                        }
+                        else if (diversity2 && !psform.PSEnabled)
+                        {
+                            P1_DDCConfig = 5;
+                            DDCEnable = DDC0;
+                            SyncEnable = DDC1;
+                            Rate[0] = rx1_rate;
+                            Rate[1] = rx1_rate;
+                            cntrl1 = rx_adc_ctrl1 & 0xff;
+                            cntrl2 = rx_adc_ctrl2 & 0x3f;
+                        }
+                        else // transmitting and PS is ON
+                        {
+                            P1_DDCConfig = 6;
+                            DDCEnable = DDC0;
+                            SyncEnable = DDC1;
+                            Rate[0] = ps_rate;
+                            Rate[1] = ps_rate;
+                            cntrl1 = 4;
+                            cntrl2 = 0;
+                        }
+                    }
+                    break;
+
                 case HPSDRModel.HERMES:
                 case HPSDRModel.ANAN10:
                 case HPSDRModel.ANAN100:
@@ -7995,9 +8067,6 @@ namespace Thetis
                         }
                     }
                     break;
-
-                case HPSDRModel.HPSDR:
-                    break;
             }
 
             NetworkIO.EnableRxs(DDCEnable);
@@ -8072,7 +8141,7 @@ namespace Thetis
                                 break;
                         }
                         break;
-                    //case HPSDRHW.Atlas: /// ???
+                    case HPSDRHW.Atlas: //
                     case HPSDRHW.Hermes: // ANAN-10 ANAN-100 Heremes
                     case HPSDRHW.HermesII: // ANAN-10E ANAN-100B HeremesII
                         switch (tot)
@@ -8165,7 +8234,7 @@ namespace Thetis
                                 break;
                         }
                         break;
-                    //                    case HPSDRHW.Atlas: /// ???
+                    case HPSDRHW.Atlas: //
                     case HPSDRHW.Hermes: // ANAN-10 ANAN-100 Heremes (4 adc)
                         switch (tot)
                         {
@@ -14685,6 +14754,16 @@ namespace Thetis
 
                 switch (current_hpsdr_model)
                 {
+                    case HPSDRModel.HPSDR:
+                        chkDX.Checked = false;
+                        chkDX.Visible = false;
+                        rx2_preamp_present = false;
+                        NetworkIO.SetRxADC(2);
+                        NetworkIO.SetMKIIBPF(0);
+                        cmaster.SetADCSupply(0, 33);
+                        NetworkIO.LRAudioSwap(1);
+                        CurrentHPSDRHardware = HPSDRHW.Atlas;
+                        break;
                     case HPSDRModel.HERMES:
                         chkDX.Checked = false;
                         chkDX.Visible = false;
@@ -14824,7 +14903,6 @@ namespace Thetis
                 switch (current_hpsdr_model)
                 {
                     case HPSDRModel.HPSDR:
-                        break;
                     case HPSDRModel.HERMES:
                     case HPSDRModel.ANAN10:
                     case HPSDRModel.ANAN10E:
@@ -15052,7 +15130,7 @@ namespace Thetis
             int adcControl = 0;
             if (NetworkIO.CurrentRadioProtocol == RadioProtocol.ETH)
             {
-                adcControl = ddc < 4 ? RXADCCtrl1 : RXADCCtrl2;
+                adcControl = (ddc < 4 && current_hpsdr_model != HPSDRModel.HPSDR) ? RXADCCtrl1 : RXADCCtrl2;
                 if (ddc >= 4) ddc -= 4; // ddc4 becomes the ddc0 point in rxdacctrl2
             }
             else if (NetworkIO.CurrentRadioProtocol == RadioProtocol.USB)
@@ -15330,6 +15408,7 @@ namespace Thetis
 
             switch (CurrentHPSDRModel)
             {
+                case HPSDRModel.HPSDR:
                 case HPSDRModel.HERMES:
                 case HPSDRModel.ANAN10:
                 case HPSDRModel.ANAN10E:
@@ -15365,6 +15444,7 @@ namespace Thetis
 
             switch (CurrentHPSDRModel)
             {
+                case HPSDRModel.HPSDR:
                 case HPSDRModel.HERMES:
                 case HPSDRModel.ANAN10:
                 case HPSDRModel.ANAN10E:
@@ -27758,6 +27838,7 @@ namespace Thetis
                     switch (current_hpsdr_model)
                     {
                         // 2-DDC Models
+                        case HPSDRModel.HPSDR:
                         case HPSDRModel.HERMES:
                         case HPSDRModel.ANAN10E:
                         case HPSDRModel.ANAN10:

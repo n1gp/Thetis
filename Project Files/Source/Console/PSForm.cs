@@ -499,6 +499,8 @@ namespace Thetis
                 //protocol 2
                 if (console.CurrentHPSDRHardware == HPSDRHW.Saturn)
                     return 0.6121;
+                else if (console.CurrentHPSDRHardware == HPSDRHW.Atlas)
+                    return 0.3636;
                 else
                     return 0.2899;
             }
