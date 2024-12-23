@@ -18672,6 +18672,7 @@ namespace Thetis
 
         public bool PennyPresent = false;
         public bool MercuryPresent = false;
+        public bool Mercury2Present = false;
 
         private bool disable_6m_lna_on_rx = false;
         public bool Disable6mLNAonRX

@@ -269,6 +269,7 @@
             this.chkExcaliburPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkAlexPresent = new System.Windows.Forms.CheckBoxTS();
             this.chkMercuryPresent = new System.Windows.Forms.CheckBoxTS();
+            this.chkMercury2Present = new System.Windows.Forms.CheckBoxTS();
             this.chkPennyPresent = new System.Windows.Forms.CheckBoxTS();
             this.grpGeneralHardwareORION = new System.Windows.Forms.GroupBoxTS();
             this.panelSaturnMicInput = new System.Windows.Forms.PanelTS();
@@ -8628,9 +8629,10 @@
             // 
             this.groupBoxHPSDRHW.Controls.Add(this.chkApolloPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkPennyLane);
-            this.groupBoxHPSDRHW.Controls.Add(this.chkExcaliburPresent);
+            //this.groupBoxHPSDRHW.Controls.Add(this.chkExcaliburPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkAlexPresent);
             this.groupBoxHPSDRHW.Controls.Add(this.chkMercuryPresent);
+            this.groupBoxHPSDRHW.Controls.Add(this.chkMercury2Present);
             this.groupBoxHPSDRHW.Controls.Add(this.chkPennyPresent);
             this.groupBoxHPSDRHW.Location = new System.Drawing.Point(208, 8);
             this.groupBoxHPSDRHW.Name = "groupBoxHPSDRHW";
@@ -8669,15 +8671,15 @@
             //
             // chkExcaliburPresent
             //
-            this.chkExcaliburPresent.AutoSize = true;
-            this.chkExcaliburPresent.Image = null;
-            this.chkExcaliburPresent.Location = new System.Drawing.Point(25, 120);
-            this.chkExcaliburPresent.Name = "chkExcaliburPresent";
-            this.chkExcaliburPresent.Size = new System.Drawing.Size(69, 17);
-            this.chkExcaliburPresent.TabIndex = 2;
-            this.chkExcaliburPresent.Text = "Excalibur";
-            this.chkExcaliburPresent.UseVisualStyleBackColor = true;
-            this.chkExcaliburPresent.CheckedChanged += new System.EventHandler(this.chkExcaliburPresent_CheckedChanged);
+            //this.chkExcaliburPresent.AutoSize = true;
+            //this.chkExcaliburPresent.Image = null;
+            //this.chkExcaliburPresent.Location = new System.Drawing.Point(25, 100);
+            //this.chkExcaliburPresent.Name = "chkExcaliburPresent";
+            //this.chkExcaliburPresent.Size = new System.Drawing.Size(69, 17);
+            //this.chkExcaliburPresent.TabIndex = 2;
+            //this.chkExcaliburPresent.Text = "Excalibur";
+            //this.chkExcaliburPresent.UseVisualStyleBackColor = true;
+            //this.chkExcaliburPresent.CheckedChanged += new System.EventHandler(this.chkExcaliburPresent_CheckedChanged);
             // 
             // chkAlexPresent
             // 
@@ -8707,6 +8709,21 @@
             this.chkMercuryPresent.UseVisualStyleBackColor = true;
             this.chkMercuryPresent.Visible = false;
             this.chkMercuryPresent.CheckedChanged += new System.EventHandler(this.chkMercuryPresent_CheckedChanged);
+            // 
+            // chkMercury2Present
+            //
+            this.chkMercury2Present.AutoSize = true;
+            this.chkMercury2Present.Checked = false;
+            this.chkMercury2Present.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkMercury2Present.Image = null;
+            this.chkMercury2Present.Location = new System.Drawing.Point(25, 120);
+            this.chkMercury2Present.Name = "chkMercury2Present";
+            this.chkMercury2Present.Size = new System.Drawing.Size(64, 17);
+            this.chkMercury2Present.TabIndex = 2;
+            this.chkMercury2Present.Text = "2nd Mercury";
+            this.chkMercury2Present.UseVisualStyleBackColor = true;
+            this.chkMercury2Present.Visible = false;
+            this.chkMercury2Present.CheckedChanged += new System.EventHandler(this.chkMercury2Present_CheckedChanged);
             // 
             // chkPennyPresent
             // 
@@ -67905,6 +67922,7 @@
         private CheckBoxTS chkExcaliburPresent;
         private CheckBoxTS chkPennyPresent;
         private CheckBoxTS chkMercuryPresent;
+        private CheckBoxTS chkMercury2Present;
         private GroupBoxTS grpHPSDRFreqCalDbg;
         private LabelTS labelTS10;
         private NumericUpDownTS udHPSDRFreqCorrectFactor;

@@ -5073,6 +5073,12 @@ namespace Thetis
             set { chkMercuryPresent.Checked = value; }
         }
 
+        public bool Mercury2Present
+        {
+            get { return chkMercury2Present.Checked; }
+            set { chkMercury2Present.Checked = value; }
+        }
+
         public bool PenelopePresent
         {
             get { return chkPennyPresent.Checked; }
@@ -12562,6 +12568,11 @@ namespace Thetis
             console.MercuryPresent = true;
         }
 
+        private void chkMercury2Present_CheckedChanged(object sender, System.EventArgs e)
+        {
+            console.Mercury2Present = true;
+        }
+
         private void chkAlexPresent_CheckedChanged(object sender, System.EventArgs e)
         {
             if (initializing) return;
@@ -13910,7 +13921,7 @@ namespace Thetis
             if (console.PowerOn && console.CurrentHPSDRModel == HPSDRModel.HPSDR)
             {
                 grpVersion.Visible = true;
-                console.RX2PreampPresent = NetworkIO.Merc1Version != 0;
+                console.RX2PreampPresent = NetworkIO.Merc1Version != 0 && NetworkIO.Merc1Version != 255;
                 lblMercury2FWVer.Visible = console.RX2PreampPresent;
                 lblMetisCodeVersion.Text = "Metis: " + NetworkIO.MetisVersion.ToString("0\\.0");
                 lblPenelopeFWVer.Text = "Penny: " + NetworkIO.PenVersion.ToString("0\\.0");
@@ -19693,9 +19704,14 @@ namespace Thetis
                     //rad12288MHzPenny.Checked = true;
                     chkMercuryPresent.Enabled = true;
                     chkMercuryPresent.Visible = true;
-                    chkExcaliburPresent.Enabled = true;
-                    chkExcaliburPresent.Visible = true;
+                    chkMercury2Present.Enabled = true;
+                    chkMercury2Present.Visible = true;
+                    chkMercury2Present.Checked = false;
+                    //chkExcaliburPresent.Enabled = false;
+                    //chkExcaliburPresent.Visible = false;
                     chkAlexPresent.Enabled = true;
+                    //chkAlexPresent.Checked = false;
+                    //chkAlexPresent.Visible = true;
                     chkApolloPresent.Enabled = false;
                     chkApolloPresent.Visible = false;
                     //groupBox10MhzClock.Visible = true;
@@ -20438,7 +20454,7 @@ namespace Thetis
             {
                 case HPSDRModel.HPSDR:
                     bADC0 = true;
-                    if(NetworkIO.Merc1Version != 0)
+                    if (Mercury2Present)
                         bADC1 = true;
                     break;
                 case HPSDRModel.HERMES:
