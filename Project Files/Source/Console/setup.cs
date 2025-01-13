@@ -19714,7 +19714,6 @@ namespace Thetis
                     //chkExcaliburPresent.Enabled = false;
                     //chkExcaliburPresent.Visible = false;
                     chkAlexPresent.Enabled = true;
-                    //chkAlexPresent.Checked = false;
                     //chkAlexPresent.Visible = true;
                     chkApolloPresent.Enabled = false;
                     chkApolloPresent.Visible = false;
@@ -19759,6 +19758,10 @@ namespace Thetis
                     chkApolloPresent.Enabled = true;
                     chkApolloPresent.Visible = true;
                     chkGeneralRXOnly.Visible = true;
+                    chkPennyPresent.Visible = false;
+                    chkPennyLane.Visible = false;
+                    chkMercuryPresent.Visible = false;
+                    chkMercury2Present.Visible = false;
                     chkHermesStepAttenuator.Enabled = false; // turn this off MW0LGE_21d
                     udHermesStepAttenuatorData.Enabled = false;
                     chkRX2StepAtt.Checked = false;

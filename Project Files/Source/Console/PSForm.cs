@@ -500,7 +500,7 @@ namespace Thetis
                 if (console.CurrentHPSDRHardware == HPSDRHW.Saturn)
                     return 0.6121;
                 else if (console.CurrentHPSDRHardware == HPSDRHW.Atlas)
-                    return 0.3636;
+                    return 0.3629;
                 else
                     return 0.2899;
             }
