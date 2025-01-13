@@ -8,15 +8,21 @@ running Protocol 2.
 The Protocol 2 firmware for those boards can be found here:
 https://github.com/TAPR/OpenHPSDR-Firmware/tree/master/Protocol%202/Atlas
 
-
+Without PureSignal:
 ![image](https://github.com/user-attachments/assets/328875d6-7dea-4ff6-b7e1-8cb283548e0f)
 
 
+With PureSignal:
 ![image](https://github.com/user-attachments/assets/bd0e84fe-aa6c-4525-96ab-a86b7f306bbd)
 
 
+LVDS Hookup:
 ![image](https://github.com/user-attachments/assets/754640cb-c7e9-43dd-abe9-9ae71aa5b2f3)
 
 
-
+Antenna Selection, using RX1 in for PS Feedback:
 ![image](https://github.com/user-attachments/assets/79bff34b-08c1-402c-996b-23b225a6313f)
+
+
+Select HPSDR:
+![image](https://github.com/user-attachments/assets/b98621c1-2ffc-4ac7-9a63-dc417f448fd9)
