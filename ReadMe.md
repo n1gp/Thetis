@@ -1,5 +1,5 @@
-# Latest Release v2.10.3.7 (Atlas) December, 23rd 2024
-https://github.com/n1gp/Thetis/releases/tag/v2.10.3.7
+# Latest Release v2.10.3.8 (Atlas) January, 13th 2025
+https://github.com/n1gp/Thetis/releases/tag/v2.10.3.8
 
 This is a fork of Richie's / MW0LGE Thetis with modifications
 for supporting the HPSDR Atlas boards (Mercury, Metis, and Pennylane)
