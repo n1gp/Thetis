@@ -19721,8 +19721,8 @@ namespace Thetis
                     //groupBox122MHz.Visible = true;
                     //groupBoxMicSource.Visible = true;
                     chkGeneralRXOnly.Visible = true;
-                    chkHermesStepAttenuator.Enabled = false; // turn this off MW0LGE_21d
-                    udHermesStepAttenuatorData.Enabled = false;
+                    chkHermesStepAttenuator.Enabled = true;
+                    udHermesStepAttenuatorData.Enabled = true;
                     chkRX2StepAtt.Checked = false;
                     chkRX2StepAtt.Enabled = false;
                     udHermesStepAttenuatorDataRX2.Enabled = false;
@@ -19762,8 +19762,8 @@ namespace Thetis
                     chkPennyLane.Visible = false;
                     chkMercuryPresent.Visible = false;
                     chkMercury2Present.Visible = false;
-                    chkHermesStepAttenuator.Enabled = false; // turn this off MW0LGE_21d
-                    udHermesStepAttenuatorData.Enabled = false;
+                    chkHermesStepAttenuator.Enabled = true;
+                    udHermesStepAttenuatorData.Enabled = true;
                     chkRX2StepAtt.Checked = false;
                     chkRX2StepAtt.Enabled = false;
                     udHermesStepAttenuatorDataRX2.Enabled = false;

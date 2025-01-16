@@ -378,7 +378,7 @@ void SetAlexAtten(int bits)
 {
 	if (mkiibpf) return;
 
-	if ((prbpfilter->_20_dB_Atten | prbpfilter->_10_dB_Atten) != bits)
+	if ((prbpfilter->_20_dB_Atten << 1 | prbpfilter->_10_dB_Atten) != bits)
 	{
 		prbpfilter->_20_dB_Atten = (bits & 0x2) == 0x2;
 		prbpfilter->_10_dB_Atten = bits & 0x1;

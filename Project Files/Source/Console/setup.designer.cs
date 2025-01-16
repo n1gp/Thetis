@@ -7239,6 +7239,7 @@
             this.comboHistory_reading_1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboHistory_reading_1.FormattingEnabled = true;
             this.comboHistory_reading_1.Items.AddRange(new object[] {
+            "HPSDR",
             "HERMES",
             "ANAN-10",
             "ANAN-10E",
@@ -7399,6 +7400,7 @@
             this.comboHistory_reading_0.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.comboHistory_reading_0.FormattingEnabled = true;
             this.comboHistory_reading_0.Items.AddRange(new object[] {
+            "HPSDR",
             "HERMES",
             "ANAN-10",
             "ANAN-10E",
