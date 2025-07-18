@@ -3243,7 +3243,7 @@ namespace Thetis
                     resizeDX2D();
                 }
             }
-            catch (Exception e)
+            catch (Exception)
             {
 
             }

@@ -26240,7 +26240,7 @@ namespace Thetis
                         HandleXml(tmp);
                     }
                 }
-                catch (SocketException e) // handle blocking exception
+                catch (SocketException) // handle blocking exception
                 {
                     await Task.Delay(500);
                     continue;
@@ -49405,7 +49405,7 @@ namespace Thetis
                 this.BackgroundImageLayout = ImageLayout.None;
                 this.BackgroundImage = resized_image;
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 if (this.BackgroundImage == null)
                 {
