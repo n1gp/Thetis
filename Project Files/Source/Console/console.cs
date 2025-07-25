@@ -31142,43 +31142,43 @@ namespace Thetis
         }
         //
 
-        //[2.10.3.12]MW0LGE added this force option so that the filter will get set if focus is lost, ie by the enter keypress being trapped in console.keypress
-        private bool filter_console_controls_force_update = false;
+        //[2.10.3.12]MW0LGE added this force so that the filter will get set if focus is lost, ie by the enter keypress being trapped in console.keypress
+        private bool _filter_console_controls_force_update = false;
         private void udFilterLow_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udFilterLow_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         private void udFilterHigh_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udFilterHigh_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         private void udTXFilterLow_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udTXFilterLow_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         private void udTXFilterHigh_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udTXFilterHigh_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         private void udRX2FilterLow_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udRX2FilterLow_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         private void udRX2FilterHigh_LostFocus(object sender, EventArgs e)
         {
-            filter_console_controls_force_update = true;
+            _filter_console_controls_force_update = true;
             udRX2FilterHigh_ValueChanged(sender, e);
-            filter_console_controls_force_update = false;
+            _filter_console_controls_force_update = false;
         }
         //
 
@@ -35530,7 +35530,7 @@ namespace Thetis
         private void udFilterLow_ValueChanged(object sender, System.EventArgs e)
         {
             //MW0LGE_21d filter - work if mouse over as well
-            if (filter_console_controls_force_update || udFilterLow.Focused || udFilterLow.ClientRectangle.Contains(udFilterLow.PointToClient(Control.MousePosition)))
+            if (_filter_console_controls_force_update || udFilterLow.Focused || udFilterLow.ClientRectangle.Contains(udFilterLow.PointToClient(Control.MousePosition)))
             {
                 if (udFilterLow.Value >= udFilterHigh.Value - 10)
                 {
@@ -35551,7 +35551,7 @@ namespace Thetis
         private void udFilterHigh_ValueChanged(object sender, System.EventArgs e)
         {
             //MW0LGE_21d filter - work if mouse over as well
-            if (filter_console_controls_force_update || udFilterHigh.Focused || udFilterHigh.ClientRectangle.Contains(udFilterHigh.PointToClient(Control.MousePosition)))
+            if (_filter_console_controls_force_update || udFilterHigh.Focused || udFilterHigh.ClientRectangle.Contains(udFilterHigh.PointToClient(Control.MousePosition)))
             {
                 if (udFilterHigh.Value <= udFilterLow.Value + 10)
                 {
@@ -39135,7 +39135,7 @@ namespace Thetis
         private void udRX2FilterLow_ValueChanged(object sender, System.EventArgs e)
         {
             //MW0LGE_21d filter
-            if (filter_console_controls_force_update || udRX2FilterLow.Focused || udRX2FilterLow.ClientRectangle.Contains(udRX2FilterLow.PointToClient(Control.MousePosition)))
+            if (_filter_console_controls_force_update || udRX2FilterLow.Focused || udRX2FilterLow.ClientRectangle.Contains(udRX2FilterLow.PointToClient(Control.MousePosition)))
             {
                 if (udRX2FilterLow.Value >= udRX2FilterHigh.Value - 10)
                 {
@@ -39162,7 +39162,7 @@ namespace Thetis
         private void udRX2FilterHigh_ValueChanged(object sender, System.EventArgs e)
         {
             //MW0LGE_21d filter
-            if (filter_console_controls_force_update || udRX2FilterHigh.Focused || udRX2FilterHigh.ClientRectangle.Contains(udRX2FilterHigh.PointToClient(Control.MousePosition)))
+            if (_filter_console_controls_force_update || udRX2FilterHigh.Focused || udRX2FilterHigh.ClientRectangle.Contains(udRX2FilterHigh.PointToClient(Control.MousePosition)))
             {
                 if (udRX2FilterHigh.Value <= udRX2FilterLow.Value + 10)
                 {
