@@ -31142,7 +31142,7 @@ namespace Thetis
         }
         //
 
-        //
+        //[2.10.3.12]MW0LGE added this force option so that the filter will get set if focus is lost, ie by the enter keypress being trapped in console.keypress
         private bool filter_console_controls_force_update = false;
         private void udFilterLow_LostFocus(object sender, EventArgs e)
         {
