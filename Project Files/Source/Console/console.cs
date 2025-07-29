@@ -852,8 +852,6 @@ namespace Thetis
             //[2.10.3.4]MW0LGE shutdown log remove
             removeShutdownLog();
 
-            //addDelegates(); // moved to init console
-
             CWFWKeyer = true;
 
             // update titlebar
@@ -7393,12 +7391,12 @@ namespace Thetis
 
         public void UpdateRX1FilterPresetLow(int val)
         {
-            UpdateRX1Filters(val, (int)udFilterHigh.Value);
+            UpdateRX1Filters(val, (int)udFilterHigh.Value, true);
         }
 
         public void UpdateRX1FilterPresetHigh(int val)
         {
-            UpdateRX1Filters((int)udFilterLow.Value, val);
+            UpdateRX1Filters((int)udFilterLow.Value, val, true);
         }
 
         public void UpdateRX2FilterNames(Filter f, string old_name, string new_name)
@@ -7443,12 +7441,12 @@ namespace Thetis
 
         public void UpdateRX2FilterPresetLow(int val)
         {
-            UpdateRX2Filters(val, (int)udRX2FilterHigh.Value);
+            UpdateRX2Filters(val, (int)udRX2FilterHigh.Value, true);
         }
 
         public void UpdateRX2FilterPresetHigh(int val)
         {
-            UpdateRX2Filters((int)udRX2FilterLow.Value, val);
+            UpdateRX2Filters((int)udRX2FilterLow.Value, val, true);
         }
 
         public void UpdateVFOAFreq(string freq)
