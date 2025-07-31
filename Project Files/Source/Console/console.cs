@@ -16703,20 +16703,72 @@ namespace Thetis
             }
         }
 
+        //[2.10.3.12]MW0LGE changed so that it is filter width from 10 to max filter width
         private int cat_filter_width = 0;
+        private bool _filter_width_update_from_cat = false;
         public int CATFilterWidth
         {
             get
             {
-                cat_filter_width = ptbFilterWidth.Value;
-                return cat_filter_width;
+                //cat_filter_width = ptbFilterWidth.Value;
+                //return cat_filter_width;
+
+                int width = (ptbFilterWidth.Value + _max_filter_width) / 2;
+                width = Math.Max(10, width);
+                width = Math.Min(_max_filter_width, width);
+
+                switch (RX1DSPMode)
+                {
+                    case DSPMode.DSB:
+                    case DSPMode.FM:
+                    case DSPMode.AM:
+                    case DSPMode.SAM:
+                    case DSPMode.SPEC:
+                    case DSPMode.DRM:
+                        width *= 2;
+                        break;
+                    default:
+                        break;
+                }
+
+                return width;
             }
             set
             {
-                value = Math.Max(1, value);
-                value = Math.Min(_max_filter_width, value);
-                ptbFilterWidth.Value = value;
-                ptbFilterWidth_Scroll(this.ptbFilterWidth, EventArgs.Empty);	// added
+                //value = Math.Max(1, value);
+                //value = Math.Min(_max_filter_width, value);
+                //ptbFilterWidth.Value = value;
+                //ptbFilterWidth_Scroll(this.ptbFilterWidth, EventArgs.Empty);	// added
+
+                int multiplier;
+                switch (RX1DSPMode)
+                {
+                    case DSPMode.DSB:
+                    case DSPMode.FM:
+                    case DSPMode.AM:
+                    case DSPMode.SAM:
+                    case DSPMode.SPEC:
+                    case DSPMode.DRM:
+                        multiplier = 2;
+                        break;
+                    default:
+                        multiplier = 1;
+                        break;
+                }
+
+                int effectiveMax = _max_filter_width * multiplier;
+                int clamped = Math.Max(10, Math.Min(effectiveMax, value));
+                int sliderValue = (clamped * 2 - effectiveMax) / multiplier;
+
+                FilterWidthMode previousMode = current_filter_width_mode;
+                current_filter_width_mode = FilterWidthMode.Linear;
+
+                _filter_width_update_from_cat = true;
+                ptbFilterWidth.Value = sliderValue;
+                ptbFilterWidth_Scroll(ptbFilterWidth, EventArgs.Empty);
+                _filter_width_update_from_cat = false;
+
+                current_filter_width_mode = previousMode;
             }
         }
 
@@ -16730,14 +16782,8 @@ namespace Thetis
             {
                 value = Math.Max(-_max_filter_shift, value);
                 value = Math.Min(_max_filter_shift, value);
-                if (ptbFilterShift.Value != value)
-                {
-                    ptbFilterShift.Value = value;
-                }
-                else
-                {
-                    ptbFilterShift_Scroll(this.ptbFilterShift, EventArgs.Empty);
-                }
+                ptbFilterShift.Value = value;
+                ptbFilterShift_Scroll(this.ptbFilterShift, EventArgs.Empty);
             }
         }
 
@@ -36019,7 +36065,8 @@ namespace Thetis
         //}
 
         //private bool beyondLimit = false;
-        private int _oldFilterBW = -1;
+
+        //private int _oldFilterBW = -1;
         private void ptbFilterWidth_Scroll(object sender, System.EventArgs e)
         {
             if (_rx1_dsp_mode == DSPMode.DRM || _rx1_dsp_mode == DSPMode.SPEC || _rx1_dsp_mode == DSPMode.FM) return; // unable to shift in these modes
@@ -36027,7 +36074,7 @@ namespace Thetis
             MouseEventArgs mouseEvent = e as MouseEventArgs;
             bool bScrollUp = mouseEvent != null ? mouseEvent.Delta >= 0 : false;
 
-            SelectRX1VarFilter();
+            SelectRX1VarFilter(false, _filter_width_update_from_cat); //[2.10.3.12]MW0LGE we update below
 
             int range = ptbFilterWidth.Maximum - ptbFilterWidth.Minimum;
             int new_bw;
@@ -36055,8 +36102,28 @@ namespace Thetis
 
             new_bw = Math.Max(new_bw, 10); //10 step minimum
 
-            if (new_bw == _oldFilterBW) return; // ignore if not changed
-            _oldFilterBW = new_bw;
+            int oldBW = rx1_filters[(int)_rx1_dsp_mode].GetBW(rx1_filter);
+            switch (_rx1_dsp_mode)
+            {
+                case DSPMode.DSB:
+                case DSPMode.FM:
+                case DSPMode.AM:
+                case DSPMode.SAM:
+                case DSPMode.SPEC:
+                case DSPMode.DRM:
+                    oldBW /= 2;
+                    break;
+                default:
+                    break;
+            }
+            if (new_bw == oldBW)
+            {
+                SelectRX1VarFilter(true, _filter_width_update_from_cat);
+                return;
+            }
+
+            //if (new_bw == _oldFilterBW) return; // ignore if not changed
+            //_oldFilterBW = new_bw;
 
             int current_center = ((int)udFilterLow.Value + (int)udFilterHigh.Value) / 2;
             int low = 0, high = 0;
