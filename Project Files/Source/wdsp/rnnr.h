@@ -57,6 +57,7 @@ typedef struct _rnnr
     double *out;
 
     int buffer_size;
+    int rate;
     float* output_buffer;
     float gain;
 
@@ -68,10 +69,11 @@ typedef struct _rnnr
 
 } rnnr, *RNNR;
 
-extern RNNR create_rnnr (int run, int position, double *in, double *out);
+extern RNNR create_rnnr (int run, int position, int size, double *in, double *out, int rate);
 extern void setSize_rnnr(RNNR a, int size);
 extern void setBuffers_rnnr (RNNR a, double* in, double* out);
 extern void destroy_rnnr (RNNR a);
 extern void xrnnr (RNNR a, int pos);
+extern void setSamplerate_rnnr(RNNR a, int rate);
 
 #endif //_rnnr_h

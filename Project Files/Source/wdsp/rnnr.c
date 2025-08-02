@@ -110,7 +110,8 @@ void SetRXARNNRRun (int channel, int run)
 	}
 }
 
-void setSize_rnnr(RNNR a, int size) {
+void setSize_rnnr(RNNR a, int size) 
+{
     _aligned_free(a->output_buffer);
     a->buffer_size = size;
     a->output_buffer = malloc0(a->buffer_size * sizeof(float));
@@ -120,21 +121,28 @@ void setSize_rnnr(RNNR a, int size) {
     ring_buffer_resize(&a->output_ring, new_cap);
 }
 
-void setBuffers_rnnr (RNNR a, double* in, double* out)
+void setBuffers_rnnr(RNNR a, double* in, double* out)
 {
 	a->in = in;
 	a->out = out;
 }
 
-RNNR create_rnnr(int run, int position, double* in, double* out) {
+void setSamplerate_rnnr(RNNR a, int rate)
+{
+    a->rate = rate; // not used currently, but here for future use
+}
+
+RNNR create_rnnr(int run, int position, int size, double* in, double* out, int rate)
+{
     RNNR a = malloc0(sizeof(rnnr));
     a->run = run;
     a->position = position;
+    a->rate = rate; // not used currently, but here for future use
     a->st = rnnoise_create(NULL);
     a->frame_size = rnnoise_get_frame_size();
     a->in = in;
     a->out = out;
-    a->buffer_size = 64;
+    a->buffer_size = size;
     a->gain = 5000000.0; // 500000.0; // large gain factor, seems to change with model
 
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
@@ -146,7 +154,8 @@ RNNR create_rnnr(int run, int position, double* in, double* out) {
     return a;
 }
 
-void xrnnr(RNNR a, int pos) {
+void xrnnr(RNNR a, int pos) 
+{
     if (a->run && pos == a->position) 
     {
         int  bs = a->buffer_size;
@@ -187,7 +196,8 @@ void xrnnr(RNNR a, int pos) {
     }
 }
 
-void destroy_rnnr(RNNR a) {
+void destroy_rnnr(RNNR a) 
+{
     rnnoise_destroy(a->st);
     _aligned_free(a->to_process_buffer);
     _aligned_free(a->processed_output_buffer);
