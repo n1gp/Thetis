@@ -79,7 +79,7 @@ static int ring_buffer_get_bulk(rnnr_ring_buffer* rb, float* dest, int n)
 static void ring_buffer_resize(rnnr_ring_buffer* rb, int new_capacity)
 {
     if (new_capacity == rb->capacity) return;
-    float* new_buf = malloc0(new_capacity * sizeof * new_buf);
+    float* new_buf = malloc0(new_capacity * sizeof(float));
     int cnt = rb->count;
     for (int i = 0; i < cnt; i++)
     {
@@ -113,7 +113,7 @@ void SetRXARNNRRun (int channel, int run)
 void setSize_rnnr(RNNR a, int size) {
     _aligned_free(a->output_buffer);
     a->buffer_size = size;
-    a->output_buffer = malloc0(a->buffer_size * sizeof * a->output_buffer);
+    a->output_buffer = malloc0(a->buffer_size * sizeof(float));
 
     int new_cap = a->frame_size + a->buffer_size;
     ring_buffer_resize(&a->input_ring, new_cap);
@@ -136,11 +136,13 @@ RNNR create_rnnr(int run, int position, double* in, double* out) {
     a->out = out;
     a->buffer_size = 64;
     a->gain = 5000000.0; // 500000.0; // large gain factor, seems to change with model
+
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
     ring_buffer_init(&a->output_ring, a->frame_size + a->buffer_size);
     a->to_process_buffer = malloc0(a->frame_size * sizeof(float));
     a->processed_output_buffer = malloc0(a->frame_size * sizeof(float));
     a->output_buffer = malloc0(a->buffer_size * sizeof(float));
+
     return a;
 }
 
@@ -151,6 +153,7 @@ void xrnnr(RNNR a, int pos) {
         int  fs = a->frame_size;
         float* to_proc = a->to_process_buffer;
         float* proc_out = a->processed_output_buffer;
+
         for (int i = 0; i < bs; i++) 
         {
             ring_buffer_put(&a->input_ring, (float)a->in[2 * i] * a->gain);
