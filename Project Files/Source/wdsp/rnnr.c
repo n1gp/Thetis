@@ -143,7 +143,7 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->in = in;
     a->out = out;
     a->buffer_size = size;
-    a->gain = 5000000.0; // 500000.0; // large gain factor, seems to change with model
+    a->gain = 32767.0; //scale to 16bit for RNnoise //24bit would be 8388607.0; // note rnnoise is pcm mono 16bit
 
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
     ring_buffer_init(&a->output_ring, a->frame_size + a->buffer_size);
