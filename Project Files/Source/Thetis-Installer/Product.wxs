@@ -232,7 +232,8 @@
         </File>
       </Component>
 
-	  <!-- [2.10.3.11]MW0LGE add checksum to some files that do not always have a version number or a version number update, but do have changes from time to time -->
+	  <!-- [2.10.3.11]MW0LGE add checksum to some files that do not always have a version number or a version
+	  number update, but do have content or code changes from time to time. Using the timestamp is not always reliable. -->
 
       <Component Guid="*">
         <File Id="CATStructsXML"
@@ -446,7 +447,7 @@
 		<!-- 
 		Binding Redirects in Thetis.exe.config
 		[2.10.3.12]MW0LGE also checksum this so it will always install if changed. There is no version number for it
-		for the installer to check against
+		for the installer to check against, as timestamps are not always reliable
 		-->
 		<Component Guid="*">
 			<File Id="Thetis.exe.config"

@@ -2998,45 +2998,72 @@ namespace Thetis
             public string Description { get; set; }
             public bool IsHardware { get; set; }
             public bool IsDefaultHardware { get; set; }
+            public bool IsDisplayAttached { get; set; }
             public int VendorId { get; set; }
             public int DeviceId { get; set; }
             public long DedicatedVideoMemory { get; set; }
             public long DedicatedSystemMemory { get; set; }
             public long SharedSystemMemory { get; set; }
+            public long AdapterLuid { get; set; }
         }
         public static AdaptorInfo[] DX2Adaptors()
         {
             SharpDX.DXGI.Factory1 factory1 = new SharpDX.DXGI.Factory1();
-            int adaptorCount = factory1.GetAdapterCount();
-            AdaptorInfo[] adaptors = new AdaptorInfo[adaptorCount];
-            int defaultHardwareIndex = -1;
-            for (int i = 0; i < adaptorCount; i++)
+            int adapterCount = factory1.GetAdapterCount();
+            List<AdaptorInfo> tempList = new List<AdaptorInfo>(adapterCount);
+
+            for (int i = 0; i < adapterCount; i++)
             {
                 Adapter rawAdapter = factory1.GetAdapter(i);
-                Adapter1 adapter = rawAdapter.QueryInterface<SharpDX.DXGI.Adapter1>();
-                AdapterDescription1 desc = adapter.Description1;
-                bool isHardware = (desc.Flags & SharpDX.DXGI.AdapterFlags.Software) == 0;
-                if (defaultHardwareIndex == -1 && isHardware) defaultHardwareIndex = i; // first hardware will be taken as default as
-                                                                                        // that is what will be used in initDX2D if no
-                                                                                        // alternative adaptor is provided
+                Adapter1 adapter1 = rawAdapter.QueryInterface<Adapter1>();
+                AdapterDescription1 desc = adapter1.Description1;
+                bool isHardware = (desc.Flags & AdapterFlags.Software) == 0;
+                bool hasDisplay = adapter1.GetOutputCount() > 0;
 
-                AdaptorInfo info = new AdaptorInfo();
-                info.Description = desc.Description;
-                info.IsHardware = isHardware;
-                info.IsDefaultHardware = (i == defaultHardwareIndex);
-                info.VendorId = desc.VendorId;
-                info.DeviceId = desc.DeviceId;
-                info.DedicatedVideoMemory = desc.DedicatedVideoMemory;
-                info.DedicatedSystemMemory = desc.DedicatedSystemMemory;
-                info.SharedSystemMemory = desc.SharedSystemMemory;
-                adaptors[i] = info;
+                AdaptorInfo info = new AdaptorInfo
+                {
+                    Description = desc.Description,
+                    IsHardware = isHardware,
+                    IsDefaultHardware = false,
+                    IsDisplayAttached = hasDisplay,
+                    VendorId = desc.VendorId,
+                    DeviceId = desc.DeviceId,
+                    DedicatedVideoMemory = desc.DedicatedVideoMemory,
+                    DedicatedSystemMemory = desc.DedicatedSystemMemory,
+                    SharedSystemMemory = desc.SharedSystemMemory,
+                    AdapterLuid = desc.Luid
+                };
 
-                Utilities.Dispose(ref adapter);
+                tempList.Add(info);
+                Utilities.Dispose(ref adapter1);
                 Utilities.Dispose(ref rawAdapter);
             }
 
             Utilities.Dispose(ref factory1);
-            return adaptors;
+
+            List<AdaptorInfo> uniqueList = new List<AdaptorInfo>(tempList.Count);
+            HashSet<long> seenLuids = new HashSet<long>();
+
+            for (int j = 0; j < tempList.Count; j++)
+            {
+                AdaptorInfo entry = tempList[j];
+                if (!seenLuids.Contains(entry.AdapterLuid))
+                {
+                    uniqueList.Add(entry);
+                    seenLuids.Add(entry.AdapterLuid);
+                }
+            }
+
+            for (int k = 0; k < uniqueList.Count; k++)
+            {
+                if (uniqueList[k].IsHardware)
+                {
+                    uniqueList[k].IsDefaultHardware = true;
+                    break;
+                }
+            }
+
+            return uniqueList.ToArray();
         }
         //
         private static string getGPUNameInUse()
@@ -3047,7 +3074,7 @@ namespace Thetis
                 {
                     //SharpDX.Direct3D11.Device device = new Device(DriverType.Hardware, DeviceCreationFlags.None);
                     SharpDX.DXGI.Device dxgiDevice = _device.QueryInterface<SharpDX.DXGI.Device>();
-                    SharpDX.DXGI.Adapter adapter = dxgiDevice.Adapter;
+                    Adapter adapter = dxgiDevice.Adapter;
                     string name = adapter.Description.Description;
                     Utilities.Dispose(ref adapter);
                     Utilities.Dispose(ref dxgiDevice);
