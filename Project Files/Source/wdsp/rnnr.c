@@ -187,12 +187,12 @@ void xrnnr(RNNR a, int pos)
         }
         else 
         {
-            memcpy(a->out, a->in, a->buffer_size * sizeof * a->out);
+            memcpy(a->out, a->in, a->buffer_size * sizeof(double));
         }
     }
     else if (a->out != a->in) 
     {
-        memcpy(a->out, a->in, a->buffer_size * sizeof * a->out);
+        memcpy(a->out, a->in, a->buffer_size * sizeof(double));
     }
 }
 

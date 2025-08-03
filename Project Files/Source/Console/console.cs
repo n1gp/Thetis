@@ -1249,7 +1249,17 @@ namespace Thetis
 
                 s += "  -dbid:xyz    keep the active database unique to the install run via this shortcut\n";
                 s += "  -dbid:HL2    another example to keep the active database unique to the install run via this shortcut\n";
-                s += "  -dbid:G2     another example to keep the active database unique to the install run via this shortcut";
+                s += "  -dbid:G2     another example to keep the active database unique to the install run via this shortcut\n\n";
+
+                //
+                s += "  -adaptor:#     use the following adaptor # for rendering, eg: -adaptor:0\n";
+                Display.AdaptorInfo[] adaptors = Display.DX2Adaptors();
+                for (int n = 0; n < adaptors.Length; n++)
+                {
+                    s += $"  {n} ... {adaptors[n].Description}   (hardware:{adaptors[n].IsHardware.ToString().ToLower()})";
+                    s += adaptors[n].IsDefaultHardware ? " (default hardware)\n" : "\n";
+                }
+                //
 
                 System.Console.WriteLine(s);
 
@@ -1296,6 +1306,25 @@ namespace Thetis
             {
                 if (showHelpInfo()) return;  // if we can show, instantly exit
             }
+
+            //[2.10.3.12]MW0LGE command line adaptor select
+            if (Common.HasArg(args, "-adaptor:"))
+            {
+                string param = Common.ArgParam(args, "-adaptor:");
+                if (!string.IsNullOrEmpty(param))
+                {
+                    bool ok = int.TryParse(param, out int adaptor_number);
+                    if (ok)
+                    {
+                        Display.AdaptorInfo[] adaptors = Display.DX2Adaptors();
+                        if(adaptor_number >= 0 && adaptor_number < adaptors.Length)
+                        {
+                            Display.DisplayAdaptor = adaptors[adaptor_number];
+                        }
+                    }
+                }
+            }
+            //
 
             string app_data_path = "";
             if (Common.HasArg(args, "-datapath"))
@@ -1819,7 +1848,7 @@ namespace Thetis
                 _RX2MeterValues.Add((Reading)n, -200f);
             }
 
-            MeterManager.Init(this); // needs to be initialised before get state happens
+            MeterManager.Init(this, Display.DisplayAdaptor); // needs to be initialised before get state happens
 
             //[2.10.3.1]MW0LGE make sure it is created on this thread, as the following serial
             //devices could cause it to be created on another thread

@@ -872,6 +872,15 @@ namespace Thetis
         private static string _ram;
         private static string _installed_ram;
 
+        private static AdaptorInfo _display_adaptor = null;
+        public static AdaptorInfo DisplayAdaptor
+        {
+            get { return _display_adaptor; }
+            set
+            {
+                _display_adaptor = value;
+            }
+        }
         public static Control Target
         {
             get { return displayTarget; }
@@ -898,7 +907,7 @@ namespace Thetis
 
                     if (!_bDX2Setup)
                     {
-                        initDX2D();
+                        initDX2D(DriverType.Hardware, _display_adaptor);
                     }
                     else
                     {
@@ -2983,24 +2992,53 @@ namespace Thetis
             }
         }
 
-        private static string[] DX2Adaptors()
+        //[2.10.3.12]MW0LGE adaptor info
+        public class AdaptorInfo
         {
-            SharpDX.DXGI.Factory factory1 = new SharpDX.DXGI.Factory1();
-
-            int nAdaptorCount = factory1.GetAdapterCount();
-            string[] adaptors = new string[nAdaptorCount];
-
-            for (int n = 0; n < nAdaptorCount; n++)
+            public string Description { get; set; }
+            public bool IsHardware { get; set; }
+            public bool IsDefaultHardware { get; set; }
+            public int VendorId { get; set; }
+            public int DeviceId { get; set; }
+            public long DedicatedVideoMemory { get; set; }
+            public long DedicatedSystemMemory { get; set; }
+            public long SharedSystemMemory { get; set; }
+        }
+        public static AdaptorInfo[] DX2Adaptors()
+        {
+            SharpDX.DXGI.Factory1 factory1 = new SharpDX.DXGI.Factory1();
+            int adaptorCount = factory1.GetAdapterCount();
+            AdaptorInfo[] adaptors = new AdaptorInfo[adaptorCount];
+            int defaultHardwareIndex = -1;
+            for (int i = 0; i < adaptorCount; i++)
             {
-                using (Adapter adapter = factory1.GetAdapter(n))
-                {
-                    adaptors[n] = adapter.Description.Description;
-                }
+                Adapter rawAdapter = factory1.GetAdapter(i);
+                Adapter1 adapter = rawAdapter.QueryInterface<SharpDX.DXGI.Adapter1>();
+                AdapterDescription1 desc = adapter.Description1;
+                bool isHardware = (desc.Flags & SharpDX.DXGI.AdapterFlags.Software) == 0;
+                if (defaultHardwareIndex == -1 && isHardware) defaultHardwareIndex = i; // first hardware will be taken as default as
+                                                                                        // that is what will be used in initDX2D if no
+                                                                                        // alternative adaptor is provided
+
+                AdaptorInfo info = new AdaptorInfo();
+                info.Description = desc.Description;
+                info.IsHardware = isHardware;
+                info.IsDefaultHardware = (i == defaultHardwareIndex);
+                info.VendorId = desc.VendorId;
+                info.DeviceId = desc.DeviceId;
+                info.DedicatedVideoMemory = desc.DedicatedVideoMemory;
+                info.DedicatedSystemMemory = desc.DedicatedSystemMemory;
+                info.SharedSystemMemory = desc.SharedSystemMemory;
+                adaptors[i] = info;
+
+                Utilities.Dispose(ref adapter);
+                Utilities.Dispose(ref rawAdapter);
             }
+
             Utilities.Dispose(ref factory1);
-            factory1 = null;
             return adaptors;
         }
+        //
         private static string getGPUNameInUse()
         {
             lock (_objDX2Lock)
@@ -3025,7 +3063,7 @@ namespace Thetis
         {
             get { return _bDX2Setup; }
         }
-        private static void initDX2D(DriverType driverType = DriverType.Hardware)
+        private static void initDX2D(DriverType driverType = DriverType.Hardware, AdaptorInfo adaptorInfo = null)
         {
             lock (_objDX2Lock)
             {
@@ -3094,7 +3132,35 @@ namespace Thetis
 
                     _factory1 = new SharpDX.DXGI.Factory1();
 
-                    _device = new Device(driverType, debug | DeviceCreationFlags.PreventAlteringLayerSettingsFromRegistry | DeviceCreationFlags.BgraSupport/* | DeviceCreationFlags.SingleThreaded*/, featureLevels);
+                    Adapter selectedAdapter = null;
+                    if (adaptorInfo != null)
+                    {                        
+                        int totalAdapters = _factory1.GetAdapterCount();
+                        for (int an = 0; an < totalAdapters; an++)
+                        {
+                            Adapter rawAdapter = _factory1.GetAdapter(an);
+                            Adapter1 adapter1 = rawAdapter.QueryInterface<Adapter1>();
+                            AdapterDescription1 addesc = adapter1.Description1;
+                            if (addesc.VendorId == adaptorInfo.VendorId && addesc.DeviceId == adaptorInfo.DeviceId)
+                            {
+                                selectedAdapter = rawAdapter;
+                                Utilities.Dispose(ref adapter1);
+                                break;
+                            }
+                            Utilities.Dispose(ref adapter1);
+                            Utilities.Dispose(ref rawAdapter);
+                        }
+                    }
+
+                    if (selectedAdapter != null)
+                    {
+                        _device = new Device(selectedAdapter, debug | DeviceCreationFlags.PreventAlteringLayerSettingsFromRegistry | DeviceCreationFlags.BgraSupport/* | DeviceCreationFlags.SingleThreaded*/, featureLevels);
+                        Utilities.Dispose(ref selectedAdapter);
+                    }
+                    else
+                    {
+                        _device = new Device(driverType, debug | DeviceCreationFlags.PreventAlteringLayerSettingsFromRegistry | DeviceCreationFlags.BgraSupport/* | DeviceCreationFlags.SingleThreaded*/, featureLevels);
+                    }
 
                     SharpDX.DXGI.Device1 device1 = _device.QueryInterfaceOrNull<SharpDX.DXGI.Device1>();
                     if (device1 != null)
@@ -3118,7 +3184,6 @@ namespace Thetis
 
                     //    Marshal.FreeHGlobal(pBool);
                     //}
-                    //
 
                     // check if the device has a factory4 interface
                     // if not, then we need to use old bitplit swapeffect
