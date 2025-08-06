@@ -271,6 +271,15 @@
 				  Checksum="yes"
               />
 		</Component>
+
+		<Component Guid="*">
+			<File Id="rnnoise_avx2DLL"
+				  Source="$(var.FilesPath)rnnoise_avx2.dll"
+				  KeyPath="yes"
+				  Checksum="yes"
+              />
+		</Component>
+		
 		<Component Guid="*">
 			<File Id="specbleachDLL"
 				  Source="$(var.FilesPath)specbleach.dll"
@@ -318,6 +327,22 @@
               />
       </Component>
         -->
+
+		<!-- rnnoise weights model binary files -->
+		<Component Guid="*">
+			<File Id="rnnoise_weights_small.bin"
+				  Source="$(var.FilesPath)rnnoise_weights_small.bin"
+				  KeyPath="yes"
+				  Checksum="yes"
+              />
+		</Component>
+		<Component Guid="*">
+			<File Id="rnnoise_weights_large.bin"
+				  Source="$(var.FilesPath)rnnoise_weights_large.bin"
+				  KeyPath="yes"
+				  Checksum="yes"
+              />
+		</Component>
 		
       <Component Guid="*">
         <File Id="Midi2CatDLL"
