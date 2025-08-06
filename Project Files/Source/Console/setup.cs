@@ -1644,6 +1644,10 @@ namespace Thetis
             }
             //
 
+            // store NR3 model file
+            a.Add("nr3_model_file", NR3ModelFile);
+            //
+
             //
             DB.PurgeMeters(MeterManager.GetFormGuidList()); // clear the db of any meter info before we try to add it
             if (!MeterManager.StoreSettings2(ref a))
@@ -2000,6 +2004,9 @@ namespace Thetis
                 }
             }
             //
+
+            // get+set NR3 model file
+            if (a.ContainsKey("nr3_model_file")) NR3ModelFile = a["nr3_model_file"];
 
             //
             if (recoveryList == null) // MW0LGE [2.9.0.8] ignore if we hit cancel, not possible to undo multimeter changes at this time
@@ -34809,6 +34816,49 @@ namespace Thetis
             if (!radNR4_algo3_rx2.Checked) return;
             console.radio.GetDSPRX(1, 0).RXASBNRnoiseScalingType = 2;
             console.radio.GetDSPRX(1, 1).RXASBNRnoiseScalingType = 2;
+        }
+
+        private string _nr3_model_file = "";
+        private string NR3ModelFile
+        {
+            get { return _nr3_model_file; }
+            set 
+            { 
+                _nr3_model_file = value;
+                setNR3Model();
+            }
+        }
+        private void btnNR3_model_default_Click(object sender, EventArgs e)
+        {
+            NR3ModelFile = "";
+        }
+
+        private void btnNR3_model_load_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog fd = new OpenFileDialog())
+            {
+                fd.Filter = "model binary files(*.bin)|*.bin";
+                if (fd.ShowDialog() == DialogResult.OK)
+                {
+                    NR3ModelFile = fd.FileName;
+                }
+            }
+        }
+        private void setNR3Model()
+        {
+            if (!File.Exists(_nr3_model_file)) _nr3_model_file = "";
+
+            if (string.IsNullOrEmpty(_nr3_model_file))
+            {
+                lblNR3Model.Text = "Default (large)";
+            }
+            else
+            {
+                lblNR3Model.Text = Path.GetFileName(_nr3_model_file);
+            }
+
+            // empty string will use NULL (default) model in rnnoise
+            WDSP.RNNRloadModel(_nr3_model_file);
         }
     }
 

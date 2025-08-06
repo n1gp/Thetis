@@ -36,6 +36,14 @@ It uses a non modified version of rmnoise and implements a ringbuffer to handle 
 #include "comm.h"
 #include "rnnoise.h"
 
+//used to track RNNR instances
+static RNNR* _rnnr_instances = NULL;
+static int _rnnr_count = 0;
+static int _rnnr_capacity = 0;
+
+// the model to use when creating new RNNR instances
+static RNNModel* _rnnr_model = NULL;
+
 //ringbuffer
 static void ring_buffer_init(rnnr_ring_buffer* rb, int capacity) 
 {
@@ -135,10 +143,11 @@ void setSamplerate_rnnr(RNNR a, int rate)
 RNNR create_rnnr(int run, int position, int size, double* in, double* out, int rate)
 {
     RNNR a = malloc0(sizeof(rnnr));
+    InitializeCriticalSection(&a->cs);
     a->run = run;
     a->position = position;
     a->rate = rate; // not used currently, but here for future use
-    a->st = rnnoise_create(NULL);
+    a->st = rnnoise_create(_rnnr_model);
     a->frame_size = rnnoise_get_frame_size();
     a->in = in;
     a->out = out;
@@ -150,6 +159,19 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->to_process_buffer = malloc0(a->frame_size * sizeof(float));
     a->processed_output_buffer = malloc0(a->frame_size * sizeof(float));
     a->output_buffer = malloc0(a->buffer_size * sizeof(float));
+
+    // used to maintain a record of RNNR's used so we can update them all if/when model is changed
+    if (_rnnr_count == _rnnr_capacity)
+    {
+        int new_cap = _rnnr_capacity ? _rnnr_capacity * 2 : 4; // limit number of reallocs by doubling space each time, overkill but that is my middle name ;)
+        RNNR* tmp = malloc0(new_cap * sizeof(RNNR));
+        memcpy(tmp, _rnnr_instances, _rnnr_count * sizeof(RNNR));
+        _aligned_free(_rnnr_instances);
+        _rnnr_instances = tmp;
+        _rnnr_capacity = new_cap;
+    }
+    _rnnr_instances[_rnnr_count++] = a;
+    //
 
     return a;
 }
@@ -163,6 +185,7 @@ void xrnnr(RNNR a, int pos)
         float* to_proc = a->to_process_buffer;
         float* proc_out = a->processed_output_buffer;
 
+        EnterCriticalSection(&a->cs);
         for (int i = 0; i < bs; i++) 
         {
             ring_buffer_put(&a->input_ring, (float)a->in[2 * i] * a->gain);
@@ -176,6 +199,8 @@ void xrnnr(RNNR a, int pos)
                 }
             }
         }
+        LeaveCriticalSection(&a->cs);
+
         if (a->output_ring.count >= bs) 
         {
             ring_buffer_get_bulk(&a->output_ring, a->output_buffer, bs);
@@ -198,13 +223,35 @@ void xrnnr(RNNR a, int pos)
 
 void destroy_rnnr(RNNR a) 
 {
+    // we dont need to maintain order, so just replace with last, and decrement total
+    for (int i = 0; i < _rnnr_count; i++)
+    {
+        if (_rnnr_instances[i] == a)
+        {
+            _rnnr_instances[i] = _rnnr_instances[--_rnnr_count];
+            break;
+        }
+    }
+
+    EnterCriticalSection(&a->cs);
     rnnoise_destroy(a->st);
+    LeaveCriticalSection(&a->cs);
+    DeleteCriticalSection(&a->cs);
+
     _aligned_free(a->to_process_buffer);
     _aligned_free(a->processed_output_buffer);
     _aligned_free(a->output_buffer);
     ring_buffer_free(&a->input_ring);
     ring_buffer_free(&a->output_ring);
     _aligned_free(a);
+
+    // tidy if none now in use
+    if (_rnnr_count == 0)
+    {
+        _aligned_free(_rnnr_instances);
+        _rnnr_instances = NULL;
+        _rnnr_capacity = 0;
+    }
 }
 
 PORT
@@ -215,4 +262,43 @@ void SetRXARNNRgain(int channel, float gain)
     EnterCriticalSection(&ch[channel].csDSP);
     rxa[channel].rnnr.p->gain = gain;
     LeaveCriticalSection(&ch[channel].csDSP);
+}
+
+PORT
+void RNNRloadModel(const char* file_path)
+{
+    // destroy any in use
+    for (int i = 0; i < _rnnr_count; i++)
+    {
+        RNNR a = _rnnr_instances[i];
+        EnterCriticalSection(&a->cs);
+        a->run_old = a->run;
+        a->run = 0;
+        rnnoise_destroy(a->st);
+        LeaveCriticalSection(&a->cs);
+    }
+
+    // free up any previous loaded model
+    if (_rnnr_model)
+    {
+        rnnoise_model_free(_rnnr_model);
+    }
+
+    _rnnr_model = NULL; // default to baked in model
+
+    // try to load
+    if (file_path && file_path[0])
+    {
+        _rnnr_model = rnnoise_model_from_filename(file_path);
+    }
+
+    // recreate any we had created previously
+    for (int i = 0; i < _rnnr_count; i++)
+    {
+        RNNR a = _rnnr_instances[i];
+        EnterCriticalSection(&a->cs);
+        a->st = rnnoise_create(_rnnr_model);
+        a->run = a->run_old;
+        LeaveCriticalSection(&a->cs);
+    }
 }

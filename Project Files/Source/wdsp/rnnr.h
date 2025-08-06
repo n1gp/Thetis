@@ -50,6 +50,7 @@ typedef struct _rnnr_ring_buffer {
 typedef struct _rnnr
 {
 	int run;
+    int run_old; // used when loading a new model
     int position;
     int frame_size;
     DenoiseState *st;
@@ -66,6 +67,8 @@ typedef struct _rnnr
 
     rnnr_ring_buffer input_ring;
     rnnr_ring_buffer output_ring;
+
+    CRITICAL_SECTION cs;
 
 } rnnr, *RNNR;
 
