@@ -188,7 +188,7 @@ void xrnnr(RNNR a, int pos)
         EnterCriticalSection(&a->cs);
         for (int i = 0; i < bs; i++) 
         {
-            ring_buffer_put(&a->input_ring, (float)a->in[2 * i] * a->gain);
+            ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0] * a->gain);
             if (a->input_ring.count >= fs)
             {
                 ring_buffer_get_bulk(&a->input_ring, to_proc, fs);

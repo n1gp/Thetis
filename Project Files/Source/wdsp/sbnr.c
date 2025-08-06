@@ -104,7 +104,7 @@ void xsbnr (SBNR a, int pos)
 
         for (size_t i = 0; i < bs; i++)
         {
-            to_proc[i] = (float)in[2 * i];
+            to_proc[i] = (float)in[2 * i + 0];
         }
         specbleach_adaptive_process(a->st, (uint32_t)bs, to_proc, proc_out);
 
