@@ -60,7 +60,6 @@ typedef struct _rnnr
     int buffer_size;
     int rate;
     float* output_buffer;
-    float gain;
 
     float* to_process_buffer;
     float* processed_output_buffer;

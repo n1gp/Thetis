@@ -52107,13 +52107,6 @@ namespace Thetis
             setupNR(2, false);
             setupNR(2, true);
         }
-
-        private void nudRNnoiseGainTest_ValueChanged(object sender, EventArgs e)
-        {
-            radio.GetDSPRX(0, 0).RXARNNRgain = (float)nudRNnoiseGainTest.Value * 10000;
-            radio.GetDSPRX(0, 1).RXARNNRgain = (float)nudRNnoiseGainTest.Value * 10000;
-        }
-        //
     }
 
     public class DigiMode

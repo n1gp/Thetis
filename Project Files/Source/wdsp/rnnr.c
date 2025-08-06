@@ -35,6 +35,8 @@ It uses a non modified version of rmnoise and implements a ringbuffer to handle 
 #define _CRT_SECURE_NO_WARNINGS
 #include "comm.h"
 #include "rnnoise.h"
+                             
+static const float GAIN16BIT = 32767.0 * 16.0; // 16bit scale, and some additional scaling
 
 //used to track RNNR instances
 static RNNR* _rnnr_instances = NULL;
@@ -152,7 +154,6 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->in = in;
     a->out = out;
     a->buffer_size = size;
-    a->gain = 32767.0; //scale to 16bit for RNnoise //24bit would be 8388607.0; // note rnnoise is pcm mono 16bit
 
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
     ring_buffer_init(&a->output_ring, a->frame_size + a->buffer_size);
@@ -188,14 +189,14 @@ void xrnnr(RNNR a, int pos)
         EnterCriticalSection(&a->cs);
         for (int i = 0; i < bs; i++) 
         {
-            ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0] * a->gain);
+            ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0] * GAIN16BIT);
             if (a->input_ring.count >= fs)
             {
                 ring_buffer_get_bulk(&a->input_ring, to_proc, fs);
                 rnnoise_process_frame(a->st, proc_out, to_proc);
                 for (int j = 0; j < fs; j++)
                 {
-                    ring_buffer_put(&a->output_ring, proc_out[j] / a->gain);
+                    ring_buffer_put(&a->output_ring, proc_out[j] / GAIN16BIT);
                 }
             }
         }
@@ -204,9 +205,10 @@ void xrnnr(RNNR a, int pos)
         if (a->output_ring.count >= bs) 
         {
             ring_buffer_get_bulk(&a->output_ring, a->output_buffer, bs);
+
             for (int i = 0; i < bs; i++) 
             {
-                a->out[2 * i] = a->output_buffer[i];
+                a->out[2 * i + 0] = a->output_buffer[i];
                 a->out[2 * i + 1] = 0;
             }
         }
@@ -252,16 +254,6 @@ void destroy_rnnr(RNNR a)
         _rnnr_instances = NULL;
         _rnnr_capacity = 0;
     }
-}
-
-PORT
-void SetRXARNNRgain(int channel, float gain)
-{
-    if (gain <= 0) return;
-
-    EnterCriticalSection(&ch[channel].csDSP);
-    rxa[channel].rnnr.p->gain = gain;
-    LeaveCriticalSection(&ch[channel].csDSP);
 }
 
 PORT

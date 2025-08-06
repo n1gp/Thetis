@@ -229,8 +229,6 @@ namespace Thetis
         // rnnoise
         [DllImport("wdsp.dll", EntryPoint = "SetRXARNNRRun", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetRXARNNRRun(int channel, int run);
-        [DllImport("wdsp.dll", EntryPoint = "SetRXARNNRgain", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetRXARNNRgain(int channel, float gain);
 
         [DllImport("wdsp.dll", EntryPoint = "RNNRloadModel", CallingConvention = CallingConvention.Cdecl)]
         public static extern void RNNRloadModel(string file_path);

@@ -40867,7 +40867,7 @@
             this.groupBoxTS56.Controls.Add(this.labelTS472);
             this.groupBoxTS56.Controls.Add(this.labelTS473);
             this.groupBoxTS56.Controls.Add(this.nudNR4_red_rx2);
-            this.groupBoxTS56.Location = new System.Drawing.Point(483, 242);
+            this.groupBoxTS56.Location = new System.Drawing.Point(483, 254);
             this.groupBoxTS56.Name = "groupBoxTS56";
             this.groupBoxTS56.Size = new System.Drawing.Size(235, 153);
             this.groupBoxTS56.TabIndex = 45;
@@ -41190,7 +41190,7 @@
             this.groupBoxTS55.Controls.Add(this.labelTS447);
             this.groupBoxTS55.Controls.Add(this.labelTS446);
             this.groupBoxTS55.Controls.Add(this.nudNR4_red_rx1);
-            this.groupBoxTS55.Location = new System.Drawing.Point(483, 83);
+            this.groupBoxTS55.Location = new System.Drawing.Point(483, 97);
             this.groupBoxTS55.Name = "groupBoxTS55";
             this.groupBoxTS55.Size = new System.Drawing.Size(235, 153);
             this.groupBoxTS55.TabIndex = 44;
@@ -41501,7 +41501,7 @@
             this.grpRNnoise.Controls.Add(this.labelTS439);
             this.grpRNnoise.Location = new System.Drawing.Point(483, 8);
             this.grpRNnoise.Name = "grpRNnoise";
-            this.grpRNnoise.Size = new System.Drawing.Size(235, 66);
+            this.grpRNnoise.Size = new System.Drawing.Size(235, 83);
             this.grpRNnoise.TabIndex = 43;
             this.grpRNnoise.TabStop = false;
             this.grpRNnoise.Text = "NR3";
@@ -41512,9 +41512,10 @@
             this.btnNR3_model_default.Location = new System.Drawing.Point(95, 37);
             this.btnNR3_model_default.Name = "btnNR3_model_default";
             this.btnNR3_model_default.Selectable = true;
-            this.btnNR3_model_default.Size = new System.Drawing.Size(75, 23);
+            this.btnNR3_model_default.Size = new System.Drawing.Size(49, 23);
             this.btnNR3_model_default.TabIndex = 3;
-            this.btnNR3_model_default.Text = "Default";
+            this.btnNR3_model_default.Text = "Def";
+            this.toolTip1.SetToolTip(this.btnNR3_model_default, "Default model, large");
             this.btnNR3_model_default.UseVisualStyleBackColor = true;
             this.btnNR3_model_default.Click += new System.EventHandler(this.btnNR3_model_default_Click);
             // 
@@ -41527,6 +41528,8 @@
             this.btnNR3_model_load.Size = new System.Drawing.Size(75, 23);
             this.btnNR3_model_load.TabIndex = 2;
             this.btnNR3_model_load.Text = "Use Model";
+            this.toolTip1.SetToolTip(this.btnNR3_model_load, "Select a model that RNnoise will use. Note: if the format is bad, Thetis will pro" +
+        "bably crash !");
             this.btnNR3_model_load.UseVisualStyleBackColor = true;
             this.btnNR3_model_load.Click += new System.EventHandler(this.btnNR3_model_load_Click);
             // 
