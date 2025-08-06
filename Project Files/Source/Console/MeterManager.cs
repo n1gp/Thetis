@@ -14303,8 +14303,6 @@ namespace Thetis
             private float _fontSize_2;
             private float _padding;
 
-            private string _band_text;
-
             private clsMeter _owningMeter;
             private bool _ignore_measure_cache_1;
             private bool _ignore_measure_cache_2;
@@ -14367,8 +14365,6 @@ namespace Thetis
                 _fontSize_2 = 18f;
 
                 _padding = 0.1f;
-
-                _band_text = "";
 
                 _ignore_measure_cache_1 = false;
                 _ignore_measure_cache_2 = false;
@@ -19787,8 +19783,6 @@ namespace Thetis
             }
             public BandGroups GetBandGroupFromBand(Band b)
             {
-                RadioButtonTS r;
-
                 switch (b)
                 {
                     case Band.B160M:

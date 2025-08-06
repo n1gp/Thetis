@@ -3072,13 +3072,11 @@ namespace Thetis
             {
                 if (_bDX2Setup)
                 {
-                    //SharpDX.Direct3D11.Device device = new Device(DriverType.Hardware, DeviceCreationFlags.None);
                     SharpDX.DXGI.Device dxgiDevice = _device.QueryInterface<SharpDX.DXGI.Device>();
                     Adapter adapter = dxgiDevice.Adapter;
                     string name = adapter.Description.Description;
                     Utilities.Dispose(ref adapter);
                     Utilities.Dispose(ref dxgiDevice);
-                    //Utilities.Dispose(ref device);
                     return name;
                 }
                 else

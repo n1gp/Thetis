@@ -187,12 +187,12 @@ void xrnnr(RNNR a, int pos)
         }
         else 
         {
-            memcpy(a->out, a->in, a->buffer_size * sizeof(double));
+            memcpy(a->out, a->in, a->buffer_size * sizeof(complex));
         }
     }
     else if (a->out != a->in) 
     {
-        memcpy(a->out, a->in, a->buffer_size * sizeof(double));
+        memcpy(a->out, a->in, a->buffer_size * sizeof(complex));
     }
 }
 
