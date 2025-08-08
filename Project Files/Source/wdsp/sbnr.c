@@ -25,8 +25,7 @@ The author can be reached by email at
 mw0lge@grange-lane.co.uk
 
 This code is based on code and ideas from  : https://github.com/vu3rdd/wdsp
-and and uses RNNoise and libspecbleach
-https://gitlab.xiph.org/xiph/rnnoise
+and and uses libspecbleach
 https://github.com/lucianodato/libspecbleach
 */
 
@@ -110,8 +109,8 @@ void xsbnr (SBNR a, int pos)
 
         for (size_t i = 0; i < bs; i++)
         {
-            out[2*i] = (double) proc_out[i];
-            out[2*i+1] = 0.0;
+            out[2 * i + 0] = (double) proc_out[i];
+            out[2 * i + 1] = 0.0;
         }
     }
     else if (a->out != a->in) 
@@ -224,5 +223,14 @@ void SetRXASBNRnoiseScalingType(int channel, int noise_scaling_type)
 
     EnterCriticalSection(&ch[channel].csDSP);
     rxa[channel].sbnr.p->noise_scaling_type = noise_scaling_type;
+    LeaveCriticalSection(&ch[channel].csDSP);
+}
+
+PORT
+void SetRXASBNRPosition(int channel, int position)
+{
+    EnterCriticalSection(&ch[channel].csDSP);
+    rxa[channel].sbnr.p->position = position;
+    rxa[channel].bp1.p->position = position;
     LeaveCriticalSection(&ch[channel].csDSP);
 }

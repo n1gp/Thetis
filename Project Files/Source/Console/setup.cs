@@ -8794,6 +8794,11 @@ namespace Thetis
             console.radio.GetDSPRX(0, 1).RXANRPosition = position;
             console.radio.GetDSPRX(0, 0).RXANR2Position = position;
             console.radio.GetDSPRX(0, 1).RXANR2Position = position;
+
+            console.radio.GetDSPRX(0, 0).RXANR3Position = position;
+            console.radio.GetDSPRX(0, 1).RXANR3Position = position;
+            console.radio.GetDSPRX(0, 0).RXANR4Position = position;
+            console.radio.GetDSPRX(0, 1).RXANR4Position = position;
         }
 
         private void radANF2PreAGC_CheckedChanged(object sender, EventArgs e)
@@ -8807,6 +8812,9 @@ namespace Thetis
             console.radio.GetDSPRX(1, 0).RXANFPosition = position;
             console.radio.GetDSPRX(1, 0).RXANRPosition = position;
             console.radio.GetDSPRX(1, 0).RXANR2Position = position;
+
+            console.radio.GetDSPRX(1, 0).RXANR3Position = position;
+            console.radio.GetDSPRX(1, 0).RXANR4Position = position;
         }
 
         #endregion
@@ -34846,19 +34854,73 @@ namespace Thetis
         }
         private void setNR3Model()
         {
-            if (!File.Exists(_nr3_model_file)) _nr3_model_file = "";
+            if (!File.Exists(_nr3_model_file))
+            {
+                _nr3_model_file = string.Empty;
+            }
 
-            if (string.IsNullOrEmpty(_nr3_model_file))
+            if (!string.IsNullOrEmpty(_nr3_model_file))
+            {
+                bool ok = validateRnnoiseModel(_nr3_model_file);
+                if (!ok)
+                {
+                    _nr3_model_file = string.Empty;
+
+                    MessageBox.Show(
+                        "Warning: model file is invalid or corrupted.\n\nSince v0.1.1 of RNnoise a binary 'machine endian' format is required. Using an incorrect file/format may cause unexpected behaviour or crashes.\n\nThis file will not be used !",
+                        "RNnoise: Invalid Model File",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST
+                    );
+                }
+                else
+                {
+                    lblNR3Model.Text = Path.GetFileName(_nr3_model_file);
+                }
+            }
+
+            if (string.IsNullOrEmpty(_nr3_model_file)) 
             {
                 lblNR3Model.Text = "Default (large)";
-            }
-            else
-            {
-                lblNR3Model.Text = Path.GetFileName(_nr3_model_file);
             }
 
             // empty string will use NULL (default) model in rnnoise
             WDSP.RNNRloadModel(_nr3_model_file);
+        }
+
+        //[2.10.3.12]MW0LGE this is a mirror the the rnnoise parse code from parse_lpcnet_weights.c
+        //implemented here to ensure that a model file is valid
+        private const int WEIGHT_BLOCK_SIZE = 64;
+        private bool validateRnnoiseModel(string path)
+        {
+            using (FileStream stream = File.OpenRead(path))
+            {
+                long remaining = stream.Length;
+                if (remaining % WEIGHT_BLOCK_SIZE != 0)
+                    return false;
+
+                byte[] header = new byte[WEIGHT_BLOCK_SIZE];
+                while (remaining > 0)
+                {
+                    int read = stream.Read(header, 0, WEIGHT_BLOCK_SIZE);
+                    if (read != WEIGHT_BLOCK_SIZE)
+                        return false;
+
+                    int size = BitConverter.ToInt32(header, 12);
+                    int blockSize = BitConverter.ToInt32(header, 16);
+                    if (size < 0 || blockSize < size)
+                        return false;
+                    if (blockSize > remaining - WEIGHT_BLOCK_SIZE)
+                        return false;
+                    if (header[20 + 44 - 1] != 0)
+                        return false;
+
+                    stream.Seek(blockSize, SeekOrigin.Current);
+                    remaining -= WEIGHT_BLOCK_SIZE + blockSize;
+                }
+
+                return remaining == 0;
+            }
         }
     }
 

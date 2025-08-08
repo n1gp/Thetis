@@ -25,9 +25,8 @@ The author can be reached by email at
 mw0lge@grange-lane.co.uk
 
 This code is based on code and ideas from  : https://github.com/vu3rdd/wdsp
-and and uses RNNoise and libspecbleach
+and and uses RNNoise
 https://gitlab.xiph.org/xiph/rnnoise
-https://github.com/lucianodato/libspecbleach
 
 It uses a non modified version of rmnoise and implements a ringbuffer to handle input/output frame size differences.
 */
@@ -35,8 +34,11 @@ It uses a non modified version of rmnoise and implements a ringbuffer to handle 
 #define _CRT_SECURE_NO_WARNINGS
 #include "comm.h"
 #include "rnnoise.h"
+#include <float.h>
                              
-static const float GAIN16BIT = 32767.0 * 16.0; // 16bit scale, and some additional scaling
+#define PCM_SCALE   32767.0f
+#define AGC_ALPHA   0.02f //48000 sample rate, at a normal rnnoise frame size of 480, will result in 50 required frames for gain to reach desired, ~= 0.5 second
+#define TARGET_AGC_GAIN  10000.0f
 
 //used to track RNNR instances
 static RNNR* _rnnr_instances = NULL;
@@ -149,11 +151,12 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->run = run;
     a->position = position;
     a->rate = rate; // not used currently, but here for future use
-    a->st = rnnoise_create(_rnnr_model);
+    a->st = rnnoise_create(_rnnr_model);    
     a->frame_size = rnnoise_get_frame_size();
     a->in = in;
     a->out = out;
     a->buffer_size = size;
+    a->gain = 1.0f;
 
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
     ring_buffer_init(&a->output_ring, a->frame_size + a->buffer_size);
@@ -161,7 +164,7 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->processed_output_buffer = malloc0(a->frame_size * sizeof(float));
     a->output_buffer = malloc0(a->buffer_size * sizeof(float));
 
-    // used to maintain a record of RNNR's used so we can update them all if/when model is changed
+    // used to maintain a record of RNNR's here and is used so we can update them all if/when model is changed
     if (_rnnr_count == _rnnr_capacity)
     {
         int new_cap = _rnnr_capacity ? _rnnr_capacity * 2 : 4; // limit number of reallocs by doubling space each time, overkill but that is my middle name ;)
@@ -179,24 +182,46 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
 
 void xrnnr(RNNR a, int pos) 
 {
-    if (a->run && pos == a->position) 
+    if (a->st && a->run && pos == a->position)
     {
         int  bs = a->buffer_size;
         int  fs = a->frame_size;
-        float* to_proc = a->to_process_buffer;
-        float* proc_out = a->processed_output_buffer;
+        float* to_process = a->to_process_buffer;
+        float* process_out = a->processed_output_buffer;
 
         EnterCriticalSection(&a->cs);
         for (int i = 0; i < bs; i++) 
         {
-            ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0] * GAIN16BIT);
+            ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0]);
+
             if (a->input_ring.count >= fs)
             {
-                ring_buffer_get_bulk(&a->input_ring, to_proc, fs);
-                rnnoise_process_frame(a->st, proc_out, to_proc);
+                ring_buffer_get_bulk(&a->input_ring, to_process, fs);
+
+                // gain the samples to make rnnnoise somewhat happy
+                float max = FLT_EPSILON;
                 for (int j = 0; j < fs; j++)
                 {
-                    ring_buffer_put(&a->output_ring, proc_out[j] / GAIN16BIT);
+                    float v = fabsf(to_process[j]);
+                    if (v > max) max = v;
+                }
+                float desired_gain = TARGET_AGC_GAIN / max;
+                a->gain = AGC_ALPHA * desired_gain + (1.0f - AGC_ALPHA) * a->gain;
+
+                for (int j = 0; j < fs; j++)
+                {
+                    float v = to_process[j] * a->gain;
+                    if (v > 32767.0f) v = 32767.0f;
+                    if (v < -32768.0f) v = -32768.0f;
+                    to_process[j] = v;
+                }
+                //
+
+                rnnoise_process_frame(a->st, process_out, to_process);
+
+                for (int j = 0; j < fs; j++)
+                {
+                    ring_buffer_put(&a->output_ring, process_out[j] / a->gain);
                 }
             }
         }
@@ -208,7 +233,7 @@ void xrnnr(RNNR a, int pos)
 
             for (int i = 0; i < bs; i++) 
             {
-                a->out[2 * i + 0] = a->output_buffer[i];
+                a->out[2 * i + 0] = (double) a->output_buffer[i];
                 a->out[2 * i + 1] = 0;
             }
         }
@@ -284,7 +309,7 @@ void RNNRloadModel(const char* file_path)
         _rnnr_model = rnnoise_model_from_filename(file_path);
     }
 
-    // recreate any we had created previously
+    // recreate any we had created previously and restart if needed
     for (int i = 0; i < _rnnr_count; i++)
     {
         RNNR a = _rnnr_instances[i];
@@ -294,3 +319,13 @@ void RNNRloadModel(const char* file_path)
         LeaveCriticalSection(&a->cs);
     }
 }
+
+PORT
+void SetRXARNNRPosition(int channel, int position)
+{
+    EnterCriticalSection(&ch[channel].csDSP);
+    rxa[channel].rnnr.p->position = position;
+    rxa[channel].bp1.p->position = position;
+    LeaveCriticalSection(&ch[channel].csDSP);
+}
+

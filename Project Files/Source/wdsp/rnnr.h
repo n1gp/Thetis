@@ -56,6 +56,7 @@ typedef struct _rnnr
     DenoiseState *st;
     double *in;
     double *out;
+    float gain;
 
     int buffer_size;
     int rate;
