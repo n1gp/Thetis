@@ -34,11 +34,39 @@ It uses a non modified version of rmnoise and implements a ringbuffer to handle 
 #define _CRT_SECURE_NO_WARNINGS
 #include "comm.h"
 #include "rnnoise.h"
-#include <float.h>
-                             
-#define PCM_SCALE   32767.0f
-#define AGC_ALPHA   0.02f //48000 sample rate, at a normal rnnoise frame size of 480, will result in 50 required frames for gain to reach desired, ~= 0.5 second
-#define TARGET_AGC_GAIN  10000.0f
+
+static inline float db_to_lin(float db) { return powf(10.0f, db / 20.0f); }
+static inline float lin_to_db(float lin) { return 20.0f * log10f(fmaxf(lin, 1e-12f)); }
+
+#define AGC_TARGET_DB   (60.0f)
+#define AGC_MIN_DB      (-12.0f)
+#define AGC_MAX_DB      (+220.0f)
+#define AGC_ATTACK_MS   (10.0f)
+#define AGC_RELEASE_MS  (200.0f)
+#define AGC_RMS_FLOOR   (1e-6f)
+#define SAFETY_CEIL     (30000.0f)
+
+static float agc_alpha_ms(float ms, float frame_hz) {
+    const float tc = ms / 1000.0f;
+    const float a = expf(-(1.0f / frame_hz) / tc);
+    return a < 0.0f ? 0.0f : (a > 1.0f ? 1.0f : a);
+}
+
+void rnnr_agc_init(RNNR a)
+{
+    const float frame_hz = (a->frame_size > 0) ? ((float)a->rate / (float)a->frame_size) : 100.0f;
+    a->agc_att_a = agc_alpha_ms(AGC_ATTACK_MS, frame_hz);
+    a->agc_rel_a = agc_alpha_ms(AGC_RELEASE_MS, frame_hz);
+    a->gain_db = AGC_TARGET_DB;
+    a->gain = db_to_lin(a->gain_db);
+}
+
+static float frame_rms(const float* x, int n) {
+    double s = 0.0;
+    for (int i = 0; i < n; i++) { double v = (double)x[i]; s += v * v; }
+    float r = (float)sqrt(s / (double)n);
+    return (r < AGC_RMS_FLOOR) ? AGC_RMS_FLOOR : r;
+}
 
 //used to track RNNR instances
 static RNNR* _rnnr_instances = NULL;
@@ -141,7 +169,8 @@ void setBuffers_rnnr(RNNR a, double* in, double* out)
 
 void setSamplerate_rnnr(RNNR a, int rate)
 {
-    a->rate = rate; // not used currently, but here for future use
+    a->rate = rate;
+    rnnr_agc_init(a);
 }
 
 RNNR create_rnnr(int run, int position, int size, double* in, double* out, int rate)
@@ -156,7 +185,7 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     a->in = in;
     a->out = out;
     a->buffer_size = size;
-    a->gain = 1.0f;
+    rnnr_agc_init(a);
 
     ring_buffer_init(&a->input_ring, a->frame_size + a->buffer_size);
     ring_buffer_init(&a->output_ring, a->frame_size + a->buffer_size);
@@ -180,7 +209,7 @@ RNNR create_rnnr(int run, int position, int size, double* in, double* out, int r
     return a;
 }
 
-void xrnnr(RNNR a, int pos) 
+void xrnnr(RNNR a, int pos)
 {
     if (a->st && a->run && pos == a->position)
     {
@@ -190,7 +219,7 @@ void xrnnr(RNNR a, int pos)
         float* process_out = a->processed_output_buffer;
 
         EnterCriticalSection(&a->cs);
-        for (int i = 0; i < bs; i++) 
+        for (int i = 0; i < bs; i++)
         {
             ring_buffer_put(&a->input_ring, (float)a->in[2 * i + 0]);
 
@@ -198,51 +227,51 @@ void xrnnr(RNNR a, int pos)
             {
                 ring_buffer_get_bulk(&a->input_ring, to_process, fs);
 
-                // gain the samples to make rnnnoise somewhat happy
-                float max = FLT_EPSILON;
-                for (int j = 0; j < fs; j++)
-                {
-                    float v = fabsf(to_process[j]);
-                    if (v > max) max = v;
-                }
-                float desired_gain = TARGET_AGC_GAIN / max;
-                a->gain = AGC_ALPHA * desired_gain + (1.0f - AGC_ALPHA) * a->gain;
+                float rms = frame_rms(to_process, fs);
+                float cur_db = lin_to_db(rms);
+                float desired_db = AGC_TARGET_DB - cur_db;
+
+                float alpha = (desired_db > a->gain_db) ? a->agc_att_a : a->agc_rel_a;
+                a->gain_db = alpha * a->gain_db + (1.0f - alpha) * desired_db;
+                if (a->gain_db < AGC_MIN_DB) a->gain_db = AGC_MIN_DB;
+                if (a->gain_db > AGC_MAX_DB) a->gain_db = AGC_MAX_DB;
+
+                a->gain = db_to_lin(a->gain_db);
 
                 for (int j = 0; j < fs; j++)
                 {
                     float v = to_process[j] * a->gain;
-                    if (v > 32767.0f) v = 32767.0f;
-                    if (v < -32768.0f) v = -32768.0f;
+                    if (v > SAFETY_CEIL) v = SAFETY_CEIL;
+                    if (v < -SAFETY_CEIL) v = -SAFETY_CEIL;
                     to_process[j] = v;
                 }
-                //
 
                 rnnoise_process_frame(a->st, process_out, to_process);
 
+                const float inv = (a->gain > 0.0f) ? (1.0f / a->gain) : 0.0f;
                 for (int j = 0; j < fs; j++)
                 {
-                    ring_buffer_put(&a->output_ring, process_out[j] / a->gain);
+                    ring_buffer_put(&a->output_ring, process_out[j] * inv);
                 }
             }
         }
         LeaveCriticalSection(&a->cs);
 
-        if (a->output_ring.count >= bs) 
+        if (a->output_ring.count >= bs)
         {
             ring_buffer_get_bulk(&a->output_ring, a->output_buffer, bs);
-
-            for (int i = 0; i < bs; i++) 
+            for (int i = 0; i < bs; i++)
             {
-                a->out[2 * i + 0] = (double) a->output_buffer[i];
+                a->out[2 * i + 0] = (double)a->output_buffer[i];
                 a->out[2 * i + 1] = 0;
             }
         }
-        else 
+        else
         {
             memcpy(a->out, a->in, a->buffer_size * sizeof(complex));
         }
     }
-    else if (a->out != a->in) 
+    else if (a->out != a->in)
     {
         memcpy(a->out, a->in, a->buffer_size * sizeof(complex));
     }

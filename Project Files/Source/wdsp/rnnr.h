@@ -57,6 +57,9 @@ typedef struct _rnnr
     double *in;
     double *out;
     float gain;
+    float gain_db;
+    float agc_att_a;
+    float agc_rel_a;
 
     int buffer_size;
     int rate;
