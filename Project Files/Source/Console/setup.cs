@@ -2561,6 +2561,8 @@ namespace Thetis
             radDSPNR2NSTATRX2_CheckedChanged(this, e);
 
             chkDSPNR2AE_CheckedChanged(this, e);
+            setupNR2PostProcessing(1);
+            setupNR2PostProcessing(2);
             radDSPNR2LinearRX2_CheckedChanged(this, e);
             radDSPNR2LogRX2_CheckedChanged(this, e);
             radDSPNR2TRNDRX2_CheckedChanged(this, e);
@@ -29572,6 +29574,10 @@ namespace Thetis
         private void radDSPNR2TRND_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
+
+            udDSPNR2trainThresh.Enabled = radDSPNR2TRND.Checked;
+            udDSPNR2trainT2.Enabled = radDSPNR2TRND.Checked;
+
             if (radDSPNR2TRND.Checked)
             {
                 console.radio.GetDSPRX(0, 0).RXANR2GainMethod = 3;
@@ -29582,6 +29588,10 @@ namespace Thetis
         private void radDSPNR2TRNDRX2_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
+
+            udDSPNR2trainThreshRX2.Enabled = radDSPNR2TRNDRX2.Checked;
+            udDSPNR2trainT2RX2.Enabled = radDSPNR2TRNDRX2.Checked;
+
             if (radDSPNR2TRNDRX2.Checked)
             {
                 console.radio.GetDSPRX(1, 0).RXANR2GainMethod = 3;
@@ -34922,6 +34932,132 @@ namespace Thetis
                 return remaining == 0;
             }
         }
+
+        #region nr2 post processing
+        private void setupNR2PostProcessing(int rx)
+        {
+            switch (rx)
+            {
+                case 1:
+                    {
+                        bool enabled = chkNR2PostProc_enable_rx1.Checked;
+
+                        nudNR2PostProc_level_rx1.Enabled = enabled;
+                        nudNR2PostProc_factor_rx1.Enabled = enabled;
+                        nudNR2PostProc_rate_rx1.Enabled = enabled;
+                        nudNR2PostProc_taper_rx1.Enabled = enabled;
+
+                        int thread = 0;
+
+                        if (enabled)
+                        {
+                            for (int subrx = 0; subrx < 2; subrx++)
+                            {
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Nlevel = (double)nudNR2PostProc_level_rx1.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Factor = (double)nudNR2PostProc_factor_rx1.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Rate = (double)nudNR2PostProc_rate_rx1.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Taper = (int)nudNR2PostProc_taper_rx1.Value;
+                            }
+                        }
+
+                        int run = enabled ? 1 : 0;
+                        console.radio.GetDSPRX(thread, 0).RXAEMNRpost2Run = run;
+                        console.radio.GetDSPRX(thread, 1).RXAEMNRpost2Run = run;
+                        break;
+                    }
+
+                case 2:
+                    {
+                        bool enabled = chkNR2PostProc_enable_rx2.Checked;
+
+                        nudNR2PostProc_level_rx2.Enabled = enabled;
+                        nudNR2PostProc_factor_rx2.Enabled = enabled;
+                        nudNR2PostProc_rate_rx2.Enabled = enabled;
+                        nudNR2PostProc_taper_rx2.Enabled = enabled;
+
+                        int thread = 1;
+
+                        if (enabled)
+                        {
+                            for (int subrx = 0; subrx < 2; subrx++)
+                            {
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Nlevel = (double)nudNR2PostProc_level_rx2.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Factor = (double)nudNR2PostProc_factor_rx2.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Rate = (double)nudNR2PostProc_rate_rx2.Value;
+                                console.radio.GetDSPRX(thread, subrx).RXAEMNRpost2Taper = (int)nudNR2PostProc_taper_rx2.Value;
+                            }
+                        }
+
+                        int run = enabled ? 1 : 0;
+                        console.radio.GetDSPRX(thread, 0).RXAEMNRpost2Run = run;
+                        console.radio.GetDSPRX(thread, 1).RXAEMNRpost2Run = run;
+                        break;
+                    }
+
+                default:
+                    break;
+            }
+        }
+        private void chkNR2PostProc_enable_rx1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(1);
+        }
+
+        private void nudNR2PostProc_level_rx1_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(1);
+        }
+
+        private void nudNR2PostProc_factor_rx1_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(1);
+        }
+
+        private void nudNR2PostProc_rate_rx1_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(1);
+        }
+
+        private void nudNR2PostProc_taper_rx1_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(1);
+        }
+
+        private void chkNR2PostProc_enable_rx2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(2);
+        }
+
+        private void nudNR2PostProc_level_rx2_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(2);
+        }
+
+        private void nudNR2PostProc_factor_rx2_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(2);
+        }
+
+        private void nudNR2PostProc_rate_rx2_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(2);
+        }
+
+        private void nudNR2PostProc_taper_rx2_ValueChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            setupNR2PostProcessing(2);
+        }
+        #endregion
     }
 
     #region PADeviceInfo Helper Class

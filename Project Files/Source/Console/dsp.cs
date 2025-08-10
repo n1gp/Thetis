@@ -272,8 +272,25 @@ namespace Thetis
         [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRnpeMethod", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetRXAEMNRnpeMethod(int channel, int method);
 
+        //post processing - page 55-57 v1.27 manual
         [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRaeRun", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetRXAEMNRaeRun(int channel, int run);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRpost2Run", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXAEMNRpost2Run(int channel, int run);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRpost2Nlevel", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXAEMNRpost2Nlevel(int channel, double nlevel);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRpost2Factor", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXAEMNRpost2Factor(int channel, double factor);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRpost2Rate", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXAEMNRpost2Rate(int channel, double tc);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRpost2Taper", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXAEMNRpost2Taper(int channel, int taper);
+        //end post processing
 
         [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRtrainZetaThresh", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetRXAEMNRtrainZetaThresh(int channel, double thresh);
