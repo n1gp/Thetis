@@ -1290,6 +1290,25 @@ namespace Thetis
             set { _restart = value; }
         }
 
+        static string cleanArg(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+
+            StringBuilder sb = new StringBuilder();
+            foreach (char c in input.Normalize(NormalizationForm.FormC))
+            {
+                UnicodeCategory uc = CharUnicodeInfo.GetUnicodeCategory(c);
+                if (uc != UnicodeCategory.Control &&
+                    uc != UnicodeCategory.Format &&
+                    uc != UnicodeCategory.OtherNotAssigned &&
+                    !(uc == UnicodeCategory.SpaceSeparator && c != ' '))
+                {
+                    sb.Append(c);
+                }
+            }
+            return sb.ToString().Trim();
+        }
+
         //[DllImport("shcore.dll")]
         //private static extern int SetProcessDpiAwareness(int awareness);
         // ======================================================
@@ -1302,13 +1321,19 @@ namespace Thetis
             Application.ThreadException += new ThreadExceptionEventHandler(Application_ThreadException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            //tidy args, strip any junk from them
+            args = args
+                .Select(a => cleanArg(a))
+                .Where(a => !string.IsNullOrWhiteSpace(a))
+                .ToArray();
+
             if (Common.HasArg(args, "-help"))
             {
                 if (showHelpInfo()) return;  // if we can show, instantly exit
             }
 
             //[2.10.3.12]MW0LGE command line adaptor select
-            if (Common.HasArg(args, "-adaptor:"))
+            if (Common.HasArg(args, "-adaptor"))
             {
                 string param = Common.ArgParam(args, "-adaptor:");
                 if (!string.IsNullOrEmpty(param))
