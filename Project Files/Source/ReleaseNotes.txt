@@ -16,6 +16,7 @@ Please report any issue over on [GitHub here](https://github.com/ramdor/Thetis/i
 - [fix] you can now enter values into the VAR1/VAR2 filters on the main console. Pressing enter or the box losing focus will set the value
 - [fix] issue where low/high values would not sometimes be stored when using the filter configuration settings window/form
 - [fix] changing a filter edge in the filter settings config window will now notify all delegates. Fixes issue where filter container would not update
+- [fix] fixed a CAT tci/ip server issue where AI broadcast messages could get interleaved between a cat request and reply, which could cause issues for external systems that rely on a correct response, such as HamLib.
 
 ## v2.10.3.11 - Change Log
 - [add] two new noise reduction methods added, NR3 and NR4. When starting up this version for the first time if NR was enabled, will now be set to off. Only support for nr/nr2 is available through cat and other systems that use cat such as midi. Settings in the normal NR settings page of Setup
