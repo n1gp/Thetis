@@ -3729,6 +3729,7 @@
             this.chkDiscordEnabled = new System.Windows.Forms.CheckBoxTS();
             this.tpTests = new System.Windows.Forms.TabPage();
             this.groupBoxTS30 = new System.Windows.Forms.GroupBoxTS();
+            this.btnFormLocationHelper = new System.Windows.Forms.ButtonTS();
             this.btnFPSProfile = new System.Windows.Forms.ButtonTS();
             this.btnShowSeqLog = new System.Windows.Forms.ButtonTS();
             this.chkShowDisplayDebug = new System.Windows.Forms.CheckBoxTS();
@@ -59497,16 +59498,30 @@
             // 
             // groupBoxTS30
             // 
+            this.groupBoxTS30.Controls.Add(this.btnFormLocationHelper);
             this.groupBoxTS30.Controls.Add(this.btnFPSProfile);
             this.groupBoxTS30.Controls.Add(this.btnShowSeqLog);
             this.groupBoxTS30.Controls.Add(this.chkShowDisplayDebug);
             this.groupBoxTS30.Controls.Add(this.chkShowControlDebug);
             this.groupBoxTS30.Location = new System.Drawing.Point(11, 340);
             this.groupBoxTS30.Name = "groupBoxTS30";
-            this.groupBoxTS30.Size = new System.Drawing.Size(354, 82);
+            this.groupBoxTS30.Size = new System.Drawing.Size(463, 82);
             this.groupBoxTS30.TabIndex = 120;
             this.groupBoxTS30.TabStop = false;
             this.groupBoxTS30.Text = "Debug";
+            // 
+            // btnFormLocationHelper
+            // 
+            this.btnFormLocationHelper.Image = null;
+            this.btnFormLocationHelper.Location = new System.Drawing.Point(343, 19);
+            this.btnFormLocationHelper.Name = "btnFormLocationHelper";
+            this.btnFormLocationHelper.Selectable = true;
+            this.btnFormLocationHelper.Size = new System.Drawing.Size(110, 52);
+            this.btnFormLocationHelper.TabIndex = 121;
+            this.btnFormLocationHelper.Text = "Reposition Forms";
+            this.toolTip1.SetToolTip(this.btnFormLocationHelper, "Use this if you have lost a form off screen somewhere");
+            this.btnFormLocationHelper.UseVisualStyleBackColor = true;
+            this.btnFormLocationHelper.Click += new System.EventHandler(this.btnFormLocationHelper_Click);
             // 
             // btnFPSProfile
             // 
@@ -74358,5 +74373,6 @@
         private LabelTS labelTS481;
         private NumericUpDownTS nudNR2PostProc_taper_rx2;
         private NumericUpDownTS nudNR2PostProc_rate_rx2;
+        private ButtonTS btnFormLocationHelper;
     }
 }
