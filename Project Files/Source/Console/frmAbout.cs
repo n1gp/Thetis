@@ -64,6 +64,8 @@ namespace Thetis
         {
             InitializeComponent();
 
+            this.TopMost = true;
+
             _exe_path = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "\\";
             _console = console;
             _update_available = false;
