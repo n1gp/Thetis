@@ -21627,8 +21627,8 @@ namespace Thetis
         private bool _auto_att_undo_rx2 = false;
         private int _auto_att_hold_delay_rx1 = 5;
         private int _auto_att_hold_delay_rx2 = 5;
-        private DateTime _auto_att_last_hold_time_rx1 = DateTime.Now;
-        private DateTime _auto_att_last_hold_time_rx2 = DateTime.Now;
+        private DateTime _auto_att_last_hold_time_rx1 = DateTime.UtcNow;
+        private DateTime _auto_att_last_hold_time_rx2 = DateTime.UtcNow;
         public bool AutoAttRX1
         {
             get { return _auto_att_rx1; }
@@ -21934,7 +21934,7 @@ namespace Thetis
                 int nRX1DDCinUse = -1, nRX2DDCinUse = -1, sync1 = -1, sync2 = -1, psrx = -1, pstx = -1;
                 GetDDC(out nRX1DDCinUse, out nRX2DDCinUse, out sync1, out sync2, out psrx, out pstx);
 
-                DateTime now = DateTime.Now;
+                DateTime now = DateTime.UtcNow;
 
                 bool radioHasRx1Att = HardwareSpecific.Model == HPSDRModel.ANAN10 || HardwareSpecific.Model == HPSDRModel.ANAN10E ||
                             HardwareSpecific.Model == HPSDRModel.ANAN100 || HardwareSpecific.Model == HPSDRModel.ANAN100B ||
@@ -25299,7 +25299,7 @@ namespace Thetis
                 // [2.10.1.0]MW0LGE log data to VALog.txt
                 if (_logVA)
                 {
-                    DateTime now = DateTime.Now;
+                    DateTime now = DateTime.UtcNow;
                     if (now.Subtract(_lastSaveTime).TotalSeconds >= 1)
                     {
                         try
@@ -25315,7 +25315,7 @@ namespace Thetis
                         }
                         finally
                         {
-                            _lastSaveTime = DateTime.Now;
+                            _lastSaveTime = DateTime.UtcNow;
                         }
 
                         if (now.Subtract(_firstSaveTime).TotalMinutes >= 60)
@@ -25364,7 +25364,7 @@ namespace Thetis
                             writer.WriteLine(ProductVersion + "\n" + BasicTitleBar);
                             writer.WriteLine($"Volts/Amps Log \t_amp_voff={_amp_voff}\t_amp_sens={_amp_sens}");
                         }
-                        _firstSaveTime = DateTime.Now;
+                        _firstSaveTime = DateTime.UtcNow;
                     }
 
                     _logVA = value;

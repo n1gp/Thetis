@@ -145,7 +145,7 @@ namespace Thetis
                 // Send a GET request to the JSON URL and read the content asynchronously.
                 // In some scenarios, especially in UI applications (e.g., WinForms, WPF),
                 // calling asynchronous methods without ConfigureAwait(false) can lead to a deadlock. 
-                string jsonContent = await client.GetStringAsync(jsonUrl + "?timestamp=" + DateTime.Now.Ticks);
+                string jsonContent = await client.GetStringAsync(jsonUrl + "?timestamp=" + DateTime.UtcNow.Ticks);
 
                 // Deserialize the JSON data into the pre-defined class.
                 SkinsData thetisSkinsData = JsonConvert.DeserializeObject<SkinsData>(jsonContent);
@@ -203,7 +203,7 @@ namespace Thetis
                 client.DefaultRequestHeaders.CacheControl = new CacheControlHeaderValue(){ NoCache = true };
                 client.Timeout = TimeSpan.FromSeconds(10); // 10 seconds
 
-                string jsonContent = await client.GetStringAsync(jsonUrl + "?timestamp=" + DateTime.Now.Ticks);
+                string jsonContent = await client.GetStringAsync(jsonUrl + "?timestamp=" + DateTime.UtcNow.Ticks);
                 SkinServersData skinServersData = JsonConvert.DeserializeObject<SkinServersData>(jsonContent);
                 ThetisSkinServerData?.Invoke(null, skinServersData);
             }

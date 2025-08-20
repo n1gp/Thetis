@@ -68,7 +68,7 @@ namespace Thetis
             _ping = new Ping();
 
             _tickerRunning = false;
-            _lastMox = DateTime.Now;
+            _lastMox = DateTime.UtcNow;
             _lastPing = _lastMox;
 
             _moxTimeOutEnabled = false;
@@ -138,7 +138,7 @@ namespace Thetis
 
                 if (newMox && !oldMox)
                 {
-                    _lastMox = DateTime.Now;
+                    _lastMox = DateTime.UtcNow;
                     _lastPing = _lastMox;
                 }
             }
@@ -156,7 +156,7 @@ namespace Thetis
                 {
                     if (_mox && (_moxTimeOutEnabled || _pingTimeoutEnabled))
                     {
-                        DateTime now = DateTime.Now;                        
+                        DateTime now = DateTime.UtcNow;                        
 
                         // basic mox ToT
                         if (_moxTimeOutEnabled)
