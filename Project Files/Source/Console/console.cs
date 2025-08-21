@@ -577,11 +577,6 @@ namespace Thetis
         // ======================================================
         public Console(string[] args)
         {
-            ////Debug.Print(Common.GenerateKeyBase64());
-            //byte[] key = Convert.FromBase64String("LGu4GhrkboTvwiNTca2I9e3Z/3Jl3fZ6+qa+eMB/rGI=");
-            //string ss = Common.EncryptAndCombineIvToBase64("this is a test", key);
-            //Debug.Print(Common.DecryptFromCombinedIvBase64(ss, key));
-
             //run high, until we have completed, then set to configured value, see near end of function
             Process.GetCurrentProcess().PriorityClass = ProcessPriorityClass.High;
             ThreadPriority original_thread_priority = Thread.CurrentThread.Priority;

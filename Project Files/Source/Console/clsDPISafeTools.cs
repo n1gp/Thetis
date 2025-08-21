@@ -105,7 +105,8 @@ namespace Thetis
 
         private struct monitor_info
         {
-            public Rectangle rect;
+            public Rectangle rect_monitor;
+            public Rectangle rect_work;
             public int scale_percent;
             public int index;
             public int display_number;
@@ -394,8 +395,10 @@ namespace Thetis
                 for (int i = 0; i < Screen.AllScreens.Length; i++)
                 {
                     monitor_info info = new monitor_info();
-                    Rectangle rect = use_working_area ? Screen.AllScreens[i].WorkingArea : Screen.AllScreens[i].Bounds;
-                    info.rect = rect;
+                    Rectangle rb = Screen.AllScreens[i].Bounds;
+                    Rectangle rw = Screen.AllScreens[i].WorkingArea;
+                    info.rect_monitor = rb;
+                    info.rect_work = rw;
                     info.scale_percent = 100;
                     info.index = i + 1;
                     info.display_number = info.index;
@@ -404,7 +407,7 @@ namespace Thetis
             }
 
             List<Rectangle> rects = new List<Rectangle>();
-            for (int i = 0; i < mons.Count; i++) rects.Add(mons[i].rect);
+            for (int i = 0; i < mons.Count; i++) rects.Add(mons[i].rect_monitor);
             Rectangle union = getUnion(rects);
 
             float sx = (float)(target_size.Width - 1) / (float)union.Width;
@@ -423,11 +426,11 @@ namespace Thetis
             int n = mons.Count;
             for (int i = 0; i < n; i++)
             {
-                Rectangle b = mons[i].rect;
-                int rx = ox + (int)Math.Round((b.Left - union.Left) * scale);
-                int ry = oy + (int)Math.Round((b.Top - union.Top) * scale);
-                int rw = Math.Max(1, (int)Math.Round(b.Width * scale));
-                int rh = Math.Max(1, (int)Math.Round(b.Height * scale));
+                Rectangle rect_mon = mons[i].rect_monitor;
+                int rx = ox + (int)Math.Round((rect_mon.Left - union.Left) * scale);
+                int ry = oy + (int)Math.Round((rect_mon.Top - union.Top) * scale);
+                int rw = Math.Max(1, (int)Math.Round(rect_mon.Width * scale));
+                int rh = Math.Max(1, (int)Math.Round(rect_mon.Height * scale));
                 Rectangle r = new Rectangle(rx, ry, rw, rh);
 
                 Color fill = colorFromHue((i * 360.0 / Math.Max(1, n)) % 360.0, 0.55, 0.95);
@@ -437,6 +440,23 @@ namespace Thetis
                     pen.Alignment = System.Drawing.Drawing2D.PenAlignment.Inset;
                     g.FillRectangle(brush, r);
                     g.DrawRectangle(pen, r);
+                }
+
+                if (use_working_area)
+                {
+                    Rectangle work_mon = mons[i].rect_work;
+                    int wx = ox + (int)Math.Round((work_mon.Left - union.Left) * scale);
+                    int wy = oy + (int)Math.Round((work_mon.Top - union.Top) * scale);
+                    int ww = Math.Max(1, (int)Math.Round(work_mon.Width * scale));
+                    int wh = Math.Max(1, (int)Math.Round(work_mon.Height * scale));
+                    using (Pen pen_work = new Pen(Color.Black, 1f))
+                    {
+                        pen_work.DashStyle = System.Drawing.Drawing2D.DashStyle.Dash;
+                        if (work_mon.Left > rect_mon.Left) g.DrawLine(pen_work, wx, wy, wx, wy + wh);
+                        if (work_mon.Top > rect_mon.Top) g.DrawLine(pen_work, wx, wy, wx + ww, wy);
+                        if (work_mon.Right < rect_mon.Right) g.DrawLine(pen_work, wx + ww, wy, wx + ww, wy + wh);
+                        if (work_mon.Bottom < rect_mon.Bottom) g.DrawLine(pen_work, wx, wy + wh, wx + ww, wy + wh);
+                    }
                 }
 
                 string label_num = (mons[i].display_number > 0 ? mons[i].display_number : mons[i].index).ToString();
@@ -545,8 +565,8 @@ namespace Thetis
                     mi.cbSize = (uint)Marshal.SizeOf(typeof(MONITORINFOEX));
                     if (GetMonitorInfoEx(hMon, ref mi))
                     {
-                        RECT r = use_working_area ? mi.rcWork : mi.rcMonitor;
-                        Rectangle b = Rectangle.FromLTRB(r.left, r.top, r.right, r.bottom);
+                        Rectangle bmon = Rectangle.FromLTRB(mi.rcMonitor.left, mi.rcMonitor.top, mi.rcMonitor.right, mi.rcMonitor.bottom);
+                        Rectangle bwrk = Rectangle.FromLTRB(mi.rcWork.left, mi.rcWork.top, mi.rcWork.right, mi.rcWork.bottom);
 
                         uint dpi_x = 96;
                         uint dpi_y = 96;
@@ -569,7 +589,8 @@ namespace Thetis
                         if (disp_num <= 0) disp_num = idx;
 
                         monitor_info info = new monitor_info();
-                        info.rect = b;
+                        info.rect_monitor = bmon;
+                        info.rect_work = bwrk;
                         info.scale_percent = percent;
                         info.index = idx;
                         info.display_number = disp_num;
