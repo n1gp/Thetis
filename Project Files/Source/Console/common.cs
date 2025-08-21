@@ -486,9 +486,9 @@ namespace Thetis
         {
             if (f == null) return (false, false);
 
-            (Rectangle newPos, bool resize, bool repos) = ensureRectangleWithinNearestScreen(null, f, keep_on_screen);
+            (Rectangle newPos, bool resized, bool repositioned) = SafeScreens.EnsureRectangleWithinNearestScreen(null, f, keep_on_screen, true);
 
-            return (resize, repos);
+            return (resized, repositioned);
         }
 
         public static void TabControlInsert(TabControl tc, TabPage tp, int index)
@@ -1807,111 +1807,5 @@ namespace Thetis
             }
         }
         //
-
-        //////////////////////////
-        /// Ensure rect or form is on screen re-write - [2.10.3.12]MW0LGE
-        /// supply either rect or form
-        /// keep_on_screen if true will ensure form/rect is fully on the screen that has the mouse pointer
-        public static (Rectangle adjusted, bool resized, bool repositioned) ensureRectangleWithinNearestScreen(Rectangle? rect = null, Form form = null, bool keep_on_screen = false)
-        {
-            if (rect == null && form == null) return (Rectangle.Empty, false, false);
-
-            Rectangle source;
-            Rectangle form_bounds = Rectangle.Empty;
-            if (form != null)
-            {
-                form_bounds = form.Bounds;
-                source = getExtendedFrameBounds(form.Handle, form_bounds);
-            }
-            else
-            {
-                source = rect.Value;
-            }
-
-            bool fully_on_monitors = is_fully_on_monitors(source);
-            bool contained_by_one = is_contained_by_any_screen(source);
-
-            bool need_adjust = !fully_on_monitors || (keep_on_screen && !contained_by_one);
-
-            Screen target_screen;
-            if (keep_on_screen)
-            {
-                Point cursor = Cursor.Position;
-                target_screen = Screen.FromPoint(cursor);
-            }
-            else
-            {
-                target_screen = Screen.FromRectangle(source);
-            }
-            Rectangle bounds = target_screen.Bounds;
-
-            bool resized = false;
-            bool repositioned = false;
-            Rectangle adjusted = source;
-
-            if (need_adjust)
-            {
-                int new_x = source.X;
-                int new_y = source.Y;
-                int new_width = source.Width;
-                int new_height = source.Height;
-
-                if (new_width > bounds.Width) { new_width = bounds.Width; resized = true; }
-                if (new_height > bounds.Height) { new_height = bounds.Height; resized = true; }
-                if (new_x < bounds.Left) new_x = bounds.Left;
-                if (new_y < bounds.Top) new_y = bounds.Top;
-                if (new_x + new_width > bounds.Right) new_x = bounds.Right - new_width;
-                if (new_y + new_height > bounds.Bottom) new_y = bounds.Bottom - new_height;
-                if (new_x != source.X || new_y != source.Y) repositioned = true;
-
-                adjusted = new Rectangle(new_x, new_y, new_width, new_height);
-            }
-
-            if (form != null && need_adjust)
-            {
-                int shadow_dx = form_bounds.Width - source.Width;
-                int shadow_dy = form_bounds.Height - source.Height;
-
-                int final_form_x = form_bounds.X + (adjusted.X - source.X);
-                int final_form_y = form_bounds.Y + (adjusted.Y - source.Y);
-                int final_form_w = adjusted.Width + shadow_dx;
-                int final_form_h = adjusted.Height + shadow_dy;
-
-                form.SetBounds(final_form_x, final_form_y, final_form_w, final_form_h);
-            }
-
-            return (adjusted, resized, repositioned);
-        }
-
-        private static bool is_fully_on_monitors(Rectangle r)
-        {
-            long source_area = (long)r.Width * (long)r.Height;
-            long covered_area = 0;
-            for (int i = 0; i < Screen.AllScreens.Length; i++)
-            {
-                Rectangle s = Screen.AllScreens[i].Bounds;
-                Rectangle inter = Rectangle.Intersect(r, s);
-                if (inter.Width > 0 && inter.Height > 0) covered_area += (long)inter.Width * (long)inter.Height;
-            }
-            return covered_area >= source_area;
-        }
-
-        private static bool is_contained_by_any_screen(Rectangle r)
-        {
-            for (int i = 0; i < Screen.AllScreens.Length; i++)
-            {
-                if (Screen.AllScreens[i].Bounds.Contains(r)) return true;
-            }
-            return false;
-        }
-
-        private static Rectangle getExtendedFrameBounds(IntPtr hwnd, Rectangle fallback)
-        {
-            RECT r;
-            int hr = DwmGetWindowAttribute(hwnd, 9, out r, Marshal.SizeOf(typeof(RECT)));
-            if (hr != 0) return fallback;
-            return Rectangle.FromLTRB(r.left, r.top, r.right, r.bottom);
-        }
-        //////////////////////////
     }
 }
