@@ -687,7 +687,8 @@ namespace Thetis
         {
             get
             {
-                return (Control.ModifierKeys & Keys.Alt) == Keys.Alt;
+                //return (Control.ModifierKeys & Keys.Alt) == Keys.Alt;
+                return Keyboard.IsKeyDown(Keys.Menu) || Keyboard.IsKeyDown(Keys.LMenu) || Keyboard.IsKeyDown(Keys.RMenu);
             }
         }
         public static bool Is64Bit

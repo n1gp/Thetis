@@ -621,6 +621,8 @@ namespace Thetis
             }
             //
 
+            bool reposition_conosle_setup = requires_reposition(); // check for ctrl+alt+shift keycombo to reset console and setup position futher down
+
             string app_data_path = "";
 
             foreach (string s in args)
@@ -990,7 +992,7 @@ namespace Thetis
 
             // start up options and applications
             handleShowOnStartWindowsForms();
-            if (!(alt_key_down || Common.AltlKeyDown)) handleLaunchOnStartUp(); // twice to make sure it is captured at start before lengthy init process
+            if (!(alt_key_down || Common.AltlKeyDown)) handleLaunchOnStartUp(); // alt down at startup, or now down
 
             //legacy items controller
             LegacyItemController.Init(this);
@@ -1027,6 +1029,12 @@ namespace Thetis
             //    _spectrum_thread.Start();
             //}
             //
+
+            if (reposition_conosle_setup)
+            {
+                this.Location = new Point(100, 100);
+                if (!IsSetupFormNull) SetupForm.Location = new Point(160, 160);
+            }
 
             //release notes
             _frmReleaseNotes = new frmReleaseNotes();
@@ -52126,6 +52134,39 @@ namespace Thetis
             incrementNR(2);
             setupNR(2, false);
             setupNR(2, true);
+        }
+
+        private bool requires_reposition()
+        {
+            bool reposition = false;
+            if (Common.AltlKeyDown && Common.ShiftKeyDown && Common.CtrlKeyDown)
+            {
+                Thread.Sleep(500); // make sure
+                Application.DoEvents();
+
+                if (Common.AltlKeyDown && Common.ShiftKeyDown && Common.CtrlKeyDown)
+                {
+                    DialogResult dr = MessageBox.Show("CTRL+ALT+SHIFT key combo has been detected.\n\n" +
+                    "The location of the main Thetis console window and Setup will be moved to the primary monitor.\n\n" +
+                    "If other forms are 'missing' you can use Setup->Tools->[Reposition Forms] to recover them.\n\n\n" +
+                    "Do you want to do this?\n\n\n" +
+                    "NOTE: release the keys",
+                    "Resposition detected",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, Common.MB_TOPMOST);
+
+                    // wait for all these keys to be released
+                    while (Common.AltlKeyDown || Common.ShiftKeyDown || Common.CtrlKeyDown)
+                    {
+                        Thread.Sleep(100);
+                        Application.DoEvents();
+                    }
+
+                    // console and setup location reposition
+                    reposition = dr == DialogResult.Yes;
+                }
+            }
+            return reposition;
         }
     }
 
