@@ -162,10 +162,10 @@ namespace Thetis
                 int nw = source.Width;
                 int nh = source.Height;
 
-                int l = keep_on_screen ? target.Left + margin_left : target.Left - margin_left;
-                int t = keep_on_screen ? target.Top + margin_top : target.Top - margin_top;
-                int r = keep_on_screen ? target.Right - margin_right : target.Right + margin_right;
-                int b = keep_on_screen ? target.Bottom - margin_bottom : target.Bottom + margin_bottom;
+                int l = target.Left - margin_left;
+                int t = target.Top - margin_top;
+                int r = target.Right + margin_right;
+                int b = target.Bottom + margin_bottom;
 
                 int max_w = Math.Max(1, r - l);
                 int max_h = Math.Max(1, b - t);
