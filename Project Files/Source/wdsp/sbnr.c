@@ -4,6 +4,7 @@ This file is part of a program that implements a Software-Defined Radio.
 
 This code/file can be found on GitHub : https://github.com/ramdor/Thetis
 
+Copyright (C) 2000-2025 Original authors
 Copyright (C) 2020-2025 Richard Samphire MW0LGE
 
 This program is free software; you can redistribute it and/or
@@ -28,6 +29,18 @@ This code is based on code and ideas from  : https://github.com/vu3rdd/wdsp
 and and uses libspecbleach
 https://github.com/lucianodato/libspecbleach
 */
+//
+//============================================================================================//
+// Dual-Licensing Statement (Applies Only to Author's Contributions, Richard Samphire MW0LGE) //
+// ------------------------------------------------------------------------------------------ //
+// For any code originally written by Richard Samphire MW0LGE, or for any modifications       //
+// made by him, the copyright holder for those portions (Richard Samphire) reserves the       //
+// right to use, license, and distribute such code under different terms, including           //
+// closed-source and proprietary licences, in addition to the GNU General Public License      //
+// granted above. Nothing in this statement restricts any rights granted to recipients under  //
+// the GNU GPL. Code contributed by others remains licensed solely under the GNU GPL and is   //
+// not affected by this dual-licensing statement.                                             //
+//============================================================================================//
 
 #define _CRT_SECURE_NO_WARNINGS
 
