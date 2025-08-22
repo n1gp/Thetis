@@ -34,8 +34,10 @@
 // right to use, license, and distribute such code under different terms, including           //
 // closed-source and proprietary licences, in addition to the GNU General Public License      //
 // granted above. Nothing in this statement restricts any rights granted to recipients under  //
-// the GNU GPL. Code contributed by others remains licensed solely under the GNU GPL and is   //
-// not affected by this dual-licensing statement.                                             //
+// the GNU GPL. Code contributed by others remains licensed under its original terms          //
+// (for example, the GNU GPL, MIT, BSD, or Apache 2.0) and is not affected by this            //
+// dual-licensing statement; nothing in this statement grants any right to relicense          //
+// third-party contributions.                                                                 //
 //============================================================================================//
 
 using System;
