@@ -7592,26 +7592,28 @@ namespace Thetis
         {
             if (IsSetupFormNull) return;
 
-            Dictionary<string, bool> ken = SetupForm.KenwoodAISettings;
+            //Dictionary<string, bool> ken = SetupForm.KenwoodAISettings;
 
             string cmd = "F" + vfo + freq.ToString("f6").Replace(separator, "").PadLeft(11, '0') + ";"; //MW0LGE_22a
 
-            if (ken["port1"]) sioPut(Siolisten, cmd);
-            if (ken["port2"]) sioPut(Sio2listen, cmd);
-            if (ken["port3"]) sioPut(Sio3listen, cmd);
-            if (ken["port4"]) sioPut(Sio4listen, cmd);
+            MessageFloodControl.FloodControl(cmd, "freq_change_broadcast");
 
-            //if (Siolisten != null && Siolisten.SIO != null)
-            //{
-            //    try
-            //    {
-            //        if (Siolisten.SIO.IsOpen) Siolisten.SIO.put(cmd);
-            //    }
-            //    catch { }
-            //}
+            //if (ken["port1"]) sioPut(Siolisten, cmd);
+            //if (ken["port2"]) sioPut(Sio2listen, cmd);
+            //if (ken["port3"]) sioPut(Sio3listen, cmd);
+            //if (ken["port4"]) sioPut(Sio4listen, cmd);
 
-            if (m_tcpCATServer != null && ken["tcp"])
-                m_tcpCATServer.SendToClients(cmd);
+            ////if (Siolisten != null && Siolisten.SIO != null)
+            ////{
+            ////    try
+            ////    {
+            ////        if (Siolisten.SIO.IsOpen) Siolisten.SIO.put(cmd);
+            ////    }
+            ////    catch { }
+            ////}
+
+            //if (m_tcpCATServer != null && ken["tcp"])
+            //    m_tcpCATServer.SendToClients(cmd);                
         }
 
         public void UpdateVFOBFreq(string freq)
@@ -28941,6 +28943,9 @@ namespace Thetis
             shutdownLogStringToPath("Before autoLaunchTryToClose()");
             autoLaunchTryToClose();
 
+            shutdownLogStringToPath("Before MessageFloodControl.Shutdown()");
+            MessageFloodControl.Shutdown();
+
             if (m_tcpTCIServer != null)
             {
                 shutdownLogStringToPath("Before m_tcpTCIServer.StopServer()");
@@ -40543,26 +40548,28 @@ namespace Thetis
         {
             if (IsSetupFormNull) return;
 
-            Dictionary<string, bool> ken = SetupForm.KenwoodAISettings;
+            //Dictionary<string, bool> ken = SetupForm.KenwoodAISettings;
 
             string cmd = "ZZSW" + ndx + ";";
 
-            if (ken["port1"]) sioPut(Siolisten, cmd);
-            if (ken["port2"]) sioPut(Sio2listen, cmd);
-            if (ken["port3"]) sioPut(Sio3listen, cmd);
-            if (ken["port4"]) sioPut(Sio4listen, cmd);
+            MessageFloodControl.FloodControl(cmd, "vfo_change_broadcast");
 
-            //if (Siolisten != null && Siolisten.SIO != null)
-            //{
-            //    try
-            //    {
-            //        if (Siolisten.SIO.IsOpen) Siolisten.SIO.put(cmd);
-            //    }
-            //    catch { }
-            //}
+            //if (ken["port1"]) sioPut(Siolisten, cmd);
+            //if (ken["port2"]) sioPut(Sio2listen, cmd);
+            //if (ken["port3"]) sioPut(Sio3listen, cmd);
+            //if (ken["port4"]) sioPut(Sio4listen, cmd);
 
-            if (m_tcpCATServer != null && ken["tcp"])
-                m_tcpCATServer.SendToClients(cmd);
+            ////if (Siolisten != null && Siolisten.SIO != null)
+            ////{
+            ////    try
+            ////    {
+            ////        if (Siolisten.SIO.IsOpen) Siolisten.SIO.put(cmd);
+            ////    }
+            ////    catch { }
+            ////}
+
+            //if (m_tcpCATServer != null && ken["tcp"])
+            //    m_tcpCATServer.SendToClients(cmd);                
         }
 
         private bool m_bLastVFOATXsetting = false;
@@ -46170,6 +46177,8 @@ namespace Thetis
             Display.SetupDelegates();
             
             TimeOutTimerManager.SetCallback(timeOutTimer);
+
+            MessageFloodControl.SendMessage += on_send_floodcontrol_message;
         }
         private void removeDelegates()
         {
@@ -46211,6 +46220,8 @@ namespace Thetis
 
             Display.RemoveDelegates();
             TimeOutTimerManager.RemoveCallback(timeOutTimer);
+
+            MessageFloodControl.SendMessage -= on_send_floodcontrol_message;
         }
         //
         private bool _stop_all_tx = false;
@@ -52182,6 +52193,36 @@ namespace Thetis
             }
             return reposition;
         }
+
+        private void on_send_floodcontrol_message(string msg, string uid)
+        {
+            bool send = false;
+
+            switch (uid)
+            {
+                case "freq_change_broadcast":
+                    send = true;
+                    break;
+                case "vfo_change_broadcast":
+                    send = true;
+                    break;
+                default:
+                    break;
+            }
+
+            if (send)
+            {
+                Dictionary<string, bool> ken = SetupForm.KenwoodAISettings;
+
+                if (ken["port1"]) sioPut(Siolisten , msg);
+                if (ken["port2"]) sioPut(Sio2listen, msg);
+                if (ken["port3"]) sioPut(Sio3listen, msg);
+                if (ken["port4"]) sioPut(Sio4listen, msg);
+
+                if (m_tcpCATServer != null && ken["tcp"])
+                    m_tcpCATServer.SendToClients(msg);
+            }
+        }
     }
 
     public class DigiMode
@@ -52225,4 +52266,166 @@ namespace Thetis
             _semaphoreSlim.Release();
         }
     }
+
+    #region FloodControl
+    public static class MessageFloodControl
+    {
+        public static event Action<string, string> SendMessage;
+
+        static readonly object sync = new object();
+        static readonly Dictionary<string, State> states = new Dictionary<string, State>();
+        static readonly TimeSpan interval = TimeSpan.FromMilliseconds(200);
+        static volatile bool shutting_down = false;
+
+        public static void FloodControl(string message, string uid)
+        {
+            if (shutting_down) return;
+            if (uid == null) throw new ArgumentNullException("uid");
+            if (message == null) message = string.Empty;
+
+            try
+            {
+                State state;
+                bool fire_now = false;
+                string to_send = null;
+                DateTime now = DateTime.UtcNow;
+
+                lock (sync)
+                {
+                    if (shutting_down) return;
+
+                    if (!states.TryGetValue(uid, out state))
+                    {
+                        state = new State();
+                        state.timer = new System.Threading.Timer(timer_callback, uid, Timeout.Infinite, Timeout.Infinite);
+                        state.latest_message = string.Empty;
+                        state.last_fire_time = DateTime.MinValue;
+                        states[uid] = state;
+                    }
+
+                    state.latest_message = message;
+
+                    TimeSpan remaining = state.last_fire_time.Add(interval) - now;
+                    if (remaining <= TimeSpan.Zero)
+                    {
+                        state.last_fire_time = now;
+                        to_send = state.latest_message;
+                        fire_now = true;
+                        state.timer.Change(Timeout.Infinite, Timeout.Infinite);
+                    }
+                    else
+                    {
+                        int due_ms = (int)Math.Ceiling(remaining.TotalMilliseconds);
+                        if (due_ms < 1) due_ms = 1;
+                        state.timer.Change(due_ms, Timeout.Infinite);
+                    }
+                }
+
+                if (fire_now)
+                {
+                    raise_send_message(to_send, uid);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        public static void Shutdown()
+        {
+            shutting_down = true;
+            try
+            {
+                List<System.Threading.Timer> timers = new List<System.Threading.Timer>();
+                lock (sync)
+                {
+                    foreach (KeyValuePair<string, State> kv in states)
+                    {
+                        timers.Add(kv.Value.timer);
+                    }
+                    states.Clear();
+                }
+                for (int i = 0; i < timers.Count; i++)
+                {
+                    try
+                    {
+                        System.Threading.Timer t = timers[i];
+                        if (t != null) t.Dispose();
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        static void timer_callback(object state_obj)
+        {
+            if (shutting_down) return;
+
+            try
+            {
+                string uid = state_obj as string;
+                string to_send = null;
+                bool should_send = false;
+
+                lock (sync)
+                {
+                    if (shutting_down) return;
+
+                    State s;
+                    if (uid != null && states.TryGetValue(uid, out s))
+                    {
+                        s.last_fire_time = DateTime.UtcNow;
+                        to_send = s.latest_message;
+                        should_send = true;
+                    }
+                }
+
+                if (should_send)
+                {
+                    raise_send_message(to_send, uid);
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        static void raise_send_message(string message, string uid)
+        {
+            try
+            {
+                Action<string, string> handler = SendMessage;
+                if (handler == null) return;
+
+                Delegate[] list = handler.GetInvocationList();
+                for (int i = 0; i < list.Length; i++)
+                {
+                    try
+                    {
+                        Action<string, string> single = (Action<string, string>)list[i];
+                        single(message, uid);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+            catch
+            {
+            }
+        }
+
+        class State
+        {
+            public System.Threading.Timer timer;
+            public string latest_message;
+            public DateTime last_fire_time;
+        }
+    }
+    #endregion
 }
