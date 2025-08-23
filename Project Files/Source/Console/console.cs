@@ -18881,13 +18881,13 @@ namespace Thetis
             }
         }
 
-        private bool cw_auto_mode_switch = false;
+        private bool _cw_auto_mode_switch = false;
         public bool CWAutoModeSwitch
         {
-            get { return cw_auto_mode_switch; }
+            get { return _cw_auto_mode_switch; }
             set
             {
-                cw_auto_mode_switch = value;
+                _cw_auto_mode_switch = value;
             }
         }
 
@@ -26074,43 +26074,78 @@ namespace Thetis
             }
         }
 
-        private int last_dot = 0;
-        private int last_dash = 0;
+        //[2.10.3.12]MW0LGE changed from ints to bools
+        private bool _last_dot = false;
+        private bool _last_dash = false;
         private async void PollCW()
         {
             while (chkPower.Checked)
             {
                 int dotdashptt = NetworkIO.nativeGetDotDashPTT();
-                bool state_dot = (dotdashptt & 0x04) != 0; // dot                  
-                if ((dotdashptt & 0x04) != (last_dot & 0x04))
+
+                bool state_dot = (dotdashptt & 0x04) != 0;
+                update_for_auto_mode_return(state_dot);
+                if (state_dot != _last_dot)
                 {
                     FWDot = state_dot;
                     if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
-                     _current_breakin_mode == BreakIn.Manual)
+                        _current_breakin_mode == BreakIn.Manual)
                         AudioMOXChanged(state_dot);
+                    _last_dot = state_dot;
                 }
 
-                bool state_dash = (dotdashptt & 0x02) != 0; // dash                   
-                if ((dotdashptt & 0x02) != (last_dash & 0x02))
+                bool state_dash = (dotdashptt & 0x02) != 0;
+                update_for_auto_mode_return(state_dash);
+                if (state_dash != _last_dash)
                 {
                     FWDash = state_dash;
                     if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
-                     _current_breakin_mode == BreakIn.Manual)
+                        _current_breakin_mode == BreakIn.Manual)
                         AudioMOXChanged(state_dash);
+                    _last_dash = state_dash;
                 }
 
-                last_dash = last_dot = dotdashptt;
                 await Task.Delay(1);
             }
         }
 
+        //private int _last_dot = 0;
+        //private int _last_dash = 0;
+        //private async void PollCW()
+        //{
+        //    while (chkPower.Checked)
+        //    {
+        //        int dotdashptt = NetworkIO.nativeGetDotDashPTT();
+        //        bool state_dot = (dotdashptt & 0x04) != 0; // dot                
+        //        update_for_auto_mode_return(state_dot);
+        //        if ((dotdashptt & 0x04) != (_last_dot & 0x04))
+        //        {
+        //            FWDot = state_dot;
+        //            if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
+        //             _current_breakin_mode == BreakIn.Manual)
+        //                AudioMOXChanged(state_dot);
+        //        }
+
+        //        bool state_dash = (dotdashptt & 0x02) != 0; // dash      
+        //        update_for_auto_mode_return(state_dash);
+        //        if ((dotdashptt & 0x02) != (_last_dash & 0x02))
+        //        {
+        //            FWDash = state_dash;
+        //            if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
+        //             _current_breakin_mode == BreakIn.Manual)
+        //                AudioMOXChanged(state_dash);
+        //        }
+
+        //        _last_dash = _last_dot = dotdashptt;
+        //        await Task.Delay(1);
+        //    }
+        //}
+
         private void cwAutoModeTick(object o)
         {
-            bool bRx2 = (bool)o;
-
             if (_old_cw_auto_mode != DSPMode.FIRST)
-            {
-                if (bRx2)
+            {              
+                if (_cw_auto_mode_tx_on_rx2)
                 {
                     if (InvokeRequired)
                         Invoke(new Action(() => { RX2DSPMode = _old_cw_auto_mode; }));
@@ -26124,9 +26159,12 @@ namespace Thetis
                     else
                         RX1DSPMode = _old_cw_auto_mode;
                 }
+
+                _old_cw_auto_mode = DSPMode.FIRST; //[2.10.3.12]MW0LGE fix issue where if you key when in cw it would return to old non cw mode
             }
         }
         private DSPMode _old_cw_auto_mode = DSPMode.FIRST;
+        private bool _cw_auto_mode_tx_on_rx2 = false;
         private bool _return_from_cw_auto_mode_switch = false;
         private int _return_from_cw_auto_mode_switch_ms = 2000;
         private System.Threading.Timer _cwAutoModeTick = null;
@@ -26141,61 +26179,68 @@ namespace Thetis
             get { return _return_from_cw_auto_mode_switch_ms; }
             set { _return_from_cw_auto_mode_switch_ms = value; }
         }
+
+        private void update_for_auto_mode_return(bool enabled)
+        {
+            //[2.10.1.0]MW0LGE implements #70
+            //[2.10.3.12]MW0LGE modified to be called whenever dot/dash is present
+
+            if (_cw_auto_mode_switch && enabled)
+            {
+                bool bTxOnRx2 = RX2Enabled && VFOBTX;
+                DSPMode currentMode = bTxOnRx2 ? RX2DSPMode : RX1DSPMode;
+                bool bInCW = currentMode == DSPMode.CWL || currentMode == DSPMode.CWU;
+
+                if (!bInCW)
+                {
+                    switch (currentMode)
+                    {
+                        case DSPMode.CWL:
+                        case DSPMode.CWU:
+                            break;
+                        case DSPMode.LSB:
+                        case DSPMode.DIGL:
+                            if (bTxOnRx2)
+                                RX2DSPMode = DSPMode.CWL;
+                            else
+                                RX1DSPMode = DSPMode.CWL;
+                            break;
+                        default:
+                            if (bTxOnRx2)
+                                RX2DSPMode = DSPMode.CWU;
+                            else
+                                RX1DSPMode = DSPMode.CWU;
+                            break;
+                    }
+                }
+
+                // return after some time, start timer
+                if (_return_from_cw_auto_mode_switch)
+                {
+                    if(!bInCW) _old_cw_auto_mode = currentMode;
+
+                    _cw_auto_mode_tx_on_rx2 = bTxOnRx2;
+
+                    if (_cwAutoModeTick == null)
+                    {
+                        _cwAutoModeTick = new System.Threading.Timer(cwAutoModeTick, null, _return_from_cw_auto_mode_switch_ms, Timeout.Infinite);
+                    }
+                    else
+                    {
+                        _cwAutoModeTick.Change(_return_from_cw_auto_mode_switch_ms, Timeout.Infinite);
+                    }
+                }
+                else
+                    _old_cw_auto_mode = DSPMode.FIRST;
+            }
+        }
+
         public bool FWDot
         {
             get { return fw_dot; }
             set
             {
-                //[2.10.1.0] MW0LGE modified to implement #70
-                bool bTxOnRx2 = RX2Enabled && VFOBTX;
-                DSPMode currentMode = bTxOnRx2 ? RX2DSPMode : RX1DSPMode;
-                bool bInCW = currentMode == DSPMode.CWL || currentMode == DSPMode.CWU;
-
                 fw_dot = value;
-
-                if (value && cw_auto_mode_switch)
-                {
-                    if (!bInCW)
-                    {
-                        if (_return_from_cw_auto_mode_switch && _old_cw_auto_mode != currentMode)
-                            _old_cw_auto_mode = currentMode;
-
-                        switch (currentMode)
-                        {
-                            case DSPMode.CWL:
-                            case DSPMode.CWU:
-                                break;
-                            case DSPMode.LSB:
-                            case DSPMode.DIGL:
-                                if (bTxOnRx2)
-                                    RX2DSPMode = DSPMode.CWL;
-                                else
-                                    RX1DSPMode = DSPMode.CWL;
-                                break;
-                            default:
-                                if (bTxOnRx2)
-                                    RX2DSPMode = DSPMode.CWU;
-                                else
-                                    RX1DSPMode = DSPMode.CWU;
-                                break;
-                        }
-                    }
-
-                    // return after some time, start timer
-                    if (_return_from_cw_auto_mode_switch)
-                    {
-                        if (_cwAutoModeTick != null)
-                        {
-                            _cwAutoModeTick.Change(Timeout.Infinite, Timeout.Infinite);
-                            _cwAutoModeTick.Dispose();
-                            _cwAutoModeTick = null;
-                        }
-
-                        _cwAutoModeTick = new System.Threading.Timer(cwAutoModeTick, bTxOnRx2, _return_from_cw_auto_mode_switch_ms, Timeout.Infinite);
-                    }
-                    else
-                        _old_cw_auto_mode = DSPMode.FIRST;
-                }
             }
         }
 
@@ -26206,23 +26251,6 @@ namespace Thetis
             set
             {
                 fw_dash = value;
-
-                if (value && cw_auto_mode_switch)
-                {
-                    switch (_rx1_dsp_mode)
-                    {
-                        case DSPMode.CWL:
-                        case DSPMode.CWU:
-                            break;
-                        case DSPMode.LSB:
-                        case DSPMode.DIGL:
-                            RX1DSPMode = DSPMode.CWL;
-                            break;
-                        default:
-                            RX1DSPMode = DSPMode.CWU;
-                            break;
-                    }
-                }
             }
         }
 
@@ -28908,7 +28936,21 @@ namespace Thetis
                 btnHidden.Focus();
         }
 
+        public event Func<Task> ConsoleClosingHandlersAsync;
+        private Task run_console_closing_handlers_async()
+        {
+            if (ConsoleClosingHandlersAsync == null) return Task.CompletedTask;
+            Delegate[] delegates = ConsoleClosingHandlersAsync.GetInvocationList();
+            List<Task> tasks = new List<Task>(delegates.Length);
+            for (int i = 0; i < delegates.Length; i++)
+            {
+                Func<Task> handler = (Func<Task>)delegates[i];
+                tasks.Add(Task.Run(handler));
+            }
+            return Task.WhenAll(tasks);
+        }
         private ShutdownForm _frmShutDownForm = null;
+        private bool _is_shutting_down = false;
         private void Console_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (Display.RunningFPSProfile)
@@ -28922,17 +28964,36 @@ namespace Thetis
                 return;
             }
 
-            shutdownLogStringToPath("Inside Console_Closing()");
+            if (!_is_shutting_down)
+            {
+                shutdownLogStringToPath("Inside Console_Closing()");
+
+                //show the shutdown form and then restart the close process via BeginInvoke
+                //removes the doevents issue and allows the shutdown form to show properly
+                e.Cancel = true;
+                _is_shutting_down = true;
+
+                _frmShutDownForm = new ShutdownForm();
+                _frmShutDownForm.StartPosition = FormStartPosition.Manual;
+                _frmShutDownForm.Location = new Point(Location.X + Size.Width / 2 - _frmShutDownForm.Size.Width / 2, Location.Y + Size.Height / 2 - _frmShutDownForm.Size.Height / 2);
+                _frmShutDownForm.Show(this);
+                _frmShutDownForm.BringToFront();
+
+                BeginInvoke(new Action(async () =>
+                {
+                    //[2.10.3.12]MW0LGE added incase anything needs to close down instantly irrespective of console closing
+                    //PSform is an example of this, as the timer1/2 threads get blocked on UI calls as the main UI thread is busy closing down
+                    await run_console_closing_handlers_async();
+
+                    //then try again to close the console
+                    Close();
+                }));
+
+                return;
+            }
 
             shutdownLogStringToPath("Before ThetisBotDiscord.Disconnect()");
             ThetisBotDiscord.Shutdown();
-
-            // MW0LGE
-            // show a shutdown window
-            _frmShutDownForm = new ShutdownForm();
-            _frmShutDownForm.Location = new Point(this.Location.X + this.Size.Width / 2 - _frmShutDownForm.Size.Width / 2, this.Location.Y + this.Size.Height / 2 - _frmShutDownForm.Size.Height / 2);
-            _frmShutDownForm.Show();
-            Application.DoEvents();
 
             if (_autoLoadFormTimerFormTimer != null)
             {
@@ -28981,7 +29042,7 @@ namespace Thetis
             if (chkPower.Checked == true)  // If we're quitting without first clicking off the "Power" button            
                 chkPower.Checked = false;
 
-            Thread.Sleep(100);
+            Thread.Sleep(200); //[2.10.3.12]MW0LGE give some time for power down, increased to 200ms as psform loops were not detecting power off fast enough
 
             if (psform != null)
             {
@@ -46680,6 +46741,12 @@ namespace Thetis
         }
         private void OnModeChangeHandler(int rx, DSPMode oldMode, DSPMode newMode, Band oldBand, Band newBand)
         {
+            //reset the cw auto mode return [2.10.3.12]MW0LGE
+            if(!(newMode == DSPMode.CWL || newMode == DSPMode.CWU))
+            {
+                _old_cw_auto_mode = DSPMode.FIRST;
+            }
+
             //reset smeter pixel history //MW0LGE_21a
             clearRXSignalPixels(rx);
 

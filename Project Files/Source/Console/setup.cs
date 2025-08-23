@@ -27726,6 +27726,7 @@ namespace Thetis
         }
         private void nudAutoModeSwitchCWReturn_ValueChanged(object sender, EventArgs e)
         {
+            if (initializing) return;
             console.AutoModeSwitchCWReturnMs = (int)nudAutoModeSwitchCWReturn.Value;
         }
         private void btnZipDebug_Click(object sender, EventArgs e)

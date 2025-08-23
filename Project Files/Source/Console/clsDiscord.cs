@@ -132,10 +132,13 @@ namespace Thetis
         private static string _ignore;
         private static bool _include_time_stamp;
 
+        private static bool _shutting_down;
+
         private static DateTime _last_message_time;
 
         static ThetisBotDiscord()
         {
+            _shutting_down = false;
             _last_message_time = DateTime.MinValue;
             _started = false;
             _ready = false;
@@ -189,7 +192,7 @@ namespace Thetis
 
                 foreach (MessageInfo message in messages_to_remove)
                 {
-                    if (MessageRemovedHandlers != null)
+                    if (!_shutting_down && MessageRemovedHandlers != null)
                     {
                         Delegate[] invocationList = MessageRemovedHandlers.GetInvocationList();
                         foreach (Delegate handler in invocationList)
@@ -267,7 +270,7 @@ namespace Thetis
         }
         public static void ConnectStart()
         {
-            if (_started) return;
+            if (_started || _shutting_down) return;
             _started = true;
             _ready = false;
 
@@ -313,7 +316,7 @@ namespace Thetis
             _started = false;
 
             //send incase we dont get the disconnect event
-            if (DisconnectedHandlers != null)
+            if (!_shutting_down && DisconnectedHandlers != null)
             {
                 Delegate[] invocationList = DisconnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
@@ -324,6 +327,7 @@ namespace Thetis
         }
         public static void Shutdown()
         {
+            _shutting_down = true;
             ConnectStop();
             _discord_client.Dispose();
         }
@@ -362,7 +366,7 @@ namespace Thetis
 
             _ready = true;
 
-            if (ReadyHandlers != null)
+            if (!_shutting_down && ReadyHandlers != null)
             {
                 Delegate[] invocationList = ReadyHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
@@ -386,7 +390,7 @@ namespace Thetis
                 }
             }, null, TimeSpan.FromSeconds(20), Timeout.InfiniteTimeSpan);
 
-            if (ConnectedHandlers != null)
+            if (!_shutting_down && ConnectedHandlers != null)
             {
                 Delegate[] invocationList = ConnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
@@ -402,7 +406,7 @@ namespace Thetis
         {
             _ready = false;
 
-            if (DisconnectedHandlers != null)
+            if (!_shutting_down && DisconnectedHandlers != null)
             {
                 Delegate[] invocationList = DisconnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
@@ -419,7 +423,7 @@ namespace Thetis
 
             lock (_receive_queue)
             {
-                if (!_sent_message_ids.Contains(message.Id)) _receive_queue.Add(message);
+                if (!_shutting_down && !_sent_message_ids.Contains(message.Id)) _receive_queue.Add(message);
             }
 
             return Task.CompletedTask;
@@ -526,7 +530,7 @@ namespace Thetis
                 _channelMessages[channel_id].Insert(0, message_info);
             }
 
-            if (NewMessageArrivedHandlers != null)
+            if (!_shutting_down && NewMessageArrivedHandlers != null)
             {
                 Delegate[] invocationList = NewMessageArrivedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
@@ -733,7 +737,7 @@ namespace Thetis
                         _channelMessages[channel_id].Remove(removed_message);
                         _sent_message_ids.Remove(message_id);
 
-                        if (MessageRemovedHandlers != null)
+                        if (!_shutting_down && MessageRemovedHandlers != null)
                         {
                             Delegate[] invocationList = MessageRemovedHandlers.GetInvocationList();
                             foreach (Delegate handler in invocationList)

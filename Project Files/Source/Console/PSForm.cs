@@ -63,6 +63,8 @@ namespace Thetis
 
         public PSForm(Console c)
         {
+            Debug.Print(DateTime.UtcNow.Ticks.ToString() + " PSForm: Constructor Start");
+
             InitializeComponent();
             Common.DoubleBufferAll(this, true);
 
@@ -73,6 +75,11 @@ namespace Thetis
             Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
 
             _advancedON = chkAdvancedViewHidden.Checked; //MW0LGE_[2.9.0.6]
+
+            console.PowerChangeHanders += onPowerOn;
+            console.ConsoleClosingHandlersAsync += onConsoleClosingAsync;
+
+            _power = console.PowerOn;
 
             startPSThread(); // MW0LGE_21k8 removed the winform timers, now using dedicated thread
         }
@@ -99,6 +106,8 @@ namespace Thetis
         private int _save_autoON = 0;
         private int _save_singlecalON = 0;
         private int _deltadB = 0;
+
+        private bool _power;
 
         private enum eCMDState
         {
@@ -155,11 +164,29 @@ namespace Thetis
         }
         public void StopPSThread()
         {
+            _ps_closing = true;
             _bPSRunning = false;
-            if (_ps_thread != null && _ps_thread.IsAlive) _ps_thread.Join(300);
-        }
+            Debug.Print(DateTime.UtcNow.Ticks.ToString() + " PSForm: Stopping PS Thread");
+            if (_ps_thread != null && _ps_thread.IsAlive) _ps_thread.Join(1000);
+            Debug.Print(DateTime.UtcNow.Ticks.ToString()  + " PSForm: PS Thread Stopped");
 
-        private bool _bPSRunning = false;
+            if (console != null)
+            {
+                console.PowerChangeHanders -= onPowerOn;
+                console.ConsoleClosingHandlersAsync -= onConsoleClosingAsync;
+            }
+        }
+        private async Task onConsoleClosingAsync()
+        {
+            _ps_closing = true;
+            await Task.Delay(100);
+        }
+        private void onPowerOn(bool oldPower, bool newPower)
+        {
+            _power = newPower;
+        }
+        private volatile bool _bPSRunning = false;
+        private volatile bool _ps_closing = false;
         private void PSLoop()
         {
             _bPSRunning = true;
@@ -167,9 +194,12 @@ namespace Thetis
 
             while (_bPSRunning)
             {
-                int sleepDuration;
+                if (_ps_closing) break; // gated
 
-                if (console.PowerOn)
+                int sleepDuration;
+                bool run = !_ps_closing && _power && !IsDisposed && IsHandleCreated;
+
+                if (run)
                 {
                     timer1code();
                     if (nCount == 0)
@@ -189,6 +219,7 @@ namespace Thetis
 
                 Thread.Sleep(sleepDuration);
             }
+            Debug.Print(DateTime.UtcNow.Ticks.ToString() + " PSForm: Exiting PS Thread");
         }
 
         //private volatile bool _dismissAmpv = false;
