@@ -26109,38 +26109,6 @@ namespace Thetis
             }
         }
 
-        //private int _last_dot = 0;
-        //private int _last_dash = 0;
-        //private async void PollCW()
-        //{
-        //    while (chkPower.Checked)
-        //    {
-        //        int dotdashptt = NetworkIO.nativeGetDotDashPTT();
-        //        bool state_dot = (dotdashptt & 0x04) != 0; // dot                
-        //        update_for_auto_mode_return(state_dot);
-        //        if ((dotdashptt & 0x04) != (_last_dot & 0x04))
-        //        {
-        //            FWDot = state_dot;
-        //            if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
-        //             _current_breakin_mode == BreakIn.Manual)
-        //                AudioMOXChanged(state_dot);
-        //        }
-
-        //        bool state_dash = (dotdashptt & 0x02) != 0; // dash      
-        //        update_for_auto_mode_return(state_dash);
-        //        if ((dotdashptt & 0x02) != (_last_dash & 0x02))
-        //        {
-        //            FWDash = state_dash;
-        //            if ((_rx1_dsp_mode == DSPMode.CWL || _rx1_dsp_mode == DSPMode.CWU) &&
-        //             _current_breakin_mode == BreakIn.Manual)
-        //                AudioMOXChanged(state_dash);
-        //        }
-
-        //        _last_dash = _last_dot = dotdashptt;
-        //        await Task.Delay(1);
-        //    }
-        //}
-
         private void cwAutoModeTick(object o)
         {
             if (_old_cw_auto_mode != DSPMode.FIRST)
