@@ -72,6 +72,7 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
+using SE_LGE;
 
 namespace Thetis
 {
@@ -310,7 +311,7 @@ namespace Thetis
 
             _uc_sequence = 0; // to order the uc's when returned to setup
 
-            // readings used by varius meter items such as Text Overlay
+            // readings used by varius meter items such as Text Overlay and Led. 2 receivers
             _custom_readings = new CustomReadings[2];
             _custom_readings[0] = new CustomReadings(1);
             _custom_readings[1] = new CustomReadings(2);
@@ -354,7 +355,51 @@ namespace Thetis
             _snap_freqs_other = new float[0];
 
             _openHPSDR_appdatapath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + "\\OpenHPSDR";
+
+            //for rx1+rx2
+            _led_readings = new ConcurrentDictionary<string, object>[2];
+            _led_readings[0] = new ConcurrentDictionary<string, object>();
+            _led_readings[1] = new ConcurrentDictionary<string, object>();
+
+            MeterScriptEngine.start(provide_variables, 100); //100ms update, which is enough for leds. TODO. Find fastest led and set
         }
+
+        //
+        private static ConcurrentDictionary<string, object>[] _led_readings;
+        internal static void SetLedVariable(int rx, string variable, object value)
+        {
+            if (rx < 1 || rx > 2) return;
+
+            _led_readings[rx - 1][variable] = value;
+        }
+        private static Dictionary<string, object> provide_variables()
+        {
+            // this gets called by the MeterScriptEngine
+            Dictionary<string, object> d = new Dictionary<string, object>();
+
+            //mmio
+            foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
+            {
+                MultiMeterIO.clsMMIO mmio = mmios.Value;
+                foreach (KeyValuePair<string, object> kvp in mmio.Variables())
+                {
+                    d[kvp.Key] = mmio.GetVariable(kvp.Key);
+                }
+            }
+
+            //readings
+            for (int rx = 1; rx <= 2; rx++)
+            {
+                foreach (KeyValuePair<string, object> kvp in _led_readings[rx - 1])
+                {
+                    d[kvp.Key] = kvp.Value;
+                }
+            }
+
+            return d;
+        }
+        //
+
         public static (string, string) GetWebImageIDsFrom4Char(string fourchar)
         {
             string mid = null;
@@ -565,6 +610,7 @@ namespace Thetis
             }
             public bool IsCustomString(string custom)
             {
+                // these are strings that are not related to readings such as SWR ADC etc
                 bool bRet = false;
                 switch (custom)
                 {
@@ -2822,6 +2868,8 @@ namespace Thetis
         }
         public static void Shutdown()
         {
+            MeterScriptEngine.stop();
+
             if (_image_fetcher != null)
                 _image_fetcher.Shutdown();
 
@@ -14889,18 +14937,13 @@ namespace Thetis
             private clsMeter _owningMeter;
             private Led_Shape _led_shape;
             private Led_Style _led_style;
+
             private bool _old_result;
             private bool _result;
             private bool _valid;
-            private List<string> _list_placeholders_strings;
-            private List<Reading> _list_placeholders_readings;
-            private readonly object _list_placeholders_lock = new object();
-            private Script _script;
-            private Dictionary<string, object> _variable_substitutions;
-            private bool _busy = false;
+
             private bool _error = false;
-            CancellationTokenSource _cts;
-            private bool _forceRecompile;
+
             private System.Threading.Timer _timer;
             private int _delay_milliseconds;
 
@@ -14916,13 +14959,16 @@ namespace Thetis
             private bool _notxtrue;
             private bool _notxfalse;
 
+            private int _led_id;
+            private List<string> _place_holders;
+            private readonly object _place_holder_lock;
+
             public clsLed(clsMeter owningMeter)
             {
+                _led_id = MeterScriptEngine.register_led();
+
                 _timer = null;
                 _delay_milliseconds = 1000;
-
-                _list_placeholders_strings = new List<string>();
-                _list_placeholders_readings = new List<Reading>();
 
                 _true_colour = System.Drawing.Color.FromArgb(255, 255, 255);
                 _false_colour = System.Drawing.Color.FromArgb(192, 192, 192);
@@ -14941,7 +14987,6 @@ namespace Thetis
                 _old_result = false;
                 _result = false;
                 _valid = false;
-                _busy = false;
                 _error = false;
                 _notxtrue = false;
                 _notxtrue = false;
@@ -14953,12 +14998,6 @@ namespace Thetis
 
                 UpdateInterval = 100;
 
-                _cts = null;
-                _script = null;
-                _variable_substitutions = new Dictionary<string, object>();
-
-                _forceRecompile = false;
-
                 _pulsate_up = true;
                 _pulsate = false;
                 _blink = false;
@@ -14968,69 +15007,11 @@ namespace Thetis
 
                 _show_true = true;
                 _show_false = true;
-            }
-            private bool validateExpression(string expression, Dictionary<string, object> variables)
-            {
-                string tmp = $"bool result = (bool)({expression});";
 
-                try
-                {
-                    SyntaxTree syntaxTree = CSharpSyntaxTree.ParseText(tmp);
-                    CSharpCompilation compilation = CSharpCompilation.Create("ExpressionValidation")
-                        .AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location))
-                        .AddReferences(MetadataReference.CreateFromFile(typeof(string).Assembly.Location))
-                        //.AddReferences(MetadataReference.CreateFromFile(typeof(Enumerable).Assembly.Location))
-                        //.AddReferences(MetadataReference.CreateFromFile(typeof(Console).Assembly.Location))
-                        .AddSyntaxTrees(syntaxTree);
-                    IEnumerable<Diagnostic> diagnostics = compilation.GetDiagnostics();
-                    foreach (Diagnostic diagnostic in diagnostics)
-                    {
-                        if (diagnostic.Severity == DiagnosticSeverity.Error)
-                        {
-                            return false;
-                        }
-                    }
-                    return true;
-                }
-                catch (Exception)
-                {
-                    //MessageBox.Show($"Exception: {ex.Message}");
-                    //MessageBox.Show($"String passed to Parse Text:\n{tmp}\n\nStack Trace: {ex.StackTrace}");
-                    return false;
-                }
+                _place_holders = new List<string>();
+                _place_holder_lock = new object();
             }
-            private (bool,bool) evaluateExpression(CancellationToken cancellationToken)
-            {
-                if (!_valid || _script == null || _busy) return (false, false);                
 
-                bool bRet = false;
-                try
-                {
-                    Globals globals = new Globals();
-                    globals.Variables = _variable_substitutions;
-                    ScriptState ss = _script.RunAsync(globals, cancellationToken).GetAwaiter().GetResult();
-                    if (ss.Variables.Length == 1)
-                    {
-                        ScriptVariable sv = ss.Variables[0];
-                        bRet = (bool)sv.Value;
-                        _error = false;
-                    }
-                    else
-                    {
-                        _valid = false;
-                        _script = null;
-                        _error = true;
-                    }
-                }
-                catch (Exception)
-                {
-                    _valid = false;
-                    _script = null;
-                    _error = true;
-                }
-
-                return (true, bRet);
-            }
             public bool NoTxFalse
             {
                 get { return _notxfalse; }
@@ -15088,155 +15069,125 @@ namespace Thetis
                 set { _led_style = value; }
             }
 
+            public override void Removing()
+            {
+                MeterScriptEngine.unregister_led(_led_id);
+            }
+
             private void onTimerElapsedCondition()
-            {                
-                _condition = string.IsNullOrEmpty(_pending_condition) ? "" : _pending_condition;
-                ReadingsCustom(_owningMeter.RX).UpdateReadings(_condition);
-                lock (_list_placeholders_lock)
+            {
+                _condition = _pending_condition;
+
+                lock (_place_holder_lock)
                 {
-                    _list_placeholders_readings.Clear();
-                    _list_placeholders_strings.Clear();
-                    List<string> placeholders = ReadingsCustom(_owningMeter.RX).GetPlaceholders(_condition);
-                    foreach (string placeholder in placeholders)
+                    _place_holders = ReadingsCustom(_owningMeter.RX).GetPlaceholders(_condition);
+                }
+
+                add_readings(true);                
+
+                string cond = expand_placeholders(_condition);
+
+                _valid = MeterScriptEngine.set_condition(_led_id, cond);
+            }
+            private void add_readings(bool update_custom = false)
+            {
+                lock (_place_holder_lock)
+                {
+                    int rx = _owningMeter.RX;
+
+                    foreach (string vbl in _place_holders)
                     {
-                        if (ReadingsCustom(_owningMeter.RX).IsCustomString(placeholder))
-                            _list_placeholders_strings.Add(placeholder);
+                        string tmp = vbl;
+
+                        if (ReadingsCustom(rx).IsCustomString(tmp.ToLower()))
+                        {
+                            // is a custom string like time_utc
+                            tmp = rx.ToString() + "_" + tmp.ToLower();
+                        }
+                        else if (Enum.TryParse(tmp, true, out Reading r))
+                        {
+                            // is a reading
+                            tmp = rx.ToString() + "_" + r.ToString();
+                        }
                         else
                         {
-                            bool ok = Enum.TryParse<Reading>(placeholder.ToUpper(), out Reading tmpReading);
-                            if (ok) _list_placeholders_readings.Add(tmpReading);
+                            // assume mmio, do nothing, as provide_variables() handles this
+                            continue;
                         }
+
+                        if (update_custom) ReadingsCustom(rx).UpdateReadings("%" + vbl + "%");
+
+                        SetLedVariable(rx, tmp, ReadingsCustom(rx).GetReading(vbl, _owningMeter));
+                    }
+                }
+            }
+            private string expand_placeholders(string expr)
+            {
+                if (string.IsNullOrEmpty(expr)) return string.Empty;
+
+                StringBuilder sb = new StringBuilder(expr.Length * 2);
+                int i = 0;
+                int n = expr.Length;
+
+                while (i < n)
+                {
+                    int start = expr.IndexOf('%', i);
+                    if (start < 0)
+                    {
+                        sb.Append(expr, i, n - i);
+                        break;
+                    }
+                    int end = expr.IndexOf('%', start + 1);
+                    if (end < 0)
+                    {
+                        sb.Append(expr, i, n - i);
+                        break;
                     }
 
-                    _variable_substitutions.Clear();
-                    string expression = _condition;
-                    string script_expression = _condition;
-                    string lower;
-                    foreach (Reading r in _list_placeholders_readings)
-                    {
-                        object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                        lower = "%" + r.ToString().ToLower() + "%";
-                        if (expression.IndexOf(lower) >= 0)
-                            expression = expression.Replace(lower, reading.ToString());
-                        if (script_expression.IndexOf(lower) >= 0)
-                            script_expression = script_expression.Replace(lower, "(float)Variables[\"" + r.ToString().ToLower() + "\"]");
+                    sb.Append(expr, i, start - i);
+                    string key = expr.Substring(start + 1, end - start - 1);
 
-                        if (!_variable_substitutions.ContainsKey(r.ToString().ToLower()))
-                            _variable_substitutions.Add(r.ToString().ToLower(), reading);
+                    if (ReadingsCustom(_owningMeter.RX).IsCustomString(key.ToLower()))
+                    {
+                        // is a custom string like time_utc
+                        key = _owningMeter.RX.ToString() + "_" + key.ToLower();
                     }
-                    foreach (string placeholder in _list_placeholders_strings)
+                    else if (Enum.TryParse(key, true, out Reading r))
                     {
-                        object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
-                        string type;
-                        if (reading is int)
-                            type = "int";
-                        else if (reading is float)
-                            type = "float";
-                        else if (reading is double)
-                            type = "double";
-                        else if (reading is bool)
-                            type = "bool";
-                        else
-                            type = "string";
-
-                        lower = "%" + placeholder.ToLower() + "%";
-                        if (expression.IndexOf(lower) >= 0)
-                            expression = expression.Replace(lower, "((" + type + ")(" + (type == "string" ? "\"" : "") + reading.ToString() + (type == "string" ? "\"" : "") + "))");
-                        if (script_expression.IndexOf(lower) >= 0)
-                            script_expression = script_expression.Replace(lower, "((" + type + ")(Variables[\"" + placeholder.ToLower() + "\"]))");
-
-                        if (!_variable_substitutions.ContainsKey(placeholder.ToLower()))
-                            _variable_substitutions.Add(placeholder.ToLower(), reading);
-                    }
-
-                    // MultiMeter IO
-                    foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
-                    {
-                        MultiMeterIO.clsMMIO mmio = mmios.Value;
-                        foreach (KeyValuePair<string, object> kvp in mmio.Variables())
-                        {
-                            object val = mmio.GetVariable(kvp.Key);
-
-                            string tmp = mmio.VariableValueType(val);
-                            lower = "%" + kvp.Key + "%";
-                            if (script_expression.IndexOf(lower) >= 0)
-                            {
-                                string type;
-                                if (val is int)
-                                    type = "int";
-                                else if (val is float)
-                                    type = "float";
-                                else if (val is double)
-                                    type = "double";
-                                else if (val is bool)
-                                    type = "bool";
-                                else
-                                    type = "string";
-
-                                if (expression.IndexOf(lower) >= 0)
-                                    expression = expression.Replace(lower, (type == "string" ? "\"" : "") + tmp + (type == "string" ? "\"" : ""));
-                                if (script_expression.IndexOf(lower) >= 0)
-                                    script_expression = script_expression.Replace(lower, "((" + type + ")(Variables[\"" + kvp.Key + "\"]))");
-
-                                if (!_variable_substitutions.ContainsKey(kvp.Key))
-                                    _variable_substitutions.Add(kvp.Key, val);
-                            }
-                        }
-                    }
-                    //
-
-                    bool okExp = validateExpression(expression, _variable_substitutions);
-                    if (okExp)
-                    {
-                        if (_cts != null)
-                        {
-                            _cts.Cancel();
-                            _cts.Dispose();
-                            _cts = null;
-                        }
-                        try
-                        {
-                            //ScriptOptions options = ScriptOptions.Default.AddReferences(typeof(object).Assembly);
-                            ScriptOptions options = ScriptOptions.Default
-                                                                    .AddReferences(typeof(object).Assembly)
-                                                                    .AddReferences(typeof(string).Assembly);
-                                                                    //.AddImports("System");
-                            Debug.Print($"bool result = (bool)({script_expression});");
-                            _script = CSharpScript.Create($"bool result = (bool)({script_expression});", options, typeof(Globals));
-                            _script.Compile();                            
-
-                            _valid = true;
-                        }
-                        catch
-                        {
-                            _script = null;
-                            _valid = false;
-                        }
+                        // is a reading
+                        key = _owningMeter.RX.ToString() + "_" + r.ToString();
                     }
                     else
                     {
-                        _script = null;
-                        _valid = false;
+                        // assume mmio, do nothing, as provide_variables() handles this
                     }
+
+                    sb.Append("Variables[\"");
+                    sb.Append(key);
+                    sb.Append("\"]");
+
+                    i = end + 1;
                 }
-                
-                _forceRecompile = false;
+
+                return sb.ToString();
             }
+
             public string Condition
             {
                 get { return _pending_condition; }
-                set {
-                    if (value == _condition && !_forceRecompile) return;
+                set
+                {
+                    if (value == _condition) return;
 
                     _pending_condition = value;
-                    _pending_condition = string.IsNullOrEmpty(_pending_condition) ? "" : _pending_condition;
 
                     if (_timer == null)
                         _timer = new System.Threading.Timer(_ => onTimerElapsedCondition(), null, _delay_milliseconds, Timeout.Infinite);
                     else
-                        _timer.Change(_forceRecompile ? 0 : _delay_milliseconds, Timeout.Infinite);                                     
+                        _timer.Change(_delay_milliseconds, Timeout.Infinite);
                 }
             }
+
             public float OffsetX
             {
                 get { return _x_offset; }
@@ -15311,89 +15262,30 @@ namespace Thetis
                 get { return _padding; }
                 set { _padding = value; }
             }
+
             public override void Update(int rx, ref List<Reading> readingsUsed, Dictionary<Reading, object> all_list_item_readings = null)
             {
-                if (!_busy && _valid && _script != null && !_forceRecompile)
+                if (_valid)
                 {
-                    bool typesChanged = false;
+                    add_readings();
 
-                    lock (_list_placeholders_lock)
+                    Task.Run(() =>
                     {
-                        // regular readings
-                        foreach (Reading r in _list_placeholders_readings)
+                        _result = MeterScriptEngine.read_result(_led_id);
+
+                        // mox
+                        if (_result && _notxtrue && _console.MOX)
                         {
-                            if (_variable_substitutions.ContainsKey(r.ToString().ToLower()))
-                            {
-                                ReadingsCustom(_owningMeter.RX).TakeReading(r);
-                                object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                                _variable_substitutions[r.ToString().ToLower()] = (float)reading;
-                            }
+                            stopMox();
                         }
-                        // readings with string as ID
-                        foreach (string placeholder in _list_placeholders_strings)
+                        else if (!_result && _notxfalse && _console.MOX)
                         {
-                            if (_variable_substitutions.ContainsKey(placeholder.ToLower()))
-                            {
-                                object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
-                                _variable_substitutions[placeholder.ToLower()] = reading;
-                            }
+                            stopMox();
                         }
-                    }
-
-                    // MultiMeter IO readings
-                    foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
-                    {
-                        MultiMeterIO.clsMMIO mmio = mmios.Value;
-                        foreach (KeyValuePair<string, object> kvp in mmio.Variables())
-                        {
-                            if (_variable_substitutions.ContainsKey(kvp.Key))
-                            {
-                                object var = mmio.GetVariable(kvp.Key);
-                                if(var.GetType() != _variable_substitutions[kvp.Key].GetType())
-                                {
-                                    typesChanged = true;
-                                    break;
-                                }
-                                _variable_substitutions[kvp.Key] = var;
-                            }
-                        }
-                    }
-                    //
-
-                    if (typesChanged)
-                    {
-                        Debug.Print(">>>> RECOMPILE");
-                        _forceRecompile = true;
-                        Condition = Condition; // force recompile
-                    }
-                    else
-                    {
-                        _busy = true;
-                        _cts = new CancellationTokenSource();
-                        _old_result = _result;
-
-                        Task.Run(() =>
-                        {
-                            (bool valid, bool result) = evaluateExpression(_cts.Token);
-                            if (valid)
-                            {
-                                _result = result;
-
-                                // mox
-                                if (_result && _notxtrue && _console.MOX)
-                                {
-                                    stopMox();
-                                }
-                                else if (!_result && _notxfalse && _console.MOX)
-                                {
-                                    stopMox();
-                                }
-                            }
-                        });
-                        _busy = false;
-                    }
+                    });
                 }
             }
+
             private void stopMox()
             {
                 _console.BeginInvoke(new MethodInvoker(() =>
@@ -15403,17 +15295,23 @@ namespace Thetis
             }
             public override bool ZeroOut(ref Dictionary<Reading, float> values, int rx)
             {
-                lock (_list_placeholders_lock)
+                lock (_place_holder_lock)
                 {
-                    foreach (Reading reading in _list_placeholders_readings)
+                    foreach(string s in _place_holders)
                     {
-                        float value = 0;
-                        ZeroReading(out value, rx, reading);
+                        if(!ReadingsCustom(rx).IsCustomString(s))
+                        {
+                            if(Enum.TryParse(s, true, out Reading r))
+                            {
+                                float value = 0;
+                                ZeroReading(out value, rx, r);
 
-                        if (!values.ContainsKey(reading))
-                            values.Add(reading, value);
-                        else
-                            values[reading] = value;
+                                if (!values.ContainsKey(r))
+                                    values.Add(r, value);
+                                else
+                                    values[r] = value;
+                            }
+                        }
                     }
                 }
                 return true;
