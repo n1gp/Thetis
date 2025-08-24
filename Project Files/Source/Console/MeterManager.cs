@@ -361,10 +361,10 @@ namespace Thetis
             _led_readings[0] = new ConcurrentDictionary<string, object>();
             _led_readings[1] = new ConcurrentDictionary<string, object>();
 
-            MeterScriptEngine.start(provide_variables, 100); //100ms update, which is enough for leds. TODO. Find fastest led and set
+            MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's
         }
 
-        //
+        // led variables and script engine callback
         private static ConcurrentDictionary<string, object>[] _led_readings;
         internal static void SetLedVariable(int rx, string variable, object value)
         {
@@ -372,31 +372,34 @@ namespace Thetis
 
             _led_readings[rx - 1][variable] = value;
         }
-        private static Dictionary<string, object> provide_variables()
+        private static MeterScriptEngine.Snapshot provide_variables()
         {
-            // this gets called by the MeterScriptEngine
-            Dictionary<string, object> d = new Dictionary<string, object>();
+            MeterScriptEngine.Snapshot snap = new MeterScriptEngine.Snapshot();
+            snap.Common = new Dictionary<string, object>();
+            snap.Banks = new Dictionary<string, object>[2];
 
-            //mmio
+            // shared across all banks
             foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
             {
                 MultiMeterIO.clsMMIO mmio = mmios.Value;
                 foreach (KeyValuePair<string, object> kvp in mmio.Variables())
                 {
-                    d[kvp.Key] = mmio.GetVariable(kvp.Key);
+                    snap.Common[kvp.Key] = mmio.GetVariable(kvp.Key);
                 }
             }
 
-            //readings
+            // per-bank values
             for (int rx = 1; rx <= 2; rx++)
             {
+                Dictionary<string, object> bank = new Dictionary<string, object>();
                 foreach (KeyValuePair<string, object> kvp in _led_readings[rx - 1])
                 {
-                    d[kvp.Key] = kvp.Value;
+                    bank[kvp.Key] = kvp.Value;
                 }
+                snap.Banks[rx - 1] = bank;
             }
 
-            return d;
+            return snap;
         }
         //
 
@@ -15078,14 +15081,16 @@ namespace Thetis
             {
                 _condition = _pending_condition;
 
+                int rx = _owningMeter.RX;
+
                 lock (_place_holder_lock)
                 {
-                    _place_holders = ReadingsCustom(_owningMeter.RX).GetPlaceholders(_condition);
+                    _place_holders = ReadingsCustom(rx).GetPlaceholders(_condition);
                 }
 
                 add_readings(true);                
 
-                string cond = expand_placeholders(_condition);
+                string cond = expand_placeholders(_condition, rx);
 
                 _valid = MeterScriptEngine.set_condition(_led_id, cond);
             }
@@ -15119,15 +15124,15 @@ namespace Thetis
 
                         if (update_custom) ReadingsCustom(rx).UpdateReadings("%" + tmp + "%"); // this variable is to be use by custom readings
 
-                        tmp = rx.ToString() + "_" + tmp;
                         SetLedVariable(rx, tmp, ReadingsCustom(rx).GetReading(vbl, _owningMeter));
                     }
                 }
             }
-            private string expand_placeholders(string expr)
+            private string expand_placeholders(string expr, int rx)
             {
                 //replaces strings such as '%time_utc%'  as 'Variables["time_utc"]' to be used by script engine
                 if (string.IsNullOrEmpty(expr)) return string.Empty;
+                if (rx < 1 || rx > 2) return string.Empty;
 
                 StringBuilder sb = new StringBuilder(expr.Length * 4);
                 int i = 0;
@@ -15154,19 +15159,22 @@ namespace Thetis
                     if (ReadingsCustom(_owningMeter.RX).IsCustomString(key.ToLower()))
                     {
                         // is a custom string like time_utc
-                        key = _owningMeter.RX.ToString() + "_" + key.ToLower();
+                        key = key.ToLower();
                     }
                     else if (Enum.TryParse(key, true, out Reading r))
                     {
                         // is a reading
-                        key = _owningMeter.RX.ToString() + "_" + r.ToString();
+                        key = r.ToString();
                     }
                     else
                     {
                         // assume mmio, do nothing, as provide_variables() handles this
                     }
 
-                    sb.Append("Variables[\""); // this is the dictionary in globals
+                    // this is the dictionary in globals, and banked per rx
+                    sb.Append("Variables[");
+                    sb.Append((rx-1).ToString());
+                    sb.Append("][\"");
                     sb.Append(key);
                     sb.Append("\"]");
 

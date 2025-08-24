@@ -38,6 +38,7 @@ mw0lge@grange-lane.co.uk
 // Richard Samphire can be reached by email at :  mw0lge@grange-lane.co.uk                    //
 //============================================================================================//
 
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -52,23 +53,31 @@ namespace SE_LGE
 {
     public static class MeterScriptEngine
     {
-        public sealed class DynVars
+        public sealed class BankVars
         {
-            private readonly Dictionary<string, object> _d;
-            public DynVars(Dictionary<string, object> d) { _d = d; }
+            private readonly Dictionary<string, object> _bank;
+            private readonly Dictionary<string, object> _common;
+            public BankVars(Dictionary<string, object> bank, Dictionary<string, object> common) { _bank = bank; _common = common; }
             public dynamic this[string k]
             {
                 get
                 {
-                    if (_d.ContainsKey(k)) return _d[k];
+                    if (_bank != null && _bank.ContainsKey(k)) return _bank[k];
+                    if (_common != null && _common.ContainsKey(k)) return _common[k];
                     return false;
                 }
             }
         }
 
+        public sealed class Snapshot
+        {
+            public Dictionary<string, object> Common;
+            public Dictionary<string, object>[] Banks;
+        }
+
         public class Globals
         {
-            public DynVars Variables;
+            public BankVars[] Variables;
         }
 
         private static readonly object _lock = new object();
@@ -85,14 +94,16 @@ namespace SE_LGE
         private static Timer _timer = null;
         private static int _default_interval_ms = 100;
         private static int _loop_interval_ms = 100;
-        private static Func<Dictionary<string, object>> _variable_provider = null;
+        private static int _bank_count = 1;
+        private static Func<Snapshot> _variable_provider_banked = null;
         private static readonly long _ticks_per_millisecond = TimeSpan.TicksPerMillisecond;
 
-        public static void start(Func<Dictionary<string, object>> variable_provider, int default_interval_ms = 100)
+        public static void start(Func<Snapshot> variable_provider_banked, int default_interval_ms, int bank_count)
         {
             lock (_lock)
             {
-                _variable_provider = variable_provider;
+                _variable_provider_banked = variable_provider_banked;
+                _bank_count = bank_count < 1 ? 1 : bank_count;
                 _default_interval_ms = default_interval_ms < 1 ? 1 : default_interval_ms;
                 _loop_interval_ms = _default_interval_ms;
                 if (_timer == null)
@@ -212,10 +223,7 @@ namespace SE_LGE
                 return false;
             }
 
-            Dictionary<string, object> snapshot = _variable_provider != null ? _variable_provider.Invoke() : new Dictionary<string, object>();
-            Globals g = new Globals();
-            g.Variables = new DynVars(snapshot);
-
+            Globals g = build_globals_once();
             try
             {
                 ScriptState<bool> state = script.RunAsync(g).GetAwaiter().GetResult();
@@ -241,7 +249,6 @@ namespace SE_LGE
 
             return true;
         }
-
 
         public static void set_update_interval(int index, int milliseconds)
         {
@@ -297,28 +304,18 @@ namespace SE_LGE
 
         private static void tick()
         {
-            Dictionary<string, object> snapshot = null;
+            Globals globals = null;
             ScriptRunner<bool[]> runner_local = null;
             List<int> due_indices = null;
             bool compile_now = false;
 
             lock (_lock)
             {
-                if (_variable_provider != null)
-                {
-                    snapshot = _variable_provider.Invoke();
-                }
-                else
-                {
-                    snapshot = new Dictionary<string, object>();
-                }
-
                 if (_needs_recompile)
                 {
                     compile_now = true;
                     _needs_recompile = false;
                 }
-
                 runner_local = _runner;
                 due_indices = get_due_indices_nolock();
             }
@@ -335,11 +332,11 @@ namespace SE_LGE
 
             if (runner_local == null) return;
 
+            globals = build_globals_once();
+
             bool[] eval_results = null;
             try
             {
-                Globals globals = new Globals();
-                globals.Variables = new DynVars(snapshot);
                 eval_results = runner_local(globals).GetAwaiter().GetResult();
             }
             catch (Exception ex)
@@ -380,6 +377,25 @@ namespace SE_LGE
                 }
             }
         }
+
+        private static Globals build_globals_once()
+        {
+            Snapshot snap = _variable_provider_banked != null ? _variable_provider_banked.Invoke() : null;
+            if (snap == null) snap = new Snapshot { Common = new Dictionary<string, object>(), Banks = new Dictionary<string, object>[_bank_count] };
+            if (snap.Common == null) snap.Common = new Dictionary<string, object>();
+            if (snap.Banks == null || snap.Banks.Length != _bank_count) snap.Banks = new Dictionary<string, object>[_bank_count];
+
+            BankVars[] arr = new BankVars[_bank_count];
+            for (int i = 0; i < _bank_count; i++)
+            {
+                Dictionary<string, object> b = snap.Banks[i] ?? new Dictionary<string, object>();
+                arr[i] = new BankVars(b, snap.Common);
+            }
+            Globals g = new Globals();
+            g.Variables = arr;
+            return g;
+        }
+
 
         private static List<int> get_due_indices_nolock()
         {
