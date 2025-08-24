@@ -919,6 +919,8 @@ namespace Thetis
             _frmFinder.GatherCATStructData(Application.StartupPath + "\\CATStructs.xml");
             _frmFinder.WriteXmlFinderFile(AppDataPath); // note: this will only happen if not already there
 
+            
+
             Splash.SetStatus("Finished");
 
             Splash.SplashForm.Owner = this;						// So that main form will show/focus when splash disappears //MW0LGE_21d done in show above

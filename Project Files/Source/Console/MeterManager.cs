@@ -364,7 +364,6 @@ namespace Thetis
             _led_readings[1] = new ConcurrentDictionary<string, object>();
 
             MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's
-            MeterScriptEngine.BeginBatch(); // will not recompile scipt until EndBatch() is called
         }
 
         // led variables and script engine callback
@@ -4500,8 +4499,6 @@ namespace Thetis
         }
         public static void FinishSetupAndDisplay()
         {
-            MeterScriptEngine.EndBatch(); //cause the script to be compiled and run
-
             if (_lstUCMeters == null || _lstUCMeters.Count == 0)
             {
                 _finishedSetup = true;
@@ -4787,6 +4784,9 @@ namespace Thetis
         }
         public static bool RestoreSettings(ref Dictionary<string, string> settings)
         {
+            MeterScriptEngine.BeginBatch(); // will not recompile scipt until EndBatch() is called
+                                            // done so that we are not recompiling for each led
+
             bool bRestoreOk = true;
             try
             {
@@ -4871,6 +4871,9 @@ namespace Thetis
             {
                 bRestoreOk = false;
             }
+
+            MeterScriptEngine.EndBatch(); //cause the script to be compiled
+
             return bRestoreOk;
         }
         public static List<string> GetFormGuidList()
