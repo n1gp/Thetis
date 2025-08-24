@@ -4500,6 +4500,8 @@ namespace Thetis
         }
         public static void FinishSetupAndDisplay()
         {
+            MeterScriptEngine.EndBatch(); //cause the script to be compiled and run
+
             if (_lstUCMeters == null || _lstUCMeters.Count == 0)
             {
                 _finishedSetup = true;
@@ -4508,8 +4510,6 @@ namespace Thetis
 
             initAllConsoleData(); //[2.10.3.6]MW0LGE get all console info here, as everything will be at the correct state
             zeroAllMeters();
-
-            MeterScriptEngine.EndBatch(); //cause the script to be compiled and run
 
             _finishedSetup = true;
 
