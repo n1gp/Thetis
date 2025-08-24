@@ -236,6 +236,21 @@ namespace SE_LGE
             if (!_occupied[index]) return false;
 
             string expr = condition ?? string.Empty;
+
+            bool fast_path = false;
+            lock (_lock)
+            {
+                if (_batch_depth > 0)
+                {
+                    _conditions[index] = expr;
+                    _diagnostics[index] = string.Empty;
+                    _errors[index] = false;
+                    _needs_recompile = true;
+                    fast_path = true;
+                }
+            }
+            if (fast_path) return true;
+
             string code = "return (bool)(" + expr + ");";
 
             ScriptOptions options = ScriptOptions.Default
@@ -296,6 +311,7 @@ namespace SE_LGE
 
             return true;
         }
+
 
         public static void set_update_interval(int index, int milliseconds)
         {
