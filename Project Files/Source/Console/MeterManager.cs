@@ -72,6 +72,8 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
+
+//script engine for leds
 using SE_LGE;
 
 namespace Thetis
@@ -756,7 +758,7 @@ namespace Thetis
                         _readings_text_objects[key] = BandStackManager.BandToString(owningMeter.BandVfoA).ToLower();
                         break;
                     case "band_vfob":
-                        _readings_text_objects[key] = BandStackManager.BandToString(owningMeter.BandVfoA).ToLower();
+                        _readings_text_objects[key] = BandStackManager.BandToString(owningMeter.BandVfoB).ToLower();
                         break;
                     case "band_vfoasub":
                         _readings_text_objects[key] = BandStackManager.BandToString(owningMeter.BandVfoASub).ToLower();
@@ -14510,7 +14512,7 @@ namespace Thetis
                         }
 
                         string old = _parsed_text_1;
-                        _parsed_text_1 = parseText1();
+                        _parsed_text_1 = parseText(_owningMeter.RX, 1);
                         if (_parsed_text_1 != old) _x_scroll_count_1 = 0;
                     }
                 }
@@ -14541,7 +14543,7 @@ namespace Thetis
                         }
 
                         string old = _parsed_text_2;
-                        _parsed_text_2 = parseText2();
+                        _parsed_text_2 = parseText(_owningMeter.RX, 2);
                         if (_parsed_text_2 != old) _x_scroll_count_2 = 0;
                     }
                 }
@@ -14664,7 +14666,7 @@ namespace Thetis
 
                     }
                     string old = _parsed_text_1;
-                    _parsed_text_1 = parseText1();
+                    _parsed_text_1 = parseText(_owningMeter.RX, 1);
                     if (_parsed_text_1 != old) _x_scroll_count_1 = 0;
                 }
                 lock (_list_placeholders_2_lock)
@@ -14675,25 +14677,51 @@ namespace Thetis
 
                     }
                     string old = _parsed_text_2;
-                    _parsed_text_2 = parseText2();
+                    _parsed_text_2 = parseText(_owningMeter.RX, 2);
                     if (_parsed_text_2 != old) _x_scroll_count_2 = 0;
                 }
             }
-            private string parseText1()
+            //
+            private string parseText(int rx, int text_line)
             {
-                string sTmp = _text_1;
+                if (rx < 1 || rx > 2) return "";
+
+                string sTmp = "";
                 string token;
                 bool precis_found = false;
                 string precision_format = "0.0#####";//"f6";
 
-                lock (_list_placeholders_1_lock)
+                object list_lock;
+                List<string> list_placeholders_strings;
+                List<Reading> list_placeholders_readings;
+
+                switch (text_line)
                 {
-                    foreach (string placeholder in _list_placeholders_strings_1)
+                    case 1:
+                        sTmp = _text_1;
+                        list_lock = _list_placeholders_1_lock;
+                        list_placeholders_strings = _list_placeholders_strings_1;
+                        list_placeholders_readings = _list_placeholders_readings_1;
+                        break;
+                    case 2:
+                        sTmp = _text_2;
+                        list_lock = _list_placeholders_2_lock;
+                        list_placeholders_strings = _list_placeholders_strings_2;
+                        list_placeholders_readings = _list_placeholders_readings_2;
+                        break;
+                    default:
+                        return "";
+                }
+
+                lock (list_lock)
+                {
+                    // check for precision
+                    foreach (string placeholder in list_placeholders_strings)
                     {
                         token = "%" + placeholder + "%";
                         if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
+                            if (token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
                                 sTmp = sTmp.ReplaceIgnoreTokenCase(token, "");
                                 if (!precis_found)
@@ -14717,13 +14745,15 @@ namespace Thetis
                             }
                         }
                     }
-                    foreach (string placeholder in _list_placeholders_strings_1)
+
+                    // replace non readings
+                    foreach (string placeholder in list_placeholders_strings)
                     {
                         token = "%" + placeholder + "%";
                         if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             string decFormat = precis_found ? precision_format : "0.0#####";
-                            object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
+                            object reading = ReadingsCustom(rx).GetReading(placeholder, _owningMeter);
                             if (reading is int)
                                 sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((int)reading).ToString());
                             else if (reading is float)
@@ -14736,21 +14766,24 @@ namespace Thetis
                                 sTmp = sTmp.ReplaceIgnoreTokenCase(token, (string)reading);
                         }
                     }
-                    foreach (Reading r in _list_placeholders_readings_1)
+
+                    // replace readings
+                    foreach (Reading r in list_placeholders_readings)
                     {
                         token = "%" + r.ToString() + "%";
                         if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
+                            object reading = ReadingsCustom(rx).GetReading(r.ToString(), _owningMeter);
                             sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
                         }
                     }
                 }
 
+                // replace newline
                 if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
                     sTmp = sTmp.ReplaceIgnoreTokenCase("%nl%", "\n");
 
-                // MultiMeter IO
+                // replace MultiMeter IO
                 foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
                 {
                     MultiMeterIO.clsMMIO mmio = mmios.Value;
@@ -14767,102 +14800,10 @@ namespace Thetis
                         }
                     }
                 }
-                //
 
                 return sTmp;
             }
-            private string parseText2()
-            {
-                string sTmp = _text_2;
-                string token;
-                bool precis_found = false;
-                string precision_format = "0.0#####";//"f6";
-
-                lock (_list_placeholders_2_lock)
-                {
-                    foreach (string placeholder in _list_placeholders_strings_2)
-                    {
-                        token = "%" + placeholder + "%";
-                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
-                            {
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, "");
-                                if (!precis_found)
-                                {
-                                    int startIndex = token.IndexOf('=') + 1;
-                                    int endIndex = token.Length - 1;
-                                    string numberString = token.Substring(startIndex, endIndex - startIndex);
-                                    if (numberString.Length > 0)
-                                    {
-                                        bool ok = int.TryParse(numberString, out int precis);
-                                        if (ok)
-                                        {
-                                            if (precis > 20) precis = 20;
-                                            if (precis < 0) precis = 0;
-                                            precision_format = $"f{precis}";
-                                            precis_found = true;
-                                            continue;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    foreach (string placeholder in _list_placeholders_strings_2)
-                    {
-                        token = "%" + placeholder + "%";
-                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                             string decFormat = precis_found ? precision_format : "0.0#####";
-                            object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
-                            if (reading is int)
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((int)reading).ToString());
-                            else if (reading is float)
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(decFormat));
-                            else if (reading is double)
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((double)reading).ToString(decFormat));
-                            else if (reading is bool)
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((bool)reading).ToString());
-                            else
-                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, (string)reading);
-                        }
-                    }
-                    foreach (Reading r in _list_placeholders_readings_2)
-                    {
-                        token = "%" + r.ToString() + "%";
-                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
-                        }
-                    }
-                }
-
-                if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
-                    sTmp = sTmp.ReplaceIgnoreTokenCase("%nl%", "\n");
-
-                // MultiMeter IO
-                foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
-                {
-                    MultiMeterIO.clsMMIO mmio = mmios.Value;
-                    foreach (KeyValuePair<string, object> kvp in mmio.Variables())
-                    {
-                        token = "%" + kvp.Key + "%";
-                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
-                        {
-                            object val = mmio.GetVariable(kvp.Key, precis_found ? precision_format : "");
-
-                            string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
-
-                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, tmp);
-                        }
-                    }
-                }
-                //
-
-                return sTmp;
-            }
+            //            
             public override bool ZeroOut(ref Dictionary<Reading, float> values, int rx)
             {
                 lock (_list_placeholders_1_lock)
