@@ -97,6 +97,8 @@ namespace SE_LGE
         private static int _bank_count = 1;
         private static Func<Snapshot> _variable_provider_banked = null;
         private static readonly long _ticks_per_millisecond = TimeSpan.TicksPerMillisecond;
+        private static int _batch_depth = 0;
+        private static bool _loop_interval_dirty = false;
 
         public static void start(Func<Snapshot> variable_provider_banked, int default_interval_ms, int bank_count)
         {
@@ -131,6 +133,49 @@ namespace SE_LGE
             }
         }
 
+        public static void BeginBatch()
+        {
+            lock (_lock)
+            {
+                _batch_depth++;
+            }
+        }
+
+        public static void EndBatch()
+        {
+            bool do_compile = false;
+            bool do_recompute = false;
+
+            lock (_lock)
+            {
+                if (_batch_depth > 0) _batch_depth--;
+                if (_batch_depth == 0)
+                {
+                    if (_needs_recompile) do_compile = true;
+                    if (_loop_interval_dirty) do_recompute = true;
+                    _loop_interval_dirty = false;
+                }
+            }
+
+            if (do_compile)
+            {
+                ScriptRunner<bool[]> built = build_runner();
+                lock (_lock)
+                {
+                    _runner = built;
+                    _needs_recompile = false;
+                }
+            }
+
+            if (do_recompute)
+            {
+                lock (_lock)
+                {
+                    recompute_loop_interval_nolock();
+                }
+            }
+        }
+
         public static int register_led()
         {
             lock (_lock)
@@ -159,7 +204,8 @@ namespace SE_LGE
                     _diagnostics.Add(string.Empty);
                 }
                 _needs_recompile = true;
-                recompute_loop_interval_nolock();
+                _loop_interval_dirty = true;
+                if (_batch_depth == 0) recompute_loop_interval_nolock();
                 return index;
             }
         }
@@ -179,7 +225,8 @@ namespace SE_LGE
                 _next_due_ticks[index] = 0L;
                 _free_indices.Enqueue(index);
                 _needs_recompile = true;
-                recompute_loop_interval_nolock();
+                _loop_interval_dirty = true;
+                if (_batch_depth == 0) recompute_loop_interval_nolock();
             }
         }
 
@@ -258,7 +305,8 @@ namespace SE_LGE
                 if (!_occupied[index]) return;
                 int ms = milliseconds < 1 ? 1 : milliseconds;
                 _update_intervals_ms[index] = ms;
-                recompute_loop_interval_nolock();
+                _loop_interval_dirty = true;
+                if (_batch_depth == 0) recompute_loop_interval_nolock();
             }
         }
 
@@ -311,7 +359,7 @@ namespace SE_LGE
 
             lock (_lock)
             {
-                if (_needs_recompile)
+                if (_needs_recompile && _batch_depth == 0)
                 {
                     compile_now = true;
                     _needs_recompile = false;
@@ -343,8 +391,8 @@ namespace SE_LGE
             {
                 lock (_lock)
                 {
-                    int count = _occupied.Count;
-                    for (int i = 0; i < count; i++)
+                    int countErr = _occupied.Count;
+                    for (int i = 0; i < countErr; i++)
                     {
                         if (_occupied[i])
                         {
@@ -395,7 +443,6 @@ namespace SE_LGE
             g.Variables = arr;
             return g;
         }
-
 
         private static List<int> get_due_indices_nolock()
         {
@@ -457,8 +504,8 @@ namespace SE_LGE
             {
                 lock (_lock)
                 {
-                    int count = _occupied.Count;
-                    for (int i = 0; i < count; i++)
+                    int countErr = _occupied.Count;
+                    for (int i = 0; i < countErr; i++)
                     {
                         if (_occupied[i])
                         {
@@ -479,8 +526,8 @@ namespace SE_LGE
             {
                 lock (_lock)
                 {
-                    int count = _occupied.Count;
-                    for (int i = 0; i < count; i++)
+                    int countErr = _occupied.Count;
+                    for (int i = 0; i < countErr; i++)
                     {
                         if (_occupied[i])
                         {

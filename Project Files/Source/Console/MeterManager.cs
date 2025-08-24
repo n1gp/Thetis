@@ -362,6 +362,7 @@ namespace Thetis
             _led_readings[1] = new ConcurrentDictionary<string, object>();
 
             MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's
+            MeterScriptEngine.BeginBatch(); // will not recompile scipt until EndBatch() is called
         }
 
         // led variables and script engine callback
@@ -4505,6 +4506,8 @@ namespace Thetis
 
             initAllConsoleData(); //[2.10.3.6]MW0LGE get all console info here, as everything will be at the correct state
             zeroAllMeters();
+
+            MeterScriptEngine.EndBatch(); //cause the script to be compiled and run
 
             _finishedSetup = true;
 
