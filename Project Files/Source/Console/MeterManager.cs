@@ -611,7 +611,6 @@ namespace Thetis
             public bool IsCustomString(string custom)
             {
                 // these are strings that are not related to readings such as SWR ADC etc
-                bool bRet = false;
                 switch (custom)
                 {
                     case "time_utc":
@@ -658,10 +657,9 @@ namespace Thetis
                     case "pa_profile":
                     case string c1 when c1.StartsWith("discord_general"):
                     case string c2 when c2.StartsWith("discord_bot"):
-                        bRet = true;
-                        break;
+                        return true;
                 }
-                return bRet;
+                return false;
             }
             public object GetReading(string reading, clsMeter owningMeter)
             {
@@ -998,11 +996,11 @@ namespace Thetis
             }
             private void addReading(Reading reading, string text)
             {
-                if (!_readings_values.ContainsKey(reading) && text.Contains("%" + reading.ToString().ToLower() + "%")) _readings_values.TryAdd(reading, 0f);
+                if (!_readings_values.ContainsKey(reading) && text.Contains("%" + reading.ToString() + "%", StringComparison.OrdinalIgnoreCase)) _readings_values.TryAdd(reading, 0f);
             }
             private void addReadingText(string reading, string text)
             {
-                if (!_readings_text_objects.ContainsKey(reading) && text.Contains("%" + reading + "%")) _readings_text_objects.TryAdd(reading, "");
+                if (!_readings_text_objects.ContainsKey(reading) && text.Contains("%" + reading + "%", StringComparison.OrdinalIgnoreCase)) _readings_text_objects.TryAdd(reading, "");
             }
         }
         public class clsIGSettings
@@ -14496,7 +14494,7 @@ namespace Thetis
                         List<string> placeholders = ReadingsCustom(_owningMeter.RX).GetPlaceholders(_text_1);
                         foreach (string placeholder in placeholders)
                         {
-                            if (ReadingsCustom(_owningMeter.RX).IsCustomString(placeholder) || placeholder.StartsWith("precis="))
+                            if (ReadingsCustom(_owningMeter.RX).IsCustomString(placeholder.ToLower()) || placeholder.StartsWith("precis=", StringComparison.OrdinalIgnoreCase))
                                 _list_placeholders_strings_1.Add(placeholder);
                             else
                             {
@@ -14527,7 +14525,7 @@ namespace Thetis
                         List<string> placeholders = ReadingsCustom(_owningMeter.RX).GetPlaceholders(_text_2);
                         foreach(string placeholder in placeholders)
                         {
-                            if (ReadingsCustom(_owningMeter.RX).IsCustomString(placeholder) || placeholder.StartsWith("precis="))
+                            if (ReadingsCustom(_owningMeter.RX).IsCustomString(placeholder.ToLower()) || placeholder.StartsWith("precis=", StringComparison.OrdinalIgnoreCase))
                                 _list_placeholders_strings_2.Add(placeholder);
                             else
                             {
@@ -14678,7 +14676,7 @@ namespace Thetis
             private string parseText1()
             {
                 string sTmp = _text_1;
-                string lower;
+                string token;
                 bool precis_found = false;
                 string precision_format = "0.0#####";//"f6";
 
@@ -14686,17 +14684,17 @@ namespace Thetis
                 {
                     foreach (string placeholder in _list_placeholders_strings_1)
                     {
-                        lower = "%" + placeholder.ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + placeholder + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            if(lower.IndexOf("%precis=") >= 0)
+                            if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                sTmp = sTmp.Replace(lower, "");
+                                sTmp = sTmp.Replace(token, "");
                                 if (!precis_found)
                                 {
-                                    int startIndex = lower.IndexOf('=') + 1;
-                                    int endIndex = lower.Length - 1;
-                                    string numberString = lower.Substring(startIndex, endIndex - startIndex);
+                                    int startIndex = token.IndexOf('=') + 1;
+                                    int endIndex = token.Length - 1;
+                                    string numberString = token.Substring(startIndex, endIndex - startIndex);
                                     if (numberString.Length > 0)
                                     {
                                         bool ok = int.TryParse(numberString, out int precis);
@@ -14715,35 +14713,35 @@ namespace Thetis
                     }
                     foreach (string placeholder in _list_placeholders_strings_1)
                     {
-                        lower = "%" + placeholder.ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + placeholder + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             string decFormat = precis_found ? precision_format : "0.0#####";
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
                             if (reading is int)
-                                sTmp = sTmp.Replace(lower, ((int)reading).ToString());
+                                sTmp = sTmp.Replace(token, ((int)reading).ToString());
                             else if (reading is float)
-                                sTmp = sTmp.Replace(lower, ((float)reading).ToString(decFormat));
+                                sTmp = sTmp.Replace(token, ((float)reading).ToString(decFormat));
                             else if (reading is double)
-                                sTmp = sTmp.Replace(lower, ((double)reading).ToString(decFormat));
+                                sTmp = sTmp.Replace(token, ((double)reading).ToString(decFormat));
                             else if (reading is bool)
-                                sTmp = sTmp.Replace(lower, ((bool)reading).ToString());
+                                sTmp = sTmp.Replace(token, ((bool)reading).ToString());
                             else
-                                sTmp = sTmp.Replace(lower, (string)reading);
+                                sTmp = sTmp.Replace(token, (string)reading);
                         }
                     }
                     foreach (Reading r in _list_placeholders_readings_1)
                     {
-                        lower = "%" + r.ToString().ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + r.ToString() + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                            sTmp = sTmp.Replace(lower, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
+                            sTmp = sTmp.Replace(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
                         }
                     }
                 }
 
-                if (sTmp.IndexOf("%nl%") >= 0)
+                if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
                     sTmp = sTmp.Replace("%nl%", "\n");
 
                 // MultiMeter IO
@@ -14752,14 +14750,14 @@ namespace Thetis
                     MultiMeterIO.clsMMIO mmio = mmios.Value;
                     foreach (KeyValuePair<string, object> kvp in mmio.Variables())
                     {
-                        lower = "%" + kvp.Key + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + kvp.Key + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object val = mmio.GetVariable(kvp.Key, precis_found ? precision_format : "");
 
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
-                            sTmp = sTmp.Replace(lower, tmp);
+                            sTmp = sTmp.Replace(token, tmp);
                         }
                     }
                 }
@@ -14770,7 +14768,7 @@ namespace Thetis
             private string parseText2()
             {
                 string sTmp = _text_2;
-                string lower;
+                string token;
                 bool precis_found = false;
                 string precision_format = "0.0#####";//"f6";
 
@@ -14778,17 +14776,17 @@ namespace Thetis
                 {
                     foreach (string placeholder in _list_placeholders_strings_2)
                     {
-                        lower = "%" + placeholder.ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + placeholder + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
-                            if(lower.IndexOf("%precis=") >= 0)
+                            if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                sTmp = sTmp.Replace(lower, "");
+                                sTmp = sTmp.Replace(token, "");
                                 if (!precis_found)
                                 {
-                                    int startIndex = lower.IndexOf('=') + 1;
-                                    int endIndex = lower.Length - 1;
-                                    string numberString = lower.Substring(startIndex, endIndex - startIndex);
+                                    int startIndex = token.IndexOf('=') + 1;
+                                    int endIndex = token.Length - 1;
+                                    string numberString = token.Substring(startIndex, endIndex - startIndex);
                                     if (numberString.Length > 0)
                                     {
                                         bool ok = int.TryParse(numberString, out int precis);
@@ -14807,35 +14805,35 @@ namespace Thetis
                     }
                     foreach (string placeholder in _list_placeholders_strings_2)
                     {
-                        lower = "%" + placeholder.ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + placeholder + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                              string decFormat = precis_found ? precision_format : "0.0#####";
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
                             if (reading is int)
-                                sTmp = sTmp.Replace(lower, ((int)reading).ToString());
+                                sTmp = sTmp.Replace(token, ((int)reading).ToString());
                             else if (reading is float)
-                                sTmp = sTmp.Replace(lower, ((float)reading).ToString(decFormat));
+                                sTmp = sTmp.Replace(token, ((float)reading).ToString(decFormat));
                             else if (reading is double)
-                                sTmp = sTmp.Replace(lower, ((double)reading).ToString(decFormat));
+                                sTmp = sTmp.Replace(token, ((double)reading).ToString(decFormat));
                             else if (reading is bool)
-                                sTmp = sTmp.Replace(lower, ((bool)reading).ToString());
+                                sTmp = sTmp.Replace(token, ((bool)reading).ToString());
                             else
-                                sTmp = sTmp.Replace(lower, (string)reading);
+                                sTmp = sTmp.Replace(token, (string)reading);
                         }
                     }
                     foreach (Reading r in _list_placeholders_readings_2)
                     {
-                        lower = "%" + r.ToString().ToLower() + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + r.ToString() + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                            sTmp = sTmp.Replace(lower, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
+                            sTmp = sTmp.Replace(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
                         }
                     }
                 }
 
-                if (sTmp.IndexOf("%nl%") >= 0)
+                if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
                     sTmp = sTmp.Replace("%nl%", "\n");
 
                 // MultiMeter IO
@@ -14844,14 +14842,14 @@ namespace Thetis
                     MultiMeterIO.clsMMIO mmio = mmios.Value;
                     foreach (KeyValuePair<string, object> kvp in mmio.Variables())
                     {
-                        lower = "%" + kvp.Key + "%";
-                        if (sTmp.IndexOf(lower) >= 0)
+                        token = "%" + kvp.Key + "%";
+                        if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object val = mmio.GetVariable(kvp.Key, precis_found ? precision_format : "");
 
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
-                            sTmp = sTmp.Replace(lower, tmp);
+                            sTmp = sTmp.Replace(token, tmp);
                         }
                     }
                 }
@@ -14941,8 +14939,9 @@ namespace Thetis
             private bool _old_result;
             private bool _result;
             private bool _valid;
+            private bool _busy;
 
-            private bool _error = false;
+            //private bool _error = false;
 
             private System.Threading.Timer _timer;
             private int _delay_milliseconds;
@@ -14987,9 +14986,10 @@ namespace Thetis
                 _old_result = false;
                 _result = false;
                 _valid = false;
-                _error = false;
+                //_error = false;
                 _notxtrue = false;
                 _notxtrue = false;
+                _busy = false;
 
                 ItemType = MeterItemType.LED;
                 ReadingSource = Reading.NONE;
@@ -15024,7 +15024,7 @@ namespace Thetis
             }
             public bool ScriptError
             {
-                get { return _error; }
+                get { return false; } // retained for future use
             }
             public bool ScriptValid
             {
@@ -15089,6 +15089,7 @@ namespace Thetis
 
                 _valid = MeterScriptEngine.set_condition(_led_id, cond);
             }
+
             private void add_readings(bool update_custom = false)
             {
                 lock (_place_holder_lock)
@@ -15102,12 +15103,13 @@ namespace Thetis
                         if (ReadingsCustom(rx).IsCustomString(tmp.ToLower()))
                         {
                             // is a custom string like time_utc
-                            tmp = rx.ToString() + "_" + tmp.ToLower();
+                            tmp = tmp.ToLower();
                         }
                         else if (Enum.TryParse(tmp, true, out Reading r))
                         {
                             // is a reading
-                            tmp = rx.ToString() + "_" + r.ToString();
+                            ReadingsCustom(rx).TakeReading(r);
+                            tmp = r.ToString();
                         }
                         else
                         {
@@ -15115,17 +15117,19 @@ namespace Thetis
                             continue;
                         }
 
-                        if (update_custom) ReadingsCustom(rx).UpdateReadings("%" + vbl + "%");
+                        if (update_custom) ReadingsCustom(rx).UpdateReadings("%" + tmp + "%"); // this variable is to be use by custom readings
 
+                        tmp = rx.ToString() + "_" + tmp;
                         SetLedVariable(rx, tmp, ReadingsCustom(rx).GetReading(vbl, _owningMeter));
                     }
                 }
             }
             private string expand_placeholders(string expr)
             {
+                //replaces strings such as '%time_utc%'  as 'Variables["time_utc"]' to be used by script engine
                 if (string.IsNullOrEmpty(expr)) return string.Empty;
 
-                StringBuilder sb = new StringBuilder(expr.Length * 2);
+                StringBuilder sb = new StringBuilder(expr.Length * 4);
                 int i = 0;
                 int n = expr.Length;
 
@@ -15162,7 +15166,7 @@ namespace Thetis
                         // assume mmio, do nothing, as provide_variables() handles this
                     }
 
-                    sb.Append("Variables[\"");
+                    sb.Append("Variables[\""); // this is the dictionary in globals
                     sb.Append(key);
                     sb.Append("\"]");
 
@@ -15265,12 +15269,15 @@ namespace Thetis
 
             public override void Update(int rx, ref List<Reading> readingsUsed, Dictionary<Reading, object> all_list_item_readings = null)
             {
-                if (_valid)
+                if (_valid && !_busy)
                 {
-                    add_readings();
+                    _busy = true;                    
 
-                    Task.Run(() =>
-                    {
+                    //Task.Run(() =>
+                    //{
+                        add_readings();
+
+                        _old_result = _result;
                         _result = MeterScriptEngine.read_result(_led_id);
 
                         // mox
@@ -15282,7 +15289,9 @@ namespace Thetis
                         {
                             stopMox();
                         }
-                    });
+
+                        _busy = false;
+                    //});
                 }
             }
 
@@ -15299,7 +15308,7 @@ namespace Thetis
                 {
                     foreach(string s in _place_holders)
                     {
-                        if(!ReadingsCustom(rx).IsCustomString(s))
+                        if(!ReadingsCustom(rx).IsCustomString(s.ToLower()))
                         {
                             if(Enum.TryParse(s, true, out Reading r))
                             {
