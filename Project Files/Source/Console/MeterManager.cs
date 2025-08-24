@@ -14695,7 +14695,7 @@ namespace Thetis
                         {
                             if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                sTmp = sTmp.Replace(token, "");
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, "");
                                 if (!precis_found)
                                 {
                                     int startIndex = token.IndexOf('=') + 1;
@@ -14725,15 +14725,15 @@ namespace Thetis
                             string decFormat = precis_found ? precision_format : "0.0#####";
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
                             if (reading is int)
-                                sTmp = sTmp.Replace(token, ((int)reading).ToString());
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((int)reading).ToString());
                             else if (reading is float)
-                                sTmp = sTmp.Replace(token, ((float)reading).ToString(decFormat));
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(decFormat));
                             else if (reading is double)
-                                sTmp = sTmp.Replace(token, ((double)reading).ToString(decFormat));
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((double)reading).ToString(decFormat));
                             else if (reading is bool)
-                                sTmp = sTmp.Replace(token, ((bool)reading).ToString());
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((bool)reading).ToString());
                             else
-                                sTmp = sTmp.Replace(token, (string)reading);
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, (string)reading);
                         }
                     }
                     foreach (Reading r in _list_placeholders_readings_1)
@@ -14742,13 +14742,13 @@ namespace Thetis
                         if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                            sTmp = sTmp.Replace(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
+                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
                         }
                     }
                 }
 
                 if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
-                    sTmp = sTmp.Replace("%nl%", "\n");
+                    sTmp = sTmp.ReplaceIgnoreTokenCase("%nl%", "\n");
 
                 // MultiMeter IO
                 foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
@@ -14763,7 +14763,7 @@ namespace Thetis
 
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
-                            sTmp = sTmp.Replace(token, tmp);
+                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, tmp);
                         }
                     }
                 }
@@ -14787,7 +14787,7 @@ namespace Thetis
                         {
                             if(token.IndexOf("%precis=", StringComparison.OrdinalIgnoreCase) >= 0)
                             {
-                                sTmp = sTmp.Replace(token, "");
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, "");
                                 if (!precis_found)
                                 {
                                     int startIndex = token.IndexOf('=') + 1;
@@ -14817,15 +14817,15 @@ namespace Thetis
                              string decFormat = precis_found ? precision_format : "0.0#####";
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(placeholder, _owningMeter);
                             if (reading is int)
-                                sTmp = sTmp.Replace(token, ((int)reading).ToString());
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((int)reading).ToString());
                             else if (reading is float)
-                                sTmp = sTmp.Replace(token, ((float)reading).ToString(decFormat));
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(decFormat));
                             else if (reading is double)
-                                sTmp = sTmp.Replace(token, ((double)reading).ToString(decFormat));
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((double)reading).ToString(decFormat));
                             else if (reading is bool)
-                                sTmp = sTmp.Replace(token, ((bool)reading).ToString());
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((bool)reading).ToString());
                             else
-                                sTmp = sTmp.Replace(token, (string)reading);
+                                sTmp = sTmp.ReplaceIgnoreTokenCase(token, (string)reading);
                         }
                     }
                     foreach (Reading r in _list_placeholders_readings_2)
@@ -14834,13 +14834,13 @@ namespace Thetis
                         if (sTmp.IndexOf(token, StringComparison.OrdinalIgnoreCase) >= 0)
                         {
                             object reading = ReadingsCustom(_owningMeter.RX).GetReading(r.ToString(), _owningMeter);
-                            sTmp = sTmp.Replace(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
+                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, ((float)reading).ToString(precis_found ? precision_format : "0.0#####"));
                         }
                     }
                 }
 
                 if (sTmp.IndexOf("%nl%", StringComparison.OrdinalIgnoreCase) >= 0)
-                    sTmp = sTmp.Replace("%nl%", "\n");
+                    sTmp = sTmp.ReplaceIgnoreTokenCase("%nl%", "\n");
 
                 // MultiMeter IO
                 foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
@@ -14855,7 +14855,7 @@ namespace Thetis
 
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
-                            sTmp = sTmp.Replace(token, tmp);
+                            sTmp = sTmp.ReplaceIgnoreTokenCase(token, tmp);
                         }
                     }
                 }
