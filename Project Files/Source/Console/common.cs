@@ -134,10 +134,11 @@ namespace Thetis
             if (string.IsNullOrEmpty(source) || string.IsNullOrEmpty(token))
                 return source;
 
-            StringBuilder sb = new StringBuilder(source.Length + Math.Max(0, replacement.Length - token.Length) * 4);
             int pos = 0;
             int idx = source.IndexOf(token, pos, StringComparison.OrdinalIgnoreCase);
             if (idx < 0) return source;
+
+            StringBuilder sb = new StringBuilder(source.Length + Math.Max(0, replacement.Length - token.Length) * 4);
 
             while (idx >= 0)
             {
