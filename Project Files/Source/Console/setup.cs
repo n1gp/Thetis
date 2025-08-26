@@ -275,6 +275,8 @@ namespace Thetis
             "%comp%" + System.Environment.NewLine +
             "%lev%" + System.Environment.NewLine +
             "%rx2%" + System.Environment.NewLine +
+            "%rxn%" + System.Environment.NewLine +
+            "%nr%" + System.Environment.NewLine +
             "%tx_eq%" + System.Environment.NewLine +
             "%bandtext_vfoa%" + System.Environment.NewLine +
             "%bandtext_vfob%" + System.Environment.NewLine +
@@ -25856,6 +25858,12 @@ namespace Thetis
                 }
 
                 igs.SpacerPadding = (float)nudTextOverlay_PanelPadding.Value;
+
+                igs.SetSetting<bool>("textoverlay_rx_ledlogic", chkTextOverlay_rx_on_led.Checked);
+                igs.SetSetting<bool>("textoverlay_tx_ledlogic", chkTextOverlay_tx_on_led.Checked);
+
+                igs.SetSetting<string>("textoverlay_rx_4char", txtTextOverlay_rx_on_led_4char.Text);
+                igs.SetSetting<string>("textoverlay_tx_4char", txtTextOverlay_tx_on_led_4char.Text);
             }
             else if (mt == MeterType.SPACER)
             {
@@ -26517,6 +26525,7 @@ namespace Thetis
 
                 chkLed_notx_true.Checked = igs.GetSetting<bool>("led_notx_true", false, false, false, false);
                 chkLed_notx_false.Checked = igs.GetSetting<bool>("led_notx_false", false, false, false, false);
+                txtLedIndicator_4char.Text = igs.GetSetting<string>("led_4char", false, "", "", "");
 
                 updateLedIndicatorPanelControls();
                 updateLedValidControls();
@@ -26549,8 +26558,15 @@ namespace Thetis
 
                 nudTextOverlay_PanelPadding.Value = (decimal)igs.SpacerPadding;
 
+                chkTextOverlay_rx_on_led.Checked = igs.GetSetting<bool>("textoverlay_rx_ledlogic", false, false, false, false);
+                chkTextOverlay_tx_on_led.Checked = igs.GetSetting<bool>("textoverlay_tx_ledlogic", false, false, false, false);
+
+                txtTextOverlay_rx_on_led_4char.Text = igs.GetSetting<string>("textoverlay_rx_4char", false, "", "", "");
+                txtTextOverlay_tx_on_led_4char.Text = igs.GetSetting<string>("textoverlay_tx_4char", false, "", "", "");
+
                 updateTextOverlayPanelControls();
                 updateTextOverlayBackTextControls();
+                updateTextOverlayLedIndicator();
             }
             else if (mt == MeterType.SPACER)
             {
@@ -35078,6 +35094,44 @@ namespace Thetis
             List<Form> forms = SelectFormsForReposition.getAllOpenForms();
             SelectFormsForReposition dlg = new SelectFormsForReposition(forms, 100, 100, 20);
             DialogResult dr = dlg.ShowDialog(this);
+        }
+
+        private void btnLedIndicator_4char_copy_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(txtLedIndicator_4char.Text);
+        }
+
+        private void txtLedIndicator_4char_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            e.Handled = true;
+        }
+
+        private void updateTextOverlayLedIndicator()
+        {
+            txtTextOverlay_rx_on_led_4char.Enabled = chkTextOverlay_rx_on_led.Checked;
+            txtTextOverlay_tx_on_led_4char.Enabled = chkTextOverlay_tx_on_led.Checked;
+        }
+
+        private void chkTextOverlay_rx_on_led_CheckedChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+            updateTextOverlayLedIndicator();
+        }
+
+        private void txtTextOverlay_rx_on_led_4char_TextChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+        }
+
+        private void chkTextOverlay_tx_on_led_CheckedChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+            updateTextOverlayLedIndicator();
+        }
+
+        private void txtTextOverlay_tx_on_led_4char_TextChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
         }
     }
 

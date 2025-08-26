@@ -44183,17 +44183,30 @@ namespace Thetis
         private void incrementNR(int rx)
         {
             if (rx < 1 || rx > 2) return;
+
+            int old_nr = _nr_selected[rx - 1];
+
             _nr_selected[rx - 1] += 1;
             if (_nr_selected[rx - 1] > 4) _nr_selected[rx - 1] = 0;
+
+            setupNR(rx, false);
+            setupNR(rx, true);
+
+            if (_nr_selected[rx - 1] != old_nr) NRChangedHandlers?.Invoke(rx, old_nr, _nr_selected[rx - 1]);
         }
         public void SelectNR(int rx, bool incude_sub, int nr)
         {
             if (rx < 1 || rx > 2) return;
             if (nr < 0 || nr > 4) return;
+
+            int old_nr = _nr_selected[rx - 1];
+
             _nr_selected[rx - 1] = nr;
 
             setupNR(rx, false);
             if(incude_sub) setupNR(rx, true);
+
+            if (_nr_selected[rx - 1] != old_nr) NRChangedHandlers?.Invoke(rx, old_nr, _nr_selected[rx - 1]);
         }
         public int GetSelectedNR(int rx)
         {
@@ -46060,6 +46073,8 @@ namespace Thetis
 
         public delegate void DisplayDecimationChanged(int old_decimation, int new_decimation);
 
+        public delegate void NRChanged(int rx, int old_nr, int new_nr);
+
         public BandPreChange BandPreChangeHandlers; // when someone clicks a band button, before a change is made
         public BandNoChange BandNoChangeHandlers;
         public BandChanged BandChangeHandlers;
@@ -46173,6 +46188,8 @@ namespace Thetis
         public Rx6mOffsetChanged Rx6mOffsetChangedHandlers;
 
         public DisplayDecimationChanged DisplayDecimationChangedHanders;
+
+        public NRChanged NRChangedHandlers;
 
         private bool m_bIgnoreFrequencyDupes = false;               // if an update is to be made, but the frequency is already in the filter, ignore it
         private bool m_bHideBandstackWindowOnSelect = false;        // hide the window if an entry is selected
@@ -52186,15 +52203,11 @@ namespace Thetis
         private void chkNR_Click(object sender, EventArgs e)
         {
             incrementNR(1);
-            setupNR(1, false);
-            setupNR(1, true);
         }
 
         private void chkRX2NR_Click(object sender, EventArgs e)
         {
             incrementNR(2);
-            setupNR(2, false);
-            setupNR(2, true);
         }
 
         private bool requires_reposition()

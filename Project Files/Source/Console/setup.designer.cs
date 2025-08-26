@@ -3958,6 +3958,12 @@
             this.btnCancel = new System.Windows.Forms.ButtonTS();
             this.btnOK = new System.Windows.Forms.ButtonTS();
             this.chkEnableRFEPATR = new System.Windows.Forms.CheckBoxTS();
+            this.btnLedIndicator_4char_copy = new System.Windows.Forms.ButtonTS();
+            this.txtLedIndicator_4char = new System.Windows.Forms.TextBoxTS();
+            this.chkTextOverlay_rx_on_led = new System.Windows.Forms.CheckBoxTS();
+            this.txtTextOverlay_rx_on_led_4char = new System.Windows.Forms.TextBoxTS();
+            this.txtTextOverlay_tx_on_led_4char = new System.Windows.Forms.TextBoxTS();
+            this.chkTextOverlay_tx_on_led = new System.Windows.Forms.CheckBoxTS();
             this.timer_VAC_Monitor = new System.Windows.Forms.Timer(this.components);
             this.timer_LED_Mirror = new System.Windows.Forms.Timer(this.components);
             this.timer_RawInputMouseWheel = new System.Windows.Forms.Timer(this.components);
@@ -4093,6 +4099,7 @@
             this.chkBandButtons_fade_rx = new System.Windows.Forms.CheckBoxTS();
             this.tabPage8 = new System.Windows.Forms.TabPage();
             this.grpLedIndicator = new System.Windows.Forms.GroupBoxTS();
+            this.labelTS482 = new System.Windows.Forms.LabelTS();
             this.labelTS287 = new System.Windows.Forms.LabelTS();
             this.radLed_light_pulsate = new System.Windows.Forms.RadioButtonTS();
             this.radLed_light_blink = new System.Windows.Forms.RadioButtonTS();
@@ -61305,10 +61312,10 @@
             // btnTextOverlay_copyfonts
             // 
             this.btnTextOverlay_copyfonts.Image = null;
-            this.btnTextOverlay_copyfonts.Location = new System.Drawing.Point(284, 196);
+            this.btnTextOverlay_copyfonts.Location = new System.Drawing.Point(236, 195);
             this.btnTextOverlay_copyfonts.Name = "btnTextOverlay_copyfonts";
             this.btnTextOverlay_copyfonts.Selectable = true;
-            this.btnTextOverlay_copyfonts.Size = new System.Drawing.Size(33, 23);
+            this.btnTextOverlay_copyfonts.Size = new System.Drawing.Size(28, 23);
             this.btnTextOverlay_copyfonts.TabIndex = 165;
             this.btnTextOverlay_copyfonts.Text = "=";
             this.toolTip1.SetToolTip(this.btnTextOverlay_copyfonts, "Copy the font and colours from RX to TX");
@@ -61347,7 +61354,7 @@
             this.clrbtnTextOverlay_TextBackColour2.Color = System.Drawing.Color.LimeGreen;
             this.clrbtnTextOverlay_TextBackColour2.ForeColor = System.Drawing.Color.Black;
             this.clrbtnTextOverlay_TextBackColour2.Image = null;
-            this.clrbtnTextOverlay_TextBackColour2.Location = new System.Drawing.Point(159, 209);
+            this.clrbtnTextOverlay_TextBackColour2.Location = new System.Drawing.Point(133, 209);
             this.clrbtnTextOverlay_TextBackColour2.MoreColors = "More Colors...";
             this.clrbtnTextOverlay_TextBackColour2.Name = "clrbtnTextOverlay_TextBackColour2";
             this.clrbtnTextOverlay_TextBackColour2.Selectable = true;
@@ -61362,7 +61369,7 @@
             this.clrbtnTextOverlay_TextBackColour1.Color = System.Drawing.Color.LimeGreen;
             this.clrbtnTextOverlay_TextBackColour1.ForeColor = System.Drawing.Color.Black;
             this.clrbtnTextOverlay_TextBackColour1.Image = null;
-            this.clrbtnTextOverlay_TextBackColour1.Location = new System.Drawing.Point(159, 183);
+            this.clrbtnTextOverlay_TextBackColour1.Location = new System.Drawing.Point(133, 183);
             this.clrbtnTextOverlay_TextBackColour1.MoreColors = "More Colors...";
             this.clrbtnTextOverlay_TextBackColour1.Name = "clrbtnTextOverlay_TextBackColour1";
             this.clrbtnTextOverlay_TextBackColour1.Selectable = true;
@@ -61374,7 +61381,7 @@
             // btnTextOverlay_copyoffsets
             // 
             this.btnTextOverlay_copyoffsets.Image = null;
-            this.btnTextOverlay_copyoffsets.Location = new System.Drawing.Point(182, 313);
+            this.btnTextOverlay_copyoffsets.Location = new System.Drawing.Point(178, 333);
             this.btnTextOverlay_copyoffsets.Name = "btnTextOverlay_copyoffsets";
             this.btnTextOverlay_copyoffsets.Selectable = true;
             this.btnTextOverlay_copyoffsets.Size = new System.Drawing.Size(33, 23);
@@ -61392,7 +61399,7 @@
             0,
             0,
             196608});
-            this.nudTextOverlay_TXyOffset.Location = new System.Drawing.Point(101, 328);
+            this.nudTextOverlay_TXyOffset.Location = new System.Drawing.Point(97, 348);
             this.nudTextOverlay_TXyOffset.Maximum = new decimal(new int[] {
             10,
             0,
@@ -61423,7 +61430,7 @@
             0,
             0,
             196608});
-            this.nudTextOverlay_TXxOffset.Location = new System.Drawing.Point(101, 302);
+            this.nudTextOverlay_TXxOffset.Location = new System.Drawing.Point(97, 322);
             this.nudTextOverlay_TXxOffset.Maximum = new decimal(new int[] {
             10,
             0,
@@ -61454,7 +61461,7 @@
             0,
             0,
             196608});
-            this.nudTextOverlay_RXyOffset.Location = new System.Drawing.Point(101, 276);
+            this.nudTextOverlay_RXyOffset.Location = new System.Drawing.Point(97, 296);
             this.nudTextOverlay_RXyOffset.Maximum = new decimal(new int[] {
             10,
             0,
@@ -61485,7 +61492,7 @@
             0,
             0,
             196608});
-            this.nudTextOverlay_RXxOffset.Location = new System.Drawing.Point(101, 250);
+            this.nudTextOverlay_RXxOffset.Location = new System.Drawing.Point(97, 270);
             this.nudTextOverlay_RXxOffset.Maximum = new decimal(new int[] {
             10,
             0,
@@ -61514,7 +61521,7 @@
             this.clrbtnTextOverlay_TextColour2.Color = System.Drawing.Color.LimeGreen;
             this.clrbtnTextOverlay_TextColour2.ForeColor = System.Drawing.Color.Black;
             this.clrbtnTextOverlay_TextColour2.Image = null;
-            this.clrbtnTextOverlay_TextColour2.Location = new System.Drawing.Point(104, 209);
+            this.clrbtnTextOverlay_TextColour2.Location = new System.Drawing.Point(87, 209);
             this.clrbtnTextOverlay_TextColour2.MoreColors = "More Colors...";
             this.clrbtnTextOverlay_TextColour2.Name = "clrbtnTextOverlay_TextColour2";
             this.clrbtnTextOverlay_TextColour2.Selectable = true;
@@ -61529,7 +61536,7 @@
             this.clrbtnTextOverlay_TextColour1.Color = System.Drawing.Color.LimeGreen;
             this.clrbtnTextOverlay_TextColour1.ForeColor = System.Drawing.Color.Black;
             this.clrbtnTextOverlay_TextColour1.Image = null;
-            this.clrbtnTextOverlay_TextColour1.Location = new System.Drawing.Point(104, 183);
+            this.clrbtnTextOverlay_TextColour1.Location = new System.Drawing.Point(87, 183);
             this.clrbtnTextOverlay_TextColour1.MoreColors = "More Colors...";
             this.clrbtnTextOverlay_TextColour1.Name = "clrbtnTextOverlay_TextColour1";
             this.clrbtnTextOverlay_TextColour1.Selectable = true;
@@ -63813,6 +63820,77 @@
             this.toolTip1.SetToolTip(this.chkEnableRFEPATR, "Enabled the RFE PA TR line to toggle with MOX (for use with non-FLEX PA).");
             this.chkEnableRFEPATR.CheckedChanged += new System.EventHandler(this.chkEnableRFEPATR_CheckedChanged);
             // 
+            // btnLedIndicator_4char_copy
+            // 
+            this.btnLedIndicator_4char_copy.Image = global::Thetis.Properties.Resources.copy;
+            this.btnLedIndicator_4char_copy.Location = new System.Drawing.Point(290, 210);
+            this.btnLedIndicator_4char_copy.Name = "btnLedIndicator_4char_copy";
+            this.btnLedIndicator_4char_copy.Selectable = true;
+            this.btnLedIndicator_4char_copy.Size = new System.Drawing.Size(27, 27);
+            this.btnLedIndicator_4char_copy.TabIndex = 179;
+            this.toolTip1.SetToolTip(this.btnLedIndicator_4char_copy, "Copy to clipboard");
+            this.btnLedIndicator_4char_copy.UseVisualStyleBackColor = true;
+            this.btnLedIndicator_4char_copy.Click += new System.EventHandler(this.btnLedIndicator_4char_copy_Click);
+            // 
+            // txtLedIndicator_4char
+            // 
+            this.txtLedIndicator_4char.Location = new System.Drawing.Point(244, 212);
+            this.txtLedIndicator_4char.MaxLength = 4;
+            this.txtLedIndicator_4char.Name = "txtLedIndicator_4char";
+            this.txtLedIndicator_4char.Size = new System.Drawing.Size(43, 20);
+            this.txtLedIndicator_4char.TabIndex = 177;
+            this.txtLedIndicator_4char.Text = "AGHJ";
+            this.toolTip1.SetToolTip(this.txtLedIndicator_4char, "The four character code for this web image");
+            this.txtLedIndicator_4char.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtLedIndicator_4char_KeyPress);
+            // 
+            // chkTextOverlay_rx_on_led
+            // 
+            this.chkTextOverlay_rx_on_led.AutoSize = true;
+            this.chkTextOverlay_rx_on_led.Image = null;
+            this.chkTextOverlay_rx_on_led.Location = new System.Drawing.Point(8, 242);
+            this.chkTextOverlay_rx_on_led.Name = "chkTextOverlay_rx_on_led";
+            this.chkTextOverlay_rx_on_led.Size = new System.Drawing.Size(77, 17);
+            this.chkTextOverlay_rx_on_led.TabIndex = 166;
+            this.chkTextOverlay_rx_on_led.Text = "RX on Led";
+            this.toolTip1.SetToolTip(this.chkTextOverlay_rx_on_led, "Show RX text only when this Led Indicator is true");
+            this.chkTextOverlay_rx_on_led.UseVisualStyleBackColor = true;
+            this.chkTextOverlay_rx_on_led.CheckedChanged += new System.EventHandler(this.chkTextOverlay_rx_on_led_CheckedChanged);
+            // 
+            // txtTextOverlay_rx_on_led_4char
+            // 
+            this.txtTextOverlay_rx_on_led_4char.Location = new System.Drawing.Point(87, 238);
+            this.txtTextOverlay_rx_on_led_4char.MaxLength = 4;
+            this.txtTextOverlay_rx_on_led_4char.Name = "txtTextOverlay_rx_on_led_4char";
+            this.txtTextOverlay_rx_on_led_4char.Size = new System.Drawing.Size(43, 20);
+            this.txtTextOverlay_rx_on_led_4char.TabIndex = 167;
+            this.txtTextOverlay_rx_on_led_4char.Text = "AGHJ";
+            this.toolTip1.SetToolTip(this.txtTextOverlay_rx_on_led_4char, "The four character id of the Led Indicator to query");
+            this.txtTextOverlay_rx_on_led_4char.TextChanged += new System.EventHandler(this.txtTextOverlay_rx_on_led_4char_TextChanged);
+            // 
+            // txtTextOverlay_tx_on_led_4char
+            // 
+            this.txtTextOverlay_tx_on_led_4char.Location = new System.Drawing.Point(219, 238);
+            this.txtTextOverlay_tx_on_led_4char.MaxLength = 4;
+            this.txtTextOverlay_tx_on_led_4char.Name = "txtTextOverlay_tx_on_led_4char";
+            this.txtTextOverlay_tx_on_led_4char.Size = new System.Drawing.Size(43, 20);
+            this.txtTextOverlay_tx_on_led_4char.TabIndex = 169;
+            this.txtTextOverlay_tx_on_led_4char.Text = "AGHJ";
+            this.toolTip1.SetToolTip(this.txtTextOverlay_tx_on_led_4char, "The four character id of the Led Indicator to query");
+            this.txtTextOverlay_tx_on_led_4char.TextChanged += new System.EventHandler(this.txtTextOverlay_tx_on_led_4char_TextChanged);
+            // 
+            // chkTextOverlay_tx_on_led
+            // 
+            this.chkTextOverlay_tx_on_led.AutoSize = true;
+            this.chkTextOverlay_tx_on_led.Image = null;
+            this.chkTextOverlay_tx_on_led.Location = new System.Drawing.Point(140, 242);
+            this.chkTextOverlay_tx_on_led.Name = "chkTextOverlay_tx_on_led";
+            this.chkTextOverlay_tx_on_led.Size = new System.Drawing.Size(76, 17);
+            this.chkTextOverlay_tx_on_led.TabIndex = 168;
+            this.chkTextOverlay_tx_on_led.Text = "TX on Led";
+            this.toolTip1.SetToolTip(this.chkTextOverlay_tx_on_led, "Show TX text only when this Led Indicator is true");
+            this.chkTextOverlay_tx_on_led.UseVisualStyleBackColor = true;
+            this.chkTextOverlay_tx_on_led.CheckedChanged += new System.EventHandler(this.chkTextOverlay_tx_on_led_CheckedChanged);
+            // 
             // timer_VAC_Monitor
             // 
             this.timer_VAC_Monitor.Enabled = true;
@@ -64563,6 +64641,10 @@
             // 
             // grpTextOverlay
             // 
+            this.grpTextOverlay.Controls.Add(this.txtTextOverlay_tx_on_led_4char);
+            this.grpTextOverlay.Controls.Add(this.chkTextOverlay_tx_on_led);
+            this.grpTextOverlay.Controls.Add(this.txtTextOverlay_rx_on_led_4char);
+            this.grpTextOverlay.Controls.Add(this.chkTextOverlay_rx_on_led);
             this.grpTextOverlay.Controls.Add(this.btnTextOverlay_copyfonts);
             this.grpTextOverlay.Controls.Add(this.pbTextOverlay_variables);
             this.grpTextOverlay.Controls.Add(this.lblTextOverlay_panelbackgroundTX);
@@ -64621,7 +64703,7 @@
             // 
             this.labelTS202.AutoSize = true;
             this.labelTS202.Image = null;
-            this.labelTS202.Location = new System.Drawing.Point(22, 214);
+            this.labelTS202.Location = new System.Drawing.Point(5, 214);
             this.labelTS202.Name = "labelTS202";
             this.labelTS202.Size = new System.Drawing.Size(24, 13);
             this.labelTS202.TabIndex = 161;
@@ -64631,7 +64713,7 @@
             // 
             this.labelTS201.AutoSize = true;
             this.labelTS201.Image = null;
-            this.labelTS201.Location = new System.Drawing.Point(22, 188);
+            this.labelTS201.Location = new System.Drawing.Point(5, 188);
             this.labelTS201.Name = "labelTS201";
             this.labelTS201.Size = new System.Drawing.Size(25, 13);
             this.labelTS201.TabIndex = 160;
@@ -64641,11 +64723,11 @@
             // 
             this.chkTextOverlay_textback2.AutoSize = true;
             this.chkTextOverlay_textback2.Image = null;
-            this.chkTextOverlay_textback2.Location = new System.Drawing.Point(205, 213);
+            this.chkTextOverlay_textback2.Location = new System.Drawing.Point(179, 213);
             this.chkTextOverlay_textback2.Name = "chkTextOverlay_textback2";
-            this.chkTextOverlay_textback2.Size = new System.Drawing.Size(75, 17);
+            this.chkTextOverlay_textback2.Size = new System.Drawing.Size(51, 17);
             this.chkTextOverlay_textback2.TabIndex = 159;
-            this.chkTextOverlay_textback2.Text = "Text Back";
+            this.chkTextOverlay_textback2.Text = "Back";
             this.chkTextOverlay_textback2.UseVisualStyleBackColor = true;
             this.chkTextOverlay_textback2.CheckedChanged += new System.EventHandler(this.chkTextOverlay_textback2_CheckedChanged);
             // 
@@ -64653,11 +64735,11 @@
             // 
             this.chkTextOverlay_textback1.AutoSize = true;
             this.chkTextOverlay_textback1.Image = null;
-            this.chkTextOverlay_textback1.Location = new System.Drawing.Point(205, 187);
+            this.chkTextOverlay_textback1.Location = new System.Drawing.Point(179, 187);
             this.chkTextOverlay_textback1.Name = "chkTextOverlay_textback1";
-            this.chkTextOverlay_textback1.Size = new System.Drawing.Size(75, 17);
+            this.chkTextOverlay_textback1.Size = new System.Drawing.Size(51, 17);
             this.chkTextOverlay_textback1.TabIndex = 158;
-            this.chkTextOverlay_textback1.Text = "Text Back";
+            this.chkTextOverlay_textback1.Text = "Back";
             this.chkTextOverlay_textback1.UseVisualStyleBackColor = true;
             this.chkTextOverlay_textback1.CheckedChanged += new System.EventHandler(this.chkTextOverlay_textback1_CheckedChanged);
             // 
@@ -64665,7 +64747,7 @@
             // 
             this.labelTS207.AutoSize = true;
             this.labelTS207.Image = null;
-            this.labelTS207.Location = new System.Drawing.Point(163, 330);
+            this.labelTS207.Location = new System.Drawing.Point(159, 350);
             this.labelTS207.Name = "labelTS207";
             this.labelTS207.Size = new System.Drawing.Size(12, 13);
             this.labelTS207.TabIndex = 154;
@@ -64675,7 +64757,7 @@
             // 
             this.labelTS208.AutoSize = true;
             this.labelTS208.Image = null;
-            this.labelTS208.Location = new System.Drawing.Point(163, 304);
+            this.labelTS208.Location = new System.Drawing.Point(159, 324);
             this.labelTS208.Name = "labelTS208";
             this.labelTS208.Size = new System.Drawing.Size(12, 13);
             this.labelTS208.TabIndex = 153;
@@ -64685,7 +64767,7 @@
             // 
             this.labelTS209.AutoSize = true;
             this.labelTS209.Image = null;
-            this.labelTS209.Location = new System.Drawing.Point(9, 304);
+            this.labelTS209.Location = new System.Drawing.Point(5, 324);
             this.labelTS209.Name = "labelTS209";
             this.labelTS209.Size = new System.Drawing.Size(84, 13);
             this.labelTS209.TabIndex = 151;
@@ -64695,7 +64777,7 @@
             // 
             this.labelTS206.AutoSize = true;
             this.labelTS206.Image = null;
-            this.labelTS206.Location = new System.Drawing.Point(163, 278);
+            this.labelTS206.Location = new System.Drawing.Point(159, 298);
             this.labelTS206.Name = "labelTS206";
             this.labelTS206.Size = new System.Drawing.Size(12, 13);
             this.labelTS206.TabIndex = 149;
@@ -64705,7 +64787,7 @@
             // 
             this.labelTS200.AutoSize = true;
             this.labelTS200.Image = null;
-            this.labelTS200.Location = new System.Drawing.Point(163, 252);
+            this.labelTS200.Location = new System.Drawing.Point(159, 272);
             this.labelTS200.Name = "labelTS200";
             this.labelTS200.Size = new System.Drawing.Size(12, 13);
             this.labelTS200.TabIndex = 148;
@@ -64715,7 +64797,7 @@
             // 
             this.labelTS205.AutoSize = true;
             this.labelTS205.Image = null;
-            this.labelTS205.Location = new System.Drawing.Point(10, 252);
+            this.labelTS205.Location = new System.Drawing.Point(6, 272);
             this.labelTS205.Name = "labelTS205";
             this.labelTS205.Size = new System.Drawing.Size(85, 13);
             this.labelTS205.TabIndex = 145;
@@ -64734,7 +64816,7 @@
             // btnTextOverlay_Font2
             // 
             this.btnTextOverlay_Font2.Image = null;
-            this.btnTextOverlay_Font2.Location = new System.Drawing.Point(53, 209);
+            this.btnTextOverlay_Font2.Location = new System.Drawing.Point(36, 209);
             this.btnTextOverlay_Font2.Name = "btnTextOverlay_Font2";
             this.btnTextOverlay_Font2.Selectable = true;
             this.btnTextOverlay_Font2.Size = new System.Drawing.Size(49, 23);
@@ -64764,7 +64846,7 @@
             // btnTextOverlay_Font1
             // 
             this.btnTextOverlay_Font1.Image = null;
-            this.btnTextOverlay_Font1.Location = new System.Drawing.Point(53, 183);
+            this.btnTextOverlay_Font1.Location = new System.Drawing.Point(36, 183);
             this.btnTextOverlay_Font1.Name = "btnTextOverlay_Font1";
             this.btnTextOverlay_Font1.Selectable = true;
             this.btnTextOverlay_Font1.Size = new System.Drawing.Size(49, 23);
@@ -65423,6 +65505,9 @@
             // 
             // grpLedIndicator
             // 
+            this.grpLedIndicator.Controls.Add(this.btnLedIndicator_4char_copy);
+            this.grpLedIndicator.Controls.Add(this.labelTS482);
+            this.grpLedIndicator.Controls.Add(this.txtLedIndicator_4char);
             this.grpLedIndicator.Controls.Add(this.nudLedIndicator_UpdateInterval);
             this.grpLedIndicator.Controls.Add(this.labelTS287);
             this.grpLedIndicator.Controls.Add(this.chkLed_notx_false);
@@ -65469,6 +65554,16 @@
             this.grpLedIndicator.TabStop = false;
             this.grpLedIndicator.Text = "Led Indicator";
             this.grpLedIndicator.Visible = false;
+            // 
+            // labelTS482
+            // 
+            this.labelTS482.AutoSize = true;
+            this.labelTS482.Image = null;
+            this.labelTS482.Location = new System.Drawing.Point(186, 215);
+            this.labelTS482.Name = "labelTS482";
+            this.labelTS482.Size = new System.Drawing.Size(52, 13);
+            this.labelTS482.TabIndex = 178;
+            this.labelTS482.Text = "4Char ID:";
             // 
             // labelTS287
             // 
@@ -74374,5 +74469,12 @@
         private NumericUpDownTS nudNR2PostProc_taper_rx2;
         private NumericUpDownTS nudNR2PostProc_rate_rx2;
         private ButtonTS btnFormLocationHelper;
+        private ButtonTS btnLedIndicator_4char_copy;
+        private LabelTS labelTS482;
+        private TextBoxTS txtLedIndicator_4char;
+        private CheckBoxTS chkTextOverlay_rx_on_led;
+        private TextBoxTS txtTextOverlay_rx_on_led_4char;
+        private TextBoxTS txtTextOverlay_tx_on_led_4char;
+        private CheckBoxTS chkTextOverlay_tx_on_led;
     }
 }

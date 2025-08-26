@@ -54,10 +54,6 @@ using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Scripting;
-using Microsoft.CodeAnalysis.Scripting;
 using System.Xml;
 using System.Threading.Tasks;
 using System.ComponentModel;
@@ -72,9 +68,6 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-
-//script engine for leds
-using SE_LGE;
 
 namespace Thetis
 {
@@ -250,6 +243,7 @@ namespace Thetis
             CW
         }
 
+        public static event EventHandler LedIndicatorRemoved;
         public static event EventHandler<string> WebImageRemoved;
         public static event EventHandler<string> ShowWebImageBackground;
 
@@ -405,14 +399,29 @@ namespace Thetis
         }
         //
 
+        public static clsLed GetLedFrom4Char(string fourchar)
+        {
+            if (string.IsNullOrEmpty(fourchar)) return null;
+
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)
+                {
+                    clsMeter m = ms.Value;
+                    clsLed led = m.LedIndicatorFromFourChar(fourchar);
+                    if (led != null) return led;
+                }
+            }
+
+            return null;
+        }
+
         public static (string, string) GetWebImageIDsFrom4Char(string fourchar)
         {
             string mid = null;
             string igid = null;
             lock (_metersLock)
             {
-                HashSet<string> wids = new HashSet<string>();
-
                 foreach (KeyValuePair<string, clsMeter> ms in _meters)
                 {
                     clsMeter m = ms.Value;
@@ -654,6 +663,8 @@ namespace Thetis
                     case "comp":
                     case "lev":
                     case "rx2":
+                    case "rxn":
+                    case "nr":
                     case "tx_eq":
                     case "bandtext_vfoa":
                     case "bandtext_vfob":
@@ -831,6 +842,12 @@ namespace Thetis
                     case "rx2":
                         _readings_text_objects[key] = owningMeter.RX2Enabled ? "RX2 On" : "";
                         break;
+                    case "rxn":
+                        _readings_text_objects[key] = owningMeter.RX;
+                        break;
+                    case "nr":
+                        _readings_text_objects[key] = owningMeter.NR;
+                        break;
                     case "tx_eq":
                         _readings_text_objects[key] = owningMeter.TXEQEnabled ? "TXEQ" : "";
                         break;
@@ -988,6 +1005,8 @@ namespace Thetis
                 addReadingText("comp", text);
                 addReadingText("lev", text);
                 addReadingText("rx2", text);
+                addReadingText("rxn", text);
+                addReadingText("nr", text);
                 addReadingText("tx_eq", text);
                 addReadingText("bandtext_vfoa", text);
                 addReadingText("bandtext_vfob", text);
@@ -2351,6 +2370,8 @@ namespace Thetis
 
                 initConsoleData(m.RX);
 
+                m.RebuildLedConditions();
+
                 m.ZeroOut(true, true);
 
                 // need to update items
@@ -2987,6 +3008,8 @@ namespace Thetis
             _console.WaterfallRXGradientChangedHandlers += OnWaterfallRXGradientChanged;
             _console.WaterfallTXGradientChangedHandlers += OnWaterfallTXGradientChanged;
 
+            _console.NRChangedHandlers += OnNRChanged;
+
             _delegatesAdded = true;
         }
         private static void removeDelegates()
@@ -3064,6 +3087,8 @@ namespace Thetis
 
             _console.WaterfallRXGradientChangedHandlers -= OnWaterfallRXGradientChanged;
             _console.WaterfallTXGradientChangedHandlers -= OnWaterfallTXGradientChanged;
+
+            _console.NRChangedHandlers -= OnNRChanged;
 
             foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
             {
@@ -3728,19 +3753,19 @@ namespace Thetis
         {
             _transverterIndex = newIndex;
         }
-        public static void OnAlexPresentChanged(bool oldSetting, bool newSetting)
+        private static void OnAlexPresentChanged(bool oldSetting, bool newSetting)
         {
             _alexPresent = newSetting;
         }
-        public static void OnPAPresentChanged(bool oldSetting, bool newSetting)
+        private static void OnPAPresentChanged(bool oldSetting, bool newSetting)
         {
             _paPresent = newSetting;
         }
-        public static void OnApolloPresentChanged(bool oldSetting, bool newSetting)
+        private static void OnApolloPresentChanged(bool oldSetting, bool newSetting)
         {
             _apolloPresent = newSetting;
         }
-        public static void OnCurrentModelChanged(HPSDRModel oldModel, HPSDRModel newModel)
+        private static void OnCurrentModelChanged(HPSDRModel oldModel, HPSDRModel newModel)
         {
             _currentHPSDRmodel = newModel;
         }
@@ -3818,7 +3843,7 @@ namespace Thetis
 
             if (oldBand != newBand) bandChange(rx, oldBand, newBand, true, false);
         }
-        public static void OnVFOASub(Band oldBand, Band newBand, DSPMode newMode, Filter newFilter, double oldFreq, double newFreq, double newCentreF, bool newCTUN, int newZoomSlider, double offset, int rx)
+        private static void OnVFOASub(Band oldBand, Band newBand, DSPMode newMode, Filter newFilter, double oldFreq, double newFreq, double newCentreF, bool newCTUN, int newZoomSlider, double offset, int rx)
         {
             MiniSpec.clsMiniSpec miniRx = MiniSpec.GetMiniRX(0, true);
             if (miniRx != null)
@@ -3837,6 +3862,17 @@ namespace Thetis
                 }
             }
         }
+
+        private static void OnNRChanged(int rx, int old_nr, int new_nr)
+        {
+            foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+            {
+                clsMeter m = ms.Value;
+
+                m.NR = new_nr;
+            }
+        }
+        //-------------------------
         private static void initAllConsoleData()
         {
             // list used so that not limited to rx1/rx2
@@ -3943,6 +3979,8 @@ namespace Thetis
 
                 m.RXWaterfallMin = (int)Display.WaterfallLowThreshold;
                 m.RXWaterfallMax = (int)Display.WaterfallHighThreshold;
+
+                m.NR = _console.GetSelectedNR(1);
             }
             else if (m.RX == 2)
             {
@@ -3958,6 +3996,8 @@ namespace Thetis
 
                 m.RXWaterfallMin = (int)Display.RX2WaterfallLowThreshold;
                 m.RXWaterfallMax = (int)Display.RX2WaterfallHighThreshold;
+
+                m.NR = _console.GetSelectedNR(2);
             }
 
             m.TXSpectrumGridMin = Display.TXSpectrumGridMin;
@@ -14393,8 +14433,29 @@ namespace Thetis
             private string _parsed_text_1;
             private string _parsed_text_2;
 
+            private bool _rx_led_logic;
+            private bool _tx_led_logic;
+            private string _rx_four_char;
+            private string _tx_four_char;
+
+            private clsLed _rxLed;
+            private clsLed _txLed;
+
+            private bool _show_rx;
+            private bool _show_tx;
+
+            private readonly object _four_char_logic = new object();
+
             public clsTextOverlay(clsMeter owningMeter)
             {
+                MeterManager.LedIndicatorRemoved += onLedRemoved;
+
+                _rxLed = null;
+                _txLed = null;
+
+                _show_rx = true;
+                _show_tx = true;
+
                 _list_placeholders_strings_1 = new List<string>();
                 _list_placeholders_strings_2 = new List<string>();
                 _list_placeholders_readings_1 = new List<Reading>();
@@ -14425,6 +14486,9 @@ namespace Thetis
                 _parsed_text_1 = "";
                 _parsed_text_2 = "";
 
+                _rx_four_char = "";
+                _tx_four_char = "";
+
                 ItemType = MeterItemType.TEXT_OVERLAY;
                 ReadingSource = Reading.NONE;
 
@@ -14443,6 +14507,135 @@ namespace Thetis
                 _owningMeter = owningMeter;
 
                 UpdateInterval = 100;
+            }
+            public override void Removing()
+            {
+                MeterManager.LedIndicatorRemoved -= onLedRemoved;
+            }
+            private void onLedRemoved(object sender, EventArgs e)
+            {
+                // if a led is removed, we need to remove the four char if we were using it
+                clsLed led = sender as clsLed;
+                if (led == null) return;
+
+                lock (_four_char_logic)
+                {
+                    if (_rx_four_char == led.FourChar)
+                    {
+                        _rx_four_char = "";
+                        _rx_led_logic = false;
+                        _rxLed = null;
+                        _show_rx = true;
+                    }
+                    if (_tx_four_char == led.FourChar)
+                    {
+                        _tx_four_char = "";
+                        _tx_led_logic = false;
+                        _txLed = null;
+                        _show_tx = true;
+                    }
+                }
+            }
+            public bool ShowRX 
+            { 
+                get 
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _show_rx;
+                    }
+                } 
+            }
+            public bool ShowTX
+            {
+                get
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _show_tx;
+
+                    }
+                }
+            }
+            public bool RXLedLogic
+            {
+                get 
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _rx_led_logic;
+                    }
+                }
+                set 
+                {
+                    lock (_four_char_logic)
+                    {
+                        _rx_led_logic = value;
+                        if (!_rx_led_logic)
+                        {
+                            _show_rx = true;
+                            _rxLed = null;
+                        }
+                    }
+                }
+            }
+            public bool TXLedLogic
+            {
+                get 
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _tx_led_logic;
+                    }
+                }
+                set 
+                {
+                    lock (_four_char_logic)
+                    {
+                        _tx_led_logic = value;
+                        if (!_tx_led_logic)
+                        {
+                            _show_tx = true;
+                            _txLed = null;
+                        }
+                    }
+                }
+            }
+            public string RXFourChar
+            {
+                get 
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _rx_four_char;
+                    }
+                }
+                set 
+                {
+                    lock (_four_char_logic)
+                    {
+                        _rx_four_char = value;
+                        _rxLed = null;
+                    }
+                }
+            }
+            public string TXFourChar
+            {
+                get 
+                {
+                    lock (_four_char_logic)
+                    {
+                        return _tx_four_char;
+                    }
+                }
+                set 
+                {
+                    lock (_four_char_logic)
+                    {
+                        _tx_four_char = value;
+                        _txLed = null;
+                    }
+                }
             }
             public int ScrollXCount1
             {
@@ -14666,7 +14859,6 @@ namespace Thetis
                     foreach(Reading reading in _list_placeholders_readings_1)
                     {
                         ReadingsCustom(_owningMeter.RX).TakeReading(reading);
-
                     }
                     string old = _parsed_text_1;
                     _parsed_text_1 = parseText(_owningMeter.RX, 1);
@@ -14677,11 +14869,35 @@ namespace Thetis
                     foreach (Reading reading in _list_placeholders_readings_2)
                     {
                         ReadingsCustom(_owningMeter.RX).TakeReading(reading);
-
                     }
                     string old = _parsed_text_2;
                     _parsed_text_2 = parseText(_owningMeter.RX, 2);
                     if (_parsed_text_2 != old) _x_scroll_count_2 = 0;
+                }
+
+                lock (_four_char_logic)
+                {
+                    if (_rx_led_logic)
+                    {
+                        if(_rxLed == null && !string.IsNullOrEmpty(_rx_four_char))
+                        {
+                            _rxLed = MeterManager.GetLedFrom4Char(_rx_four_char);
+                            if (_rxLed == null && !_show_rx) _show_rx = true;
+                        }
+
+                        if (_rxLed != null) _show_rx = _rxLed.ConditionResult;
+                    }
+
+                    if (_tx_led_logic)
+                    {
+                        if (_txLed == null && !string.IsNullOrEmpty(_tx_four_char))
+                        {
+                            _txLed = MeterManager.GetLedFrom4Char(_tx_four_char);
+                            if (_txLed == null && !_show_tx) _show_tx = true;
+                        }
+
+                        if (_txLed != null) _show_tx = _txLed.ConditionResult;
+                    }
                 }
             }
             //
@@ -14912,8 +15128,14 @@ namespace Thetis
             private List<string> _place_holders;
             private readonly object _place_holder_lock;
 
-            public clsLed(clsMeter owningMeter)
+            private string _four_char;
+
+            public clsLed(clsMeter owningMeter, clsItemGroup ig)
             {
+                Guid guid;
+                if (!Guid.TryParse(ig.ID, out guid)) guid = Guid.NewGuid();
+                _four_char = Common.FourChar("ledindicator", 0, guid);
+
                 _led_id = MeterScriptEngine.register_led();
 
                 _timer = null;
@@ -14961,7 +15183,10 @@ namespace Thetis
                 _place_holders = new List<string>();
                 _place_holder_lock = new object();
             }
-
+            public string FourChar
+            {
+                get { return _four_char; }
+            }
             public bool NoTxFalse
             {
                 get { return _notxfalse; }
@@ -15022,6 +15247,8 @@ namespace Thetis
             public override void Removing()
             {
                 MeterScriptEngine.unregister_led(_led_id);
+
+                MeterManager.LedIndicatorRemoved?.Invoke(this, EventArgs.Empty);
             }
 
             private void onTimerElapsedCondition()
@@ -15130,7 +15357,15 @@ namespace Thetis
 
                 return sb.ToString();
             }
+            public void RebuildCondition()
+            {
+                _pending_condition = _condition;
 
+                if (_timer == null)
+                    _timer = new System.Threading.Timer(_ => onTimerElapsedCondition(), null, _delay_milliseconds, Timeout.Infinite);
+                else
+                    _timer.Change(_delay_milliseconds, Timeout.Infinite);
+            }
             public string Condition
             {
                 get { return _pending_condition; }
@@ -16429,6 +16664,8 @@ namespace Thetis
             private double _min_notch_width_rx;
             private double _min_notch_width_tx;
 
+            private int _nr;
+
             private bool _split;
             private double _vfoA;
             private double _vfoB;
@@ -17577,7 +17814,7 @@ namespace Thetis
                 if (restoreIg != null) ig.ID = restoreIg.ID;
                 ig.ParentID = ID;
 
-                clsLed me = new clsLed(this);
+                clsLed me = new clsLed(this, ig);
                 me.ParentID = ig.ID;
                 me.Primary = true;
                 me.TopLeft = new PointF(0f, _fPadY - (_fHeight * 0.75f));
@@ -19585,6 +19822,7 @@ namespace Thetis
                 _timer_band_text_vfoB = null;
                 _last_band_text_update_vfoA = DateTime.UtcNow;
                 _last_band_text_update_vfoB = DateTime.UtcNow;
+                _nr = 0;
                 _bandVfoA = Band.FIRST;
                 _bandVfoB = Band.FIRST;
                 _bandVfoASub = Band.FIRST;
@@ -20210,6 +20448,22 @@ namespace Thetis
                             {
                                 if (bRxReadings || bTxReadings) setReadingForced(RX, kvp.Key, kvp.Value);
                             }
+                        }
+                    }
+                }
+            }
+            public void RebuildLedConditions()
+            {
+                // this is needed so that led conditions are moved to the correct bank
+                lock (_meterItemsLock)
+                {
+                    foreach (KeyValuePair<string, clsMeterItem> mis in _meterItems.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.LED))
+                    {
+                        clsMeterItem mi = mis.Value;
+                        clsLed led = mi as clsLed;
+                        if(led != null)
+                        {
+                            led.RebuildCondition();
                         }
                     }
                 }
@@ -21025,6 +21279,12 @@ namespace Thetis
                                             text_overlay.FontFamily2 = igs.FontFamily2;
                                             text_overlay.Style2 = igs.FontStyle2;
                                             text_overlay.FontSize2 = igs.FontSize2;
+
+                                            text_overlay.RXLedLogic = igs.GetSetting<bool>("textoverlay_rx_ledlogic", false, false, false, false);
+                                            text_overlay.TXLedLogic = igs.GetSetting<bool>("textoverlay_tx_ledlogic", false, false, false, false);
+
+                                            text_overlay.RXFourChar = igs.GetSetting<string>("textoverlay_rx_4char", false, "", "", "");
+                                            text_overlay.TXFourChar = igs.GetSetting<string>("textoverlay_tx_4char", false, "", "", "");
 
                                             text_overlay.Padding = igs.SpacerPadding;
 
@@ -22086,6 +22346,7 @@ namespace Thetis
 
                                             igs.SetSetting<bool>("led_notx_true", led.NoTxTrue);
                                             igs.SetSetting<bool>("led_notx_false", led.NoTxFalse);
+                                            igs.SetSetting<string>("led_4char", led.FourChar);
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
                                         {
@@ -22135,6 +22396,12 @@ namespace Thetis
                                             igs.FontSize2 = text_overlay.FontSize2;
 
                                             igs.SpacerPadding = text_overlay.Padding;
+
+                                            igs.SetSetting<bool>("textoverlay_rx_ledlogic", text_overlay.RXLedLogic);
+                                            igs.SetSetting<bool>("textoverlay_tx_ledlogic", text_overlay.TXLedLogic);
+
+                                            igs.SetSetting<string>("textoverlay_rx_4char", text_overlay.RXFourChar);
+                                            igs.SetSetting<string>("textoverlay_tx_4char", text_overlay.TXFourChar);
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
                                         {
@@ -22917,6 +23184,24 @@ namespace Thetis
                     return new System.Drawing.RectangleF(x, y, brx - x, bry - y);
                 }
             }
+            internal clsLed LedIndicatorFromFourChar(string fourchar)
+            {
+                if (string.IsNullOrEmpty(fourchar)) return null;
+
+                // obtains all first ledIndicator that matches a fourchar
+                lock (_meterItemsLock)
+                {
+                    foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.LED))
+                    {
+                        clsLed led = kvp.Value as clsLed;
+                        if(led != null && led.FourChar == fourchar)
+                        {
+                            return led;
+                        }
+                    }
+                    return null;
+                }
+            }
             internal Dictionary<string, clsMeterItem> itemsFromID(string sId, bool bIncludeTheParent = true, bool bOnlyChildren = false)
             {
                 // obtains all items that have given ID and also the parent
@@ -23556,6 +23841,7 @@ namespace Thetis
                 set { _sId = value; }
             }
             public int RX { get { return _rx; } set { _rx = value; } }
+            public int NR { get { return _nr; } set { _nr = value; } }
 
             public bool IsVfoASub
             {
@@ -26642,6 +26928,10 @@ namespace Thetis
                 }
                 else
                 {
+                    // show?
+                    if (!m.MOX && !text_overlay.ShowRX) return false;
+                    if (m.MOX && !text_overlay.ShowTX) return false;
+
                     // Determine the text to measure and display
                     string displayText = m.MOX ? text_overlay.ParsedText2 : text_overlay.ParsedText1;
                     string fontFamily = m.MOX ? text_overlay.FontFamily2 : text_overlay.FontFamily1;

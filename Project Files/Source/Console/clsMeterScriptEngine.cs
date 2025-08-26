@@ -49,7 +49,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 
-namespace SE_LGE
+namespace Thetis
 {
     public static class MeterScriptEngine
     {
@@ -64,7 +64,7 @@ namespace SE_LGE
                 {
                     if (_bank != null && _bank.ContainsKey(k)) return _bank[k];
                     if (_common != null && _common.ContainsKey(k)) return _common[k];
-                    return false;
+                    throw new KeyNotFoundException("Variable '" + k + "' not found");
                 }
             }
         }
