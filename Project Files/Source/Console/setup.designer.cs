@@ -4064,6 +4064,7 @@
             this.chkMeterItemFadeOnTxSpacer = new System.Windows.Forms.CheckBoxTS();
             this.chkMeterItemFadeOnRxSpacer = new System.Windows.Forms.CheckBoxTS();
             this.tabPage7 = new System.Windows.Forms.TabPage();
+            this.ucOtherButtonsOptionsGrid_buttons = new Thetis.ucOtherButtonsOptionsGrid();
             this.ucTunestepOptionsGrid_buttons = new Thetis.ucTunestepOptionsGrid();
             this.grpBandButtons = new System.Windows.Forms.GroupBoxTS();
             this.labelTS292 = new System.Windows.Forms.LabelTS();
@@ -65063,6 +65064,7 @@
             // 
             // tabPage7
             // 
+            this.tabPage7.Controls.Add(this.ucOtherButtonsOptionsGrid_buttons);
             this.tabPage7.Controls.Add(this.ucTunestepOptionsGrid_buttons);
             this.tabPage7.Controls.Add(this.grpBandButtons);
             this.tabPage7.Location = new System.Drawing.Point(4, 22);
@@ -65072,10 +65074,21 @@
             this.tabPage7.Text = "buttonbox";
             this.tabPage7.UseVisualStyleBackColor = true;
             // 
+            // ucOtherButtonsOptionsGrid_buttons
+            // 
+            this.ucOtherButtonsOptionsGrid_buttons.AutoScroll = true;
+            this.ucOtherButtonsOptionsGrid_buttons.BitfieldGroup0 = 0;
+            this.ucOtherButtonsOptionsGrid_buttons.BitfieldGroup1 = 0;
+            this.ucOtherButtonsOptionsGrid_buttons.Location = new System.Drawing.Point(556, 23);
+            this.ucOtherButtonsOptionsGrid_buttons.Name = "ucOtherButtonsOptionsGrid_buttons";
+            this.ucOtherButtonsOptionsGrid_buttons.Size = new System.Drawing.Size(157, 182);
+            this.ucOtherButtonsOptionsGrid_buttons.TabIndex = 112;
+            this.ucOtherButtonsOptionsGrid_buttons.CheckboxChanged += new System.EventHandler(this.ucOtherButtonsOptionsGrid_buttons_CheckboxChanged);
+            // 
             // ucTunestepOptionsGrid_buttons
             // 
             this.ucTunestepOptionsGrid_buttons.Bitfield = 0;
-            this.ucTunestepOptionsGrid_buttons.Location = new System.Drawing.Point(444, 171);
+            this.ucTunestepOptionsGrid_buttons.Location = new System.Drawing.Point(465, 225);
             this.ucTunestepOptionsGrid_buttons.Name = "ucTunestepOptionsGrid_buttons";
             this.ucTunestepOptionsGrid_buttons.Size = new System.Drawing.Size(157, 182);
             this.ucTunestepOptionsGrid_buttons.TabIndex = 111;
@@ -74476,5 +74489,6 @@
         private TextBoxTS txtTextOverlay_rx_on_led_4char;
         private TextBoxTS txtTextOverlay_tx_on_led_4char;
         private CheckBoxTS chkTextOverlay_tx_on_led;
+        private ucOtherButtonsOptionsGrid ucOtherButtonsOptionsGrid_buttons;
     }
 }
