@@ -39771,7 +39771,7 @@ namespace Thetis
 
             if (old_on != specRX.GetSpecRX(1).PeakOn)
             {
-                PeakChangedHandlers?.Invoke(2, old_on, specRX.GetSpecRX(1).AverageOn);
+                PeakChangedHandlers?.Invoke(2, old_on, specRX.GetSpecRX(1).PeakOn);
             }
         }
 
