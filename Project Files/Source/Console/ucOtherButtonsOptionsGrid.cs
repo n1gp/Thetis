@@ -48,146 +48,196 @@ namespace Thetis
     public enum OtherButtonId
     {
         POWER = 0,
-        RX_2 = 1,
-        MON = 2,
-        TUN = 3,
-        MOX = 4,
-        TWOTON = 5,
-        DUP = 6,
-        PS_A = 7,
-        XPA = 8,
-        REC = 9,
-        PLAY = 10,
-        NR = 11,
-        ANF = 12,
-        NB = 13,
-        SNB = 14,
-        MNF = 15,
-        MNF_PLUS = 16,
-        SPLT = 17,
-        A_TO_B = 18,
-        ZERO_BEAT = 19,
-        B_TO_A = 20,
-        IF_TO_V = 21,
-        SWAP_AB = 22,
-        AVG = 23,
-        PEAK = 24,
-        CTUN = 25,
-        VAC1 = 26,
-        VAC2 = 27,
-        MUTE = 28,
-        BIN = 29,
-        SUBRX = 30,
-        PAN_SWAP = 31,
-        NR1 = 32,
-        NR2 = 33,
-        NR3 = 34,
-        NR4 = 35,
-        NB1 = 36,
-        NB2 = 37,
+        RX_2,
+        MON,
+        TUN,
+        MOX,
+        TWOTON,
+        DUP,
+        PS_A,
+        XPA,
+        REC,
+        PLAY,
+        NR,
+        ANF,
+        NB,
+        SNB,
+        MNF,
+        MNF_PLUS,
+        SPLT,
+        A_TO_B,
+        ZERO_BEAT,
+        B_TO_A,
+        IF_TO_V,
+        SWAP_AB,
+        AVG,
+        PEAK,
+        CTUN,
+        VAC1,
+        VAC2,
+        MUTE,
+        BIN,
+        SUBRX,
+        PAN_SWAP,
+        NR1,
+        NR2,
+        NR3,
+        NR4,
+        NB1,
+        NB2,
+        SPECTRUM,
+        PANADAPTER,
+        SCOPE,
+        SCOPE2,
+        PHASE,
+        WATERFALL,
+        HISTOGRAM,
+        PANAFALL,
+        PANASCOPE,
+        SPECTRASCOPE,
+        DISPLAY_OFF,
+        PAUSE,
+        PEAK_BLOBS,
+        CURSOR_INFO,
+        SPOTS,
+        FILL_SPECTRUM,
+        SQL,
+        SQL_SQL,
+        SQL_VSQL,
+        RIT,
+        RIT0,
+        XIT,
+        XIT0,
+        MIC,
+        COMP,
+        VOX,
+        DEXP,
+        RX_EQ,
+        TX_EQ,
+        TX_FILTER,
+        CFC,
+        CFC_EQ,
+        LEVELER,
+        AGC_FIXED,
+        AGC_LONG,
+        AGC_SLOW,
+        AGC_MEDIUM,
+        AGC_FAST,
+        AGC_CUSTOM,
+        AGC_AUTO,
+
+        INFO_TEXT = 998,
         SPLITTER = 999,
+
         UNKNOWN = 1000
     }
 
     public static class OtherButtonIdHelpers
     {
-        public static readonly (OtherButtonId id, int bit_group, int bit_number)[] CheckBoxData =
-        new (OtherButtonId, int, int)[]
+        public static readonly (OtherButtonId id, int bit_group, int bit_number, string caption)[] CheckBoxData =
+        new (OtherButtonId, int, int, string)[]
         {
-            (OtherButtonId.POWER,     0,  0),
-            (OtherButtonId.RX_2,      0,  1),
-            (OtherButtonId.MON,       0,  2),
-            (OtherButtonId.TUN,       0,  3),
-            (OtherButtonId.MOX,       0,  4),
-            (OtherButtonId.TWOTON,    0,  5),
-            (OtherButtonId.DUP,       0,  6),
-            (OtherButtonId.PS_A,      0,  7),
-            (OtherButtonId.XPA,       0,  8),
-            (OtherButtonId.REC,       0,  9),
-            (OtherButtonId.PLAY,      0, 10),
-            (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.NR,        0, 11),
-            (OtherButtonId.NR1,       0, 12),
-            (OtherButtonId.NR2,       0, 13),
-            (OtherButtonId.NR3,       0, 14),
-            (OtherButtonId.NR4,       0, 15),
-            (OtherButtonId.ANF,       0, 16),
-            (OtherButtonId.NB,        0, 17),
-            (OtherButtonId.NB1,       0, 18),
-            (OtherButtonId.NB2,       0, 19),
-            (OtherButtonId.SNB,       0, 20),
-            (OtherButtonId.MNF,       0, 21),
-            (OtherButtonId.MNF_PLUS,  0, 22),
-            (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.SPLT,      0, 23),
-            (OtherButtonId.A_TO_B,    0, 24),
-            (OtherButtonId.ZERO_BEAT, 0, 25),
-            (OtherButtonId.B_TO_A,    0, 26),
-            (OtherButtonId.IF_TO_V,   0, 27),
-            (OtherButtonId.SWAP_AB,   0, 28),
-            (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.AVG,       0, 29),
-            (OtherButtonId.PEAK,      0, 30),
-            (OtherButtonId.CTUN,      1, 0),
-            (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.VAC1,      1, 1),
-            (OtherButtonId.VAC2,      1, 2),
-            (OtherButtonId.MUTE,      1, 4),
-            (OtherButtonId.BIN,       1, 5),
-            (OtherButtonId.SUBRX,     1, 6),
-            (OtherButtonId.PAN_SWAP,  1, 7),
+            (OtherButtonId.INFO_TEXT, -1, -1, "General"),
+            (OtherButtonId.SPLITTER,  -1, -1, ""),
+            (OtherButtonId.POWER,     0,  0, "Power"),
+            (OtherButtonId.RX_2,      0,  1, "RX 2"),
+            (OtherButtonId.MON,       0,  2, "MON"),
+            (OtherButtonId.TUN,       0,  3, "TUN"),
+            (OtherButtonId.MOX,       0,  4, "MOX"),
+            (OtherButtonId.TWOTON,    0,  5, "2TON"),
+            (OtherButtonId.DUP,       0,  6, "DUP"),
+            (OtherButtonId.PS_A,      0,  7, "PS-A"),
+            (OtherButtonId.XPA,       0,  8, "xPA"),
+            (OtherButtonId.REC,       0,  9, "Rec"),
+            (OtherButtonId.PLAY,      0, 10, "Play"),
+            (OtherButtonId.INFO_TEXT, -1, -1, "Noise"),
+            (OtherButtonId.SPLITTER, -1, -1, ""),
+            (OtherButtonId.NR,        1, 0, "NR"),
+            (OtherButtonId.NR1,       1, 1, "NR1"),
+            (OtherButtonId.NR2,       1, 2, "NR2"),
+            (OtherButtonId.NR3,       1, 3, "NR3"),
+            (OtherButtonId.NR4,       1, 4, "NR4"),
+            (OtherButtonId.ANF,       1, 5, "ANF"),
+            (OtherButtonId.NB,        1, 6, "NB"),
+            (OtherButtonId.NB1,       1, 7, "NB1"),
+            (OtherButtonId.NB2,       1, 8, "NB2"),
+            (OtherButtonId.SNB,       1, 9, "SNB"),
+            (OtherButtonId.MNF,       1, 10, "MNF"),
+            (OtherButtonId.MNF_PLUS,  1, 11, "MNF+"),
+            (OtherButtonId.INFO_TEXT, -1, -1, "VFOs"),
+            (OtherButtonId.SPLITTER, -1, -1, ""),
+            (OtherButtonId.SPLT,      2, 0, "Split"),
+            (OtherButtonId.A_TO_B,    2, 1, "A > B"),
+            (OtherButtonId.ZERO_BEAT, 2, 2, "0 Beat"),
+            (OtherButtonId.B_TO_A,    2, 3, "A < B"),
+            (OtherButtonId.IF_TO_V,   2, 4, "IF > V"),
+            (OtherButtonId.SWAP_AB,   2, 5, "A <> B"),
+            (OtherButtonId.INFO_TEXT, -1, -1, "Display"),
+            (OtherButtonId.SPLITTER,  -1, -1, ""),
+            (OtherButtonId.AVG,           3, 0, "Avg"),
+            (OtherButtonId.PEAK,          3, 1, "Peak"),
+            (OtherButtonId.CTUN,          3, 2, "CTUN"),
+            (OtherButtonId.SPECTRUM,      3, 3, "Spectrum"),
+            (OtherButtonId.PANADAPTER,    3, 4, "Panadapter"),
+            (OtherButtonId.SCOPE,         3, 5, "Scope"),
+            (OtherButtonId.SCOPE2,        3, 6, "Scope2"),
+            (OtherButtonId.PHASE,         3, 7, "Phase"),
+            (OtherButtonId.WATERFALL,     3, 8, "Waterfall"),
+            (OtherButtonId.HISTOGRAM,     3, 9, "Histogram"),
+            (OtherButtonId.PANAFALL,      3, 10, "Panafall"),
+            (OtherButtonId.PANASCOPE,     3, 11, "Panascope"),
+            (OtherButtonId.SPECTRASCOPE,  3, 12, "Spectrascope"),
+            (OtherButtonId.DISPLAY_OFF,   3, 13, "Off"),
+            (OtherButtonId.PAUSE,         3, 14, "Pause"),
+            (OtherButtonId.PEAK_BLOBS,    3, 15, "Peak Blobs"),
+            (OtherButtonId.CURSOR_INFO,   3, 16, "Cur Info"),
+            (OtherButtonId.SPOTS,         3, 17, "Spots"),
+            (OtherButtonId.FILL_SPECTRUM, 3, 18, "Fill"),
+            (OtherButtonId.INFO_TEXT, -1, -1, "Audio"),
+            (OtherButtonId.SPLITTER, -1, -1, ""),
+            (OtherButtonId.VAC1,      4, 0, "Vac1"),
+            (OtherButtonId.VAC2,      4, 1, "Vac2"),
+            (OtherButtonId.MUTE,      4, 2, "Mute"),
+            (OtherButtonId.BIN,       4, 3, "Bin"),
+            (OtherButtonId.SUBRX,     4, 4, "SubRX"),
+            (OtherButtonId.SQL,       4, 5, "SQL"),
+            (OtherButtonId.SQL_SQL,   4, 6, "Regular SQL"),
+            (OtherButtonId.SQL_VSQL,  4, 7, "Voice SQL"),
+            (OtherButtonId.RIT,       4, 8, "RIT"),
+            (OtherButtonId.RIT0,      4, 9, "RIT0"),
+            (OtherButtonId.XIT,       4, 10, "XIT"),
+            (OtherButtonId.XIT0,      4, 11, "XIT0"),
+            (OtherButtonId.MIC,       4, 12, "MIC"),
+            (OtherButtonId.COMP,      4, 13, "COMP"),
+            (OtherButtonId.VOX,       4, 14, "VOX"),
+            (OtherButtonId.DEXP,      4, 15, "DEXP"),
+            (OtherButtonId.RX_EQ,     4, 16, "RX EQ"),
+            (OtherButtonId.TX_EQ,     4, 17, "TX EQ"),
+            (OtherButtonId.TX_FILTER, 4, 18, "TX Filter"),
+            (OtherButtonId.CFC,       4, 19, "CFC"),
+            (OtherButtonId.CFC_EQ,    4, 20, "CFC EQ"),
+            (OtherButtonId.LEVELER,   4, 21, "Leveler"),
+            (OtherButtonId.INFO_TEXT, -1, -1, "AGC"),
+            (OtherButtonId.SPLITTER, -1, -1, ""),
+            (OtherButtonId.AGC_FIXED, 5, 0, "FIXED"),
+            (OtherButtonId.AGC_LONG,  5, 1, "LONG"),
+            (OtherButtonId.AGC_SLOW,  5, 2, "SLOW"),
+            (OtherButtonId.AGC_MEDIUM,5, 3, "MEDIUM"),
+            (OtherButtonId.AGC_FAST,  5, 4, "FAST"),
+            (OtherButtonId.AGC_CUSTOM,5, 5, "CUSTOM"),
+            (OtherButtonId.AGC_AUTO,  5, 6, "AUTO")
         };
 
         public static string OtherButtonIDToText(OtherButtonId id)
         {
-            switch (id)
+            for (int i = 0; i < CheckBoxData.Length; i++)
             {
-                case OtherButtonId.POWER: return "Power";
-                case OtherButtonId.RX_2: return "RX 2";
-                case OtherButtonId.MON: return "MON";
-                case OtherButtonId.TUN: return "TUN";
-                case OtherButtonId.MOX: return "MOX";
-                case OtherButtonId.TWOTON: return "2TON";
-                case OtherButtonId.DUP: return "DUP";
-                case OtherButtonId.PS_A: return "PS-A";
-                case OtherButtonId.XPA: return "xPA";
-                case OtherButtonId.REC: return "Rec";
-                case OtherButtonId.PLAY: return "Play";
-                case OtherButtonId.NR: return "NR";
-                case OtherButtonId.ANF: return "ANF";
-                case OtherButtonId.NB: return "NB";
-                case OtherButtonId.SNB: return "SNB";
-                case OtherButtonId.MNF: return "MNF";
-                case OtherButtonId.MNF_PLUS: return "MNF+";
-                case OtherButtonId.SPLT: return "Split";
-                case OtherButtonId.A_TO_B: return "A > B";
-                case OtherButtonId.ZERO_BEAT: return "0 Beat";
-                case OtherButtonId.B_TO_A: return "A < B";
-                case OtherButtonId.IF_TO_V: return "IF > V";
-                case OtherButtonId.SWAP_AB: return "A <> B";
-                case OtherButtonId.AVG: return "Avg";
-                case OtherButtonId.PEAK: return "Peak";
-                case OtherButtonId.CTUN: return "CTUN";
-                case OtherButtonId.VAC1: return "Vac1";
-                case OtherButtonId.VAC2: return "Vac2";
-                case OtherButtonId.MUTE: return "Mute";
-                case OtherButtonId.BIN: return "Bin";
-                case OtherButtonId.SUBRX: return "SubRX";
-                case OtherButtonId.PAN_SWAP: return "SwapLR";
-
-                case OtherButtonId.NR1: return "NR1";
-                case OtherButtonId.NR2: return "NR2";
-                case OtherButtonId.NR3: return "NR3";
-                case OtherButtonId.NR4: return "NR4";
-
-                case OtherButtonId.NB1: return "NB1";
-                case OtherButtonId.NB2: return "NB2";
-
-                case OtherButtonId.UNKNOWN: return "";
-
-                default: return id.ToString();
+                if (CheckBoxData[i].id != id) continue;
+                if (!string.IsNullOrEmpty(CheckBoxData[i].caption)) return CheckBoxData[i].caption;
             }
+            return id.ToString();
         }
+
 
         public static OtherButtonId BitToID(int bit_group, int bit_number)
         {
@@ -266,10 +316,31 @@ namespace Thetis
 
             int row = 0;
             int col = 0;
-            (OtherButtonId id, int bit_group, int bit_number)[] data = OtherButtonIdHelpers.CheckBoxData;
+            (OtherButtonId id, int bit_group, int bit_number, string caption)[] data = OtherButtonIdHelpers.CheckBoxData;
 
             for (int i = 0; i < data.Length; i++)
             {
+                if (data[i].id == OtherButtonId.INFO_TEXT)
+                {
+                    if (col != 0)
+                    {
+                        col = 0;
+                        row++;
+                    }
+
+                    Label lbl = new Label();
+                    lbl.Name = "lbl_" + i.ToString();
+                    lbl.AutoSize = true;
+                    lbl.Margin = new Padding(0, 2, 0, 0);
+                    lbl.Font = new Font(Font, FontStyle.Bold);
+                    lbl.Text = data[i].caption;
+                    table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    table.Controls.Add(lbl, 0, row);
+                    table.SetColumnSpan(lbl, 2);
+                    row++;
+                    continue;
+                }
+
                 if (data[i].id == OtherButtonId.SPLITTER)
                 {
                     if (col != 0)
@@ -282,13 +353,11 @@ namespace Thetis
                     sep.Name = "sep_" + i.ToString();
                     sep.Height = 1;
                     sep.Dock = DockStyle.Fill;
-                    sep.Margin = new Padding(0, 4, 0, 4);
+                    sep.Margin = new Padding(0, 2, 0, 4);
                     sep.BackColor = SystemColors.ControlDark;
-
                     table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
                     table.Controls.Add(sep, 0, row);
                     table.SetColumnSpan(sep, 2);
-
                     row++;
                     continue;
                 }
@@ -327,7 +396,7 @@ namespace Thetis
             if (CheckboxChanged != null) CheckboxChanged(this, EventArgs.Empty);
         }
 
-        private int get_bitfield(int bit_group)
+        public int GetBitfield(int bit_group)
         {
             int bitfield_value = 0;
 
@@ -343,7 +412,7 @@ namespace Thetis
             return bitfield_value;
         }
 
-        private void set_bitfield(int bit_group, int value)
+        public void SetBitfield(int bit_group, int value)
         {
             bool old_init = _init;
             _init = false;
@@ -359,27 +428,6 @@ namespace Thetis
             }
 
             _init = old_init;
-        }
-
-        //public int BitfieldGroup0
-        //{
-        //    get { return get_bitfield(0); }
-        //    set { set_bitfield(0, value); }
-        //}
-
-        //public int BitfieldGroup1
-        //{
-        //    get { return get_bitfield(1); }
-        //    set { set_bitfield(1, value); }
-        //}
-
-        public int GetBitfield(int bit_group)
-        {
-            return get_bitfield(bit_group);
-        }
-        public void SetBitfield(int bit_group, int value)
-        {
-            set_bitfield(bit_group, value);
         }
 
         public int GetCheckedCount()

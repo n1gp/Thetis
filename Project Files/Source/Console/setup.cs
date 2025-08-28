@@ -9212,6 +9212,8 @@ namespace Thetis
                 console.LevelerChangedHandlers?.Invoke(_oldLevelerState, chkDSPLevelerEnabled.Checked);
                 _oldLevelerState = chkDSPLevelerEnabled.Checked;
             }
+
+            console.SetGeneralSetting(0, OtherButtonId.LEVELER, chkDSPLevelerEnabled.Checked);
         }
 
         #endregion
@@ -12767,6 +12769,8 @@ namespace Thetis
             Display.PanFill = chkDisplayPanFill.Checked;
 
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.DisplayFill, Display.PanFill);
+
+            console.SetGeneralSetting(0, OtherButtonId.FILL_SPECTRUM, chkDisplayPanFill.Checked);
         }
 
         private void chkTXPanFill_CheckedChanged(object sender, System.EventArgs e)
@@ -18618,6 +18622,8 @@ namespace Thetis
                 console.CFCChangedHandlers?.Invoke(_oldCFCState, chkCFCEnable.Checked);
                 _oldCFCState = chkCFCEnable.Checked;
             }
+
+            console.SetGeneralSetting(0, OtherButtonId.CFC, chkCFCEnable.Checked);
         }
 
         private void setCFCProfile(object sender, EventArgs e)
@@ -18690,6 +18696,8 @@ namespace Thetis
 
             //
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.CFCeq, chkCFCPeqEnable.Checked);
+
+            console.SetGeneralSetting(0, OtherButtonId.CFC_EQ, chkCFCPeqEnable.Checked);
         }
 
         private void chkPHROTEnable_CheckedChanged(object sender, EventArgs e)
@@ -19651,6 +19659,8 @@ namespace Thetis
             Display.ShowPeakBlobs = bEnabled;
 
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.Blobs, bEnabled);
+
+            console.SetGeneralSetting(0, OtherButtonId.PEAK_BLOBS, bEnabled);
         }
 
         private void udPeakBlobs_ValueChanged(object sender, EventArgs e)
@@ -22666,6 +22676,8 @@ namespace Thetis
             Display.AlwaysShowCursorInfo = chkShowMHzOnCursor.Checked;
 
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.CursorInfo, chkShowMHzOnCursor.Checked);
+
+            console.SetGeneralSetting(0, OtherButtonId.CURSOR_INFO, chkShowMHzOnCursor.Checked);
         }
 
         private void chkLimitFilterEdgesToSidebands_CheckedChanged(object sender, EventArgs e)
@@ -22901,6 +22913,8 @@ namespace Thetis
 
             //
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.ShowSpots, chkShowTCISpots.Checked/* || console.SpotForm*/);
+
+            console.SetGeneralSetting(0, OtherButtonId.SPOTS, chkShowTCISpots.Checked);
         }
         private void chkFlashNewTCISpots_CheckedChanged(object sender, EventArgs e)
         {
@@ -25573,11 +25587,12 @@ namespace Thetis
             {
                 if (mt == MeterType.OTHER_BUTTONS)
                 {
-                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", ucOtherButtonsOptionsGrid_buttons.GetBitfield(0));
-                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_1", ucOtherButtonsOptionsGrid_buttons.GetBitfield(1));
-
-                    int max_buttons = ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(0);
-                    max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(1);
+                    int max_buttons = 0;
+                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    {
+                        igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), ucOtherButtonsOptionsGrid_buttons.GetBitfield(n));
+                        max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
+                    }
                     max_buttons = Math.Max(1, max_buttons);
                     if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
                     if (nudBandButtons_columns.Maximum != max_buttons) nudBandButtons_columns.Maximum = max_buttons;
@@ -26186,8 +26201,10 @@ namespace Thetis
 
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
-                    ucOtherButtonsOptionsGrid_buttons.SetBitfield(0, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
-                    ucOtherButtonsOptionsGrid_buttons.SetBitfield(1, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
+                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    {
+                        ucOtherButtonsOptionsGrid_buttons.SetBitfield(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
+                    }
                 }
                 else if (mt == MeterType.TUNESTEP_BUTTONS)
                 {
@@ -26246,8 +26263,11 @@ namespace Thetis
                         if (nudBandButtons_columns.Maximum != 12) nudBandButtons_columns.Maximum = 12;
                         break;
                     case MeterType.OTHER_BUTTONS:
-                        max_buttons = ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(0);
-                        max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(1);
+                        max_buttons = 0;
+                        for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                        {
+                            max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
+                        }
                         max_buttons = Math.Max(1, max_buttons);
                         columns = igs.GetSetting<int>("buttonbox_columns", true, 1, max_buttons, max_buttons);
                         if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
@@ -27331,8 +27351,10 @@ namespace Thetis
 
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
-                    _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_0", currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
-                    _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_1", currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
+                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    {
+                        _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
+                    }
                 }
                 else if(mt == MeterType.TUNESTEP_BUTTONS)
                 {

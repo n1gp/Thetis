@@ -3036,6 +3036,11 @@ namespace Thetis
             _console.BINChangedHandlers += OnBINChanged;
             _console.PanSwapChangedHandlers += OnPanSwapChanged;
             _console.XPAChangedHandlers += OnXPAChanged;
+            _console.DisplayModeChangedHandlers += OnDisplayModeChanged;
+            _console.AGCModeChangedHandlers += OnAGCModeChanged;
+            _console.AGCAutoModeChangedHandlers += OnAGCAutoModeChanged;
+            _console.GeneralSettingsChangedHandlers += OnGeneralSettingsChanged;
+            _console.SQLChangedHandlers += OnSqlChanged;
 
             _delegatesAdded = true;
         }
@@ -3134,6 +3139,11 @@ namespace Thetis
             _console.BINChangedHandlers -= OnBINChanged;
             _console.PanSwapChangedHandlers -= OnPanSwapChanged;
             _console.XPAChangedHandlers -= OnXPAChanged;
+            _console.DisplayModeChangedHandlers -= OnDisplayModeChanged;
+            _console.AGCModeChangedHandlers -= OnAGCModeChanged;
+            _console.AGCAutoModeChangedHandlers -= OnAGCAutoModeChanged;
+            _console.GeneralSettingsChangedHandlers -= OnGeneralSettingsChanged;
+            _console.SQLChangedHandlers -= OnSqlChanged;
 
             foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
             {
@@ -4069,6 +4079,74 @@ namespace Thetis
                 }
             }
         }
+        private static void OnDisplayModeChanged(int rx, DisplayMode old_mode, DisplayMode new_mode)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.DisplayMode = new_mode;
+                }
+            }
+        }
+        private static void OnAGCModeChanged(int rx, AGCMode old_mode, AGCMode new_mode)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.AGCMode = new_mode;
+                }
+            }
+        }
+        private static void OnAGCAutoModeChanged(int rx, bool old_state, bool new_state)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.AGCAutoMode = new_state;
+                }
+            }
+        }
+        private static void OnSqlChanged(int rx, SquelchState old_state, SquelchState new_state)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.SqlMode = new_state;
+                }
+            }
+        }
+        internal struct GeneralOtherButtonSettings
+        {
+            public OtherButtonId _setting;
+            public bool _old_state;
+            public bool _new_state;
+            public Dictionary<OtherButtonId, bool> _settings;
+        }
+        private static void OnGeneralSettingsChanged(int rx, OtherButtonId setting, bool old_state, bool new_state, Dictionary<OtherButtonId, bool> settings)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    GeneralOtherButtonSettings aus = new GeneralOtherButtonSettings() { _setting = setting, _old_state = old_state, _new_state = new_state, _settings = settings };
+                    m.GeneralSettings = aus;
+                }
+            }
+        }
         private static void OnXPAChanged(bool in_use, bool old_state, bool new_state)
         {
             // ignore rx for now
@@ -4301,6 +4379,31 @@ namespace Thetis
             m.Mute = _console.GetMute(m.RX);
             m.BIN = _console.GetBin(m.RX);
             m.PanSwap = _console.GetPanSwap(m.RX);
+            m.DisplayMode = _console.GetDisplayMode(m.RX);
+            m.AGCMode = _console.GetAGCMode(m.RX);
+            m.AGCAutoMode = _console.GetAGCAuto(m.RX);
+            //
+            Dictionary<OtherButtonId, bool> general_settings = new Dictionary<OtherButtonId, bool>();
+            general_settings.Add(OtherButtonId.MIC, _console.GetGeneralSetting(m.RX, OtherButtonId.MIC));
+            general_settings.Add(OtherButtonId.COMP, _console.GetGeneralSetting(m.RX, OtherButtonId.COMP));
+            general_settings.Add(OtherButtonId.VOX, _console.GetGeneralSetting(m.RX, OtherButtonId.VOX));
+            general_settings.Add(OtherButtonId.DEXP, _console.GetGeneralSetting(m.RX, OtherButtonId.DEXP));
+            general_settings.Add(OtherButtonId.RX_EQ, _console.GetGeneralSetting(m.RX, OtherButtonId.RX_EQ));
+            general_settings.Add(OtherButtonId.TX_EQ, _console.GetGeneralSetting(m.RX, OtherButtonId.TX_EQ));
+            general_settings.Add(OtherButtonId.TX_FILTER, _console.GetGeneralSetting(m.RX, OtherButtonId.TX_FILTER));
+            general_settings.Add(OtherButtonId.CFC, _console.GetGeneralSetting(m.RX, OtherButtonId.CFC));
+            general_settings.Add(OtherButtonId.CFC_EQ, _console.GetGeneralSetting(m.RX, OtherButtonId.CFC_EQ));
+            general_settings.Add(OtherButtonId.LEVELER, _console.GetGeneralSetting(m.RX, OtherButtonId.LEVELER));
+            general_settings.Add(OtherButtonId.PAUSE, _console.GetGeneralSetting(m.RX, OtherButtonId.PAUSE));
+            general_settings.Add(OtherButtonId.PEAK_BLOBS, _console.GetGeneralSetting(m.RX, OtherButtonId.PEAK_BLOBS));
+            general_settings.Add(OtherButtonId.CURSOR_INFO, _console.GetGeneralSetting(m.RX, OtherButtonId.CURSOR_INFO));
+            general_settings.Add(OtherButtonId.SPOTS, _console.GetGeneralSetting(m.RX, OtherButtonId.SPOTS));
+            general_settings.Add(OtherButtonId.FILL_SPECTRUM, _console.GetGeneralSetting(m.RX, OtherButtonId.FILL_SPECTRUM));
+            general_settings.Add(OtherButtonId.RIT, _console.GetGeneralSetting(m.RX, OtherButtonId.RIT));
+            general_settings.Add(OtherButtonId.XIT, _console.GetGeneralSetting(m.RX, OtherButtonId.XIT));
+            m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = general_settings };
+            //
+            m.SqlMode = _console.GetSqlMode(m.RX);
 
             (bool in_use, bool enabled) = _console.GetXPAStatus();
             m.XpaInUse = in_use;
@@ -6105,6 +6208,32 @@ namespace Thetis
                 get { return false; }
                 set { }
             }
+            public virtual DisplayMode DisplayMode
+            {
+                get { return DisplayMode.FIRST; }
+                set { }
+            }
+            public virtual AGCMode AGCMode
+            {
+                get { return AGCMode.FIRST; }
+                set { }
+            }
+            public virtual SquelchState SqlMode
+            {
+                get { return SquelchState.OFF; }
+                set { }
+            }
+            public virtual bool AGCAutoMode
+            {
+                get { return false; }
+                set { }
+            }
+            public virtual GeneralOtherButtonSettings GeneralSettings
+            {
+                get { return new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = null }; }
+                set { }
+            }
+
             public virtual bool PanSwap
             {
                 get { return false; }
@@ -7006,6 +7135,8 @@ namespace Thetis
 
             private int[] _visible_bits;
 
+            public const int BITFIELD_GROUPS = 10;
+
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
                 _owningmeter = owningmeter;
@@ -7014,12 +7145,13 @@ namespace Thetis
 
                 ItemType = MeterItemType.OTHER_BUTTONS;
 
-                base.Buttons = 50; //max
-                //VisibleBits = 0; // all off //  (1 << 30) - 1;
+                base.Buttons = 32 * BITFIELD_GROUPS;
 
-                _visible_bits = new int[2]; // 2 groups of 32 bits
-                _visible_bits[0] = 0;
-                _visible_bits[1] = 0;
+                _visible_bits = new int[BITFIELD_GROUPS]; // groups of 32 bits, 32nd bit is never used to prevent -ve ints in storage
+                for (int n = 0; n < BITFIELD_GROUPS; n++)
+                {
+                    _visible_bits[n] = 0;
+                }
 
                 Initialise();
             }
@@ -7053,7 +7185,6 @@ namespace Thetis
                 {
                     (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.XPA);
                     bit = (bit_group * 32) + bit;
-
                     if (try_index_from_group_bit(bit_group, bit, out int index))
                     {
                         SetVisible(1, index, value && isVisible(bit_group, bit));
@@ -7061,6 +7192,149 @@ namespace Thetis
                 }
             }
             public override bool XpaEnabled { get => base.XpaEnabled; set => updateOn(OtherButtonId.XPA, value); }
+            public override DisplayMode DisplayMode 
+            { 
+                get => base.DisplayMode; 
+                set
+                {
+                    OtherButtonId id = OtherButtonId.UNKNOWN;
+                    switch (value)
+                    {
+                        case DisplayMode.SPECTRUM:
+                            id = OtherButtonId.SPECTRUM;
+                            break;
+                        case DisplayMode.PANADAPTER:
+                            id = OtherButtonId.PANADAPTER;
+                            break;
+                        case DisplayMode.SCOPE:
+                            id = OtherButtonId.SCOPE;
+                            break;
+                        case DisplayMode.SCOPE2:
+                            id = OtherButtonId.SCOPE2;
+                            break;
+                        case DisplayMode.PHASE:
+                        case DisplayMode.PHASE2:
+                            id = OtherButtonId.PHASE;
+                            break;
+                        case DisplayMode.WATERFALL:
+                            id = OtherButtonId.WATERFALL;
+                            break;
+                        case DisplayMode.HISTOGRAM:
+                            id = OtherButtonId.HISTOGRAM;
+                            break;
+                        case DisplayMode.PANAFALL:
+                            id = OtherButtonId.PANAFALL;
+                            break;
+                        case DisplayMode.PANASCOPE:
+                            id = OtherButtonId.PANASCOPE;
+                            break;
+                        case DisplayMode.SPECTRASCOPE:
+                            id = OtherButtonId.SPECTRASCOPE;
+                            break;
+                        case DisplayMode.OFF:
+                            id = OtherButtonId.DISPLAY_OFF;
+                            break;
+                    }
+                    if (id == OtherButtonId.UNKNOWN) return;
+
+                    //set all off
+                    updateOn(OtherButtonId.SPECTRUM, false);
+                    updateOn(OtherButtonId.PANADAPTER, false);
+                    updateOn(OtherButtonId.SCOPE, false);
+                    updateOn(OtherButtonId.SCOPE2, false);
+                    updateOn(OtherButtonId.PHASE, false);
+                    updateOn(OtherButtonId.WATERFALL, false);
+                    updateOn(OtherButtonId.HISTOGRAM, false);
+                    updateOn(OtherButtonId.PANAFALL, false);
+                    updateOn(OtherButtonId.PANASCOPE, false);
+                    updateOn(OtherButtonId.SPECTRASCOPE, false);
+                    updateOn(OtherButtonId.DISPLAY_OFF, false);
+
+                    //set the one on
+                    updateOn(id, true);
+                }
+            }
+            public override AGCMode AGCMode
+            {
+                get => base.AGCMode;
+                set
+                {
+                    OtherButtonId id = OtherButtonId.UNKNOWN;
+                    switch (value)
+                    {
+                        case AGCMode.FIXD:
+                            id = OtherButtonId.AGC_FIXED;
+                            break;
+                        case AGCMode.LONG:
+                            id = OtherButtonId.AGC_LONG;
+                            break;
+                        case AGCMode.SLOW:
+                            id = OtherButtonId.AGC_SLOW;
+                            break;
+                        case AGCMode.MED:
+                            id = OtherButtonId.AGC_MEDIUM;
+                            break;
+                        case AGCMode.FAST:
+                            id = OtherButtonId.AGC_FAST;
+                            break;
+                        case AGCMode.CUSTOM:
+                            id = OtherButtonId.AGC_CUSTOM;
+                            break;
+                    }
+                    if (id == OtherButtonId.UNKNOWN) return;
+
+                    //set all off
+                    updateOn(OtherButtonId.AGC_FIXED, false);
+                    updateOn(OtherButtonId.AGC_LONG, false);
+                    updateOn(OtherButtonId.AGC_SLOW, false);
+                    updateOn(OtherButtonId.AGC_MEDIUM, false);
+                    updateOn(OtherButtonId.AGC_FAST, false);
+                    updateOn(OtherButtonId.AGC_CUSTOM, false);
+
+                    //set the one on
+                    updateOn(id, true);
+                }
+            }
+            public override bool AGCAutoMode { get => base.AGCAutoMode; set => updateOn(OtherButtonId.AGC_AUTO, value); }
+            public override GeneralOtherButtonSettings GeneralSettings 
+            {
+                get => base.GeneralSettings;
+                set
+                {
+                    if (value._setting == OtherButtonId.UNKNOWN || !value._settings.ContainsKey(value._setting)) return;
+                    updateOn(value._setting, value._settings[value._setting]);
+                }
+            }
+            public override SquelchState SqlMode 
+            { 
+                get => base.SqlMode;
+                set
+                {
+                    if (value == SquelchState.LAST) return;
+                    
+                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.SQL);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value != SquelchState.OFF);
+
+                    switch (value)
+                    {
+                        case SquelchState.VSQL:
+                            SetText(1, bit, "VSQL");
+                            break;
+                        default:
+                            SetText(1, bit, "SQL");
+                            break;
+                    }
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.SQL_SQL);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == SquelchState.SQL);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.SQL_VSQL);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == SquelchState.VSQL);
+                }
+            }
 
             //-- special ones that change text
             public override int NR 
@@ -7169,25 +7443,25 @@ namespace Thetis
             //}
             public override int GetVisibleBits(int bit_group)
             {
-                if(bit_group < 0 || bit_group > 1) return 0;
+                if(bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return 0;
                 return _visible_bits[bit_group];
             }
             public override void SetVisibleBits(int bit_group, int bit_field)
             {
-                if (bit_group < 0 || bit_group > 1) return;
+                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return;
                 _visible_bits[bit_group] = bit_field;
 
                 setupButtons();
             }
             private bool isVisible(int bit_group, int bit)
             {
-                if (bit_group < 0 || bit_group > 1) return false;
-                if (bit < 0 || bit > 30) return false; // bit 31 is skipped
+                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return false;
+                if (bit < 0 || bit > 30) return false; // bit 32 is skipped
                 return (_visible_bits[bit_group] & (1 << bit)) != 0;
             }
             private void setVisible(int bit_group, int bit, bool visible)
             {
-                if (bit_group < 0 || bit_group > 1) return;
+                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return;
                 if (bit < 0 || bit > 30) return;
                 if (visible)
                     _visible_bits[bit_group] = _visible_bits[bit_group] | (1 << bit);
@@ -7212,7 +7486,7 @@ namespace Thetis
             //}
             private bool try_index_from_group_bit(int bit_group, int bit, out int index)
             {
-                if (bit_group < 0 || bit < 0 || bit > 30)
+                if (bit_group < 0 || bit_group > BITFIELD_GROUPS -1 || bit < 0 || bit > 30)
                 {
                     index = -1;
                     return false;
@@ -7227,11 +7501,19 @@ namespace Thetis
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
                 {
+                    if (i == 106) { int a; a = 1; }
                     int bit = i % 32;
                     int bit_group = i / 32;
 
-                    // skip 31st bit in any group
+                    // skip 32nd bit in any group
                     if (bit == 31)
+                    {
+                        SetVisible(1, i, false);
+                        continue;
+                    }
+
+                    OtherButtonId id = OtherButtonIdHelpers.BitToID(bit_group, bit);
+                    if (id == OtherButtonId.UNKNOWN)
                     {
                         SetVisible(1, i, false);
                         continue;
@@ -7241,7 +7523,7 @@ namespace Thetis
                     string sText;
                     bool skip_set_visible = false;
 
-                    switch(OtherButtonIdHelpers.BitToID(bit_group, bit))
+                    switch(id)
                     {
                         case OtherButtonId.NR:
                             int nr = _console.GetSelectedNR(_owningmeter.RX);
@@ -7281,6 +7563,17 @@ namespace Thetis
                             SetVisible(1, i, in_use && isVisible(bit_group, bit));
                             skip_set_visible = true;
                             break;
+                        case OtherButtonId.SQL:
+                            switch (_owningmeter.SqlMode)
+                            {
+                                case SquelchState.VSQL:
+                                    sText = "VSQL";
+                                    break;
+                                default:
+                                    sText = "SQL";
+                                    break;
+                            }
+                            break;
                         default:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             break;
@@ -7297,10 +7590,11 @@ namespace Thetis
                     SetOffColour(1, i, GetOffColour(0, i));
                     SetIndicatorWidth(1, i, GetIndicatorWidth(0, i));
                     SetEnabled(1, i, true);
-                    if(!skip_set_visible) SetVisible(1, i, OtherButtonIdHelpers.BitToID(bit_group, bit) != OtherButtonId.UNKNOWN && isVisible(bit_group, bit));//GetVisible(0, i));
+
+                    if(!skip_set_visible) SetVisible(1, i, isVisible(bit_group, bit));//GetVisible(0, i));
 
                     //get the state from the console
-                    bool on = _console.GetOtherButtonState(OtherButtonIdHelpers.BitToID(bit_group, bit), _owningmeter.RX);
+                    bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
                     SetOn(1, i, on);
 
                     SetFillColour(1, i, GetFillColour(0, i));
@@ -9034,7 +9328,7 @@ namespace Thetis
                 LAST = 99
             }
 
-            private const int MAX_BUTTONS = 50;
+            private const int MAX_BUTTONS = 512;
 
             private int _number_of_buttons;
             private int _columns;
@@ -17635,6 +17929,11 @@ namespace Thetis
             private bool _pan_swap;
             private bool _xpa_in_use;
             private bool _xpa_enabled;
+            private DisplayMode _display_mode;
+            private AGCMode _agc_mode;
+            private bool _agc_auto_mode;
+            GeneralOtherButtonSettings _general_settings;
+            private SquelchState _sql_mode;
 
             private bool _split;
             private double _vfoA;
@@ -17759,6 +18058,11 @@ namespace Thetis
                 _pan_swap = false;
                 _xpa_in_use = false;
                 _xpa_enabled = false;
+                _display_mode = DisplayMode.FIRST;
+                _agc_mode = AGCMode.FIRST;
+                _agc_auto_mode = false;
+                _general_settings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = null };
+                _sql_mode = SquelchState.OFF;
 
                 _bandVfoA = Band.FIRST;
                 _bandVfoB = Band.FIRST;
@@ -21950,7 +22254,7 @@ namespace Thetis
                                                 bb.SetFontColour(0, button, font_colour);
                                             }
 
-                                            bb.Columns = igs.GetSetting<int>("buttonbox_columns", true, 1, 30, 3);
+                                            bb.Columns = igs.GetSetting<int>("buttonbox_columns", true, 1, 512, 3);
                                             bb.Border = igs.GetSetting<float>("buttonbox_border", true, 0f, 1f, 0.05f) / 10f;
                                             bb.Margin = igs.GetSetting<float>("buttonbox_margin", true, 0f, 1f, 0f) / 10f;
                                             bb.Radius = igs.GetSetting<float>("buttonbox_radius", true, 0f, 2f, 0f) / 10f;
@@ -21962,8 +22266,10 @@ namespace Thetis
 
                                             if(mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                bb.SetVisibleBits(0, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
-                                                bb.SetVisibleBits(1, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
+                                                for (int n = 0; n < clsOtherButtons.BITFIELD_GROUPS; n++)
+                                                {
+                                                    bb.SetVisibleBits(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
+                                                }
                                             }
                                             else if(mt == MeterType.TUNESTEP_BUTTONS)
                                             {                                                
@@ -23259,8 +23565,10 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", bb.GetVisibleBits(0));
-                                                igs.SetSetting<int>("buttonbox_other_buttons_bitfield_1", bb.GetVisibleBits(1));
+                                                for (int n = 0; n < clsOtherButtons.BITFIELD_GROUPS; n++)
+                                                {
+                                                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), bb.GetVisibleBits(n));
+                                                }
                                             }
                                             else if (mt == MeterType.TUNESTEP_BUTTONS)
                                             {
@@ -25142,6 +25450,106 @@ namespace Thetis
                         {
                             clsMeterItem mi = kvp.Value;
                             mi.QuickRecord = _quick_record;
+                        }
+                    }
+                }
+            }
+            public DisplayMode DisplayMode
+            {
+                get
+                {
+                    return _display_mode;
+                }
+                set
+                {
+                    _display_mode = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.DisplayMode = _display_mode;
+                        }
+                    }
+                }
+            }
+            public AGCMode AGCMode
+            {
+                get
+                {
+                    return _agc_mode;
+                }
+                set
+                {
+                    _agc_mode = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.AGCMode = _agc_mode;
+                        }
+                    }
+                }
+            }
+            public SquelchState SqlMode
+            {
+                get
+                {
+                    return _sql_mode;
+                }
+                set
+                {
+                    _sql_mode = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.SqlMode = _sql_mode;
+                        }
+                    }
+                }
+            }
+            public bool AGCAutoMode
+            {
+                get
+                {
+                    return _agc_auto_mode;
+                }
+                set
+                {
+                    _agc_auto_mode = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.AGCAutoMode = _agc_auto_mode;
+                        }
+                    }
+                }
+            }
+            public GeneralOtherButtonSettings GeneralSettings
+            {
+                get
+                {
+                    return _general_settings;
+                }
+                set
+                {
+                    _general_settings = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.GeneralSettings = _general_settings;
                         }
                     }
                 }
