@@ -3035,6 +3035,7 @@ namespace Thetis
             _console.MuteChangedHandlers += OnMuteChanged;
             _console.BINChangedHandlers += OnBINChanged;
             _console.PanSwapChangedHandlers += OnPanSwapChanged;
+            _console.XPAChangedHandlers += OnXPAChanged;
 
             _delegatesAdded = true;
         }
@@ -3132,6 +3133,7 @@ namespace Thetis
             _console.MuteChangedHandlers -= OnMuteChanged;
             _console.BINChangedHandlers -= OnBINChanged;
             _console.PanSwapChangedHandlers -= OnPanSwapChanged;
+            _console.XPAChangedHandlers -= OnXPAChanged;
 
             foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
             {
@@ -4067,6 +4069,20 @@ namespace Thetis
                 }
             }
         }
+        private static void OnXPAChanged(bool in_use, bool old_state, bool new_state)
+        {
+            // ignore rx for now
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)//.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.XpaInUse = in_use;
+                    m.XpaEnabled = new_state;
+                }
+            }
+        }
         private static void OnQuickRecordChanged(int rx, bool old_state, bool new_state)
         {
             // ignore rx for now
@@ -4285,6 +4301,10 @@ namespace Thetis
             m.Mute = _console.GetMute(m.RX);
             m.BIN = _console.GetBin(m.RX);
             m.PanSwap = _console.GetPanSwap(m.RX);
+
+            (bool in_use, bool enabled) = _console.GetXPAStatus();
+            m.XpaInUse = in_use;
+            m.XpaEnabled = enabled;
 
             m.TXSpectrumGridMin = Display.TXSpectrumGridMin;
             m.TXSpectrumGridMax = Display.TXSpectrumGridMax;
@@ -6090,6 +6110,16 @@ namespace Thetis
                 get { return false; }
                 set { }
             }
+            public virtual bool XpaInUse
+            {
+                get { return false; }
+                set { }
+            }
+            public virtual bool XpaEnabled
+            {
+                get { return false; }
+                set { }
+            }
             public virtual bool Vac1
             {
                 get { return false; }
@@ -6973,6 +7003,9 @@ namespace Thetis
             private clsItemGroup _ig;
             private bool _click_highlight;
             private System.Timers.Timer _click_timer;
+
+            private int[] _visible_bits;
+
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
                 _owningmeter = owningmeter;
@@ -6981,8 +7014,12 @@ namespace Thetis
 
                 ItemType = MeterItemType.OTHER_BUTTONS;
 
-                base.Buttons = 31; //max
-                VisibleBits = 0; // all off //  (1 << 30) - 1;
+                base.Buttons = 50; //max
+                //VisibleBits = 0; // all off //  (1 << 30) - 1;
+
+                _visible_bits = new int[2]; // 2 groups of 32 bits
+                _visible_bits[0] = 0;
+                _visible_bits[1] = 0;
 
                 Initialise();
             }
@@ -7009,6 +7046,21 @@ namespace Thetis
             public override bool BIN { get => base.BIN; set => updateOn(OtherButtonId.BIN, value); }
             public override bool MultiRx { get => base.MultiRx; set => updateOn(OtherButtonId.SUBRX, value); }
             public override bool PanSwap { get => base.PanSwap; set => updateOn(OtherButtonId.PAN_SWAP, value); }
+            public override bool XpaInUse
+            {
+                get => base.XpaInUse;
+                set
+                {
+                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.XPA);
+                    bit = (bit_group * 32) + bit;
+
+                    if (try_index_from_group_bit(bit_group, bit, out int index))
+                    {
+                        SetVisible(1, index, value && isVisible(bit_group, bit));
+                    }
+                }
+            }
+            public override bool XpaEnabled { get => base.XpaEnabled; set => updateOn(OtherButtonId.XPA, value); }
 
             //-- special ones that change text
             public override int NR 
@@ -7017,9 +7069,26 @@ namespace Thetis
                 set
                 {
                     (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NR);
+                    bit = (bit_group * 32) + bit;
                     string sText = value > 1 ? "NR" + value.ToString() : "NR";
                     SetText(1, bit, sText);
                     SetOn(1, bit, value != 0);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NR1);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 1);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NR2);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 2);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NR3);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 3);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NR4);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 4);
                 }
             }
             public override int NB 
@@ -7028,9 +7097,18 @@ namespace Thetis
                 set
                 {
                     (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NB);
+                    bit = (bit_group * 32) + bit;
                     string sText = value > 1 ? "NB" + value.ToString() : "NB";
                     SetText(1, bit, sText);
                     SetOn(1, bit, value != 0);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NB1);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 1);
+
+                    (bit_group, bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.NB2);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, value == 2);
                 }
             }
             public override bool Split 
@@ -7039,6 +7117,7 @@ namespace Thetis
                 set
                 {
                     (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.SPLT);
+                    bit = (bit_group * 32) + bit;
                     string sText;
                     if (_owningmeter.RX2Enabled)
                         sText = "SPLT";
@@ -7059,6 +7138,7 @@ namespace Thetis
                 set
                 {
                     (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId.SPLT);
+                    bit = (bit_group * 32) + bit;
                     string sText;
                     if (_owningmeter.RX2Enabled)
                         sText = "SPLT";
@@ -7076,31 +7156,69 @@ namespace Thetis
             private void updateOn(OtherButtonId id, bool val)
             {
                 (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(id);
+                bit = (bit_group * 32) + bit;
                 SetOn(1, bit, val);
             }
             public override void Initialise()
             {
                 setupButtons();
             }
-            private void onOtherButtonsSettingChanged(object sender, EventArgs e)
+            //private void onOtherButtonsSettingChanged(object sender, EventArgs e)
+            //{
+            //    setupButtons();
+            //}
+            public override int GetVisibleBits(int bit_group)
             {
+                if(bit_group < 0 || bit_group > 1) return 0;
+                return _visible_bits[bit_group];
+            }
+            public override void SetVisibleBits(int bit_group, int bit_field)
+            {
+                if (bit_group < 0 || bit_group > 1) return;
+                _visible_bits[bit_group] = bit_field;
+
                 setupButtons();
             }
-            public override int VisibleBits
+            private bool isVisible(int bit_group, int bit)
             {
-                get
+                if (bit_group < 0 || bit_group > 1) return false;
+                if (bit < 0 || bit > 30) return false; // bit 31 is skipped
+                return (_visible_bits[bit_group] & (1 << bit)) != 0;
+            }
+            private void setVisible(int bit_group, int bit, bool visible)
+            {
+                if (bit_group < 0 || bit_group > 1) return;
+                if (bit < 0 || bit > 30) return;
+                if (visible)
+                    _visible_bits[bit_group] = _visible_bits[bit_group] | (1 << bit);
+                else
+                    _visible_bits[bit_group] = _visible_bits[bit_group] & ~(1 << bit);
+            }
+            //public override int VisibleBits
+            //{
+            //    get
+            //    {
+            //        return _button_bits;
+            //    }
+            //    set
+            //    {
+            //        _button_bits = value;
+            //        for (int n = 0; n < Buttons; n++)
+            //        {
+            //            SetVisible(0, n, (_button_bits & (1 << n)) != 0);
+            //        }
+            //        setupButtons();
+            //    }
+            //}
+            private bool try_index_from_group_bit(int bit_group, int bit, out int index)
+            {
+                if (bit_group < 0 || bit < 0 || bit > 30)
                 {
-                    return _button_bits;
+                    index = -1;
+                    return false;
                 }
-                set
-                {
-                    _button_bits = value;
-                    for (int n = 0; n < Buttons; n++)
-                    {
-                        SetVisible(0, n, (_button_bits & (1 << n)) != 0);
-                    }
-                    setupButtons();
-                }
+                index = bit_group * 32 + bit;
+                return true;
             }
             private void setupButtons()
             {
@@ -7109,9 +7227,21 @@ namespace Thetis
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
                 {
-                    //special state text
+                    int bit = i % 32;
+                    int bit_group = i / 32;
+
+                    // skip 31st bit in any group
+                    if (bit == 31)
+                    {
+                        SetVisible(1, i, false);
+                        continue;
+                    }
+
+                    //special states
                     string sText;
-                    switch(OtherButtonIdHelpers.BitToID(0, i))
+                    bool skip_set_visible = false;
+
+                    switch(OtherButtonIdHelpers.BitToID(bit_group, bit))
                     {
                         case OtherButtonId.NR:
                             int nr = _console.GetSelectedNR(_owningmeter.RX);
@@ -7145,8 +7275,14 @@ namespace Thetis
                             SetTextIsIconName(1, i, true);
                             sText = "play";
                             break;
+                        case OtherButtonId.XPA:
+                            sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
+                            (bool in_use, bool enabled) = _console.GetXPAStatus();
+                            SetVisible(1, i, in_use && isVisible(bit_group, bit));
+                            skip_set_visible = true;
+                            break;
                         default:
-                            sText = OtherButtonIdHelpers.BitToText(0, i);
+                            sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             break;
                     }
 
@@ -7161,10 +7297,10 @@ namespace Thetis
                     SetOffColour(1, i, GetOffColour(0, i));
                     SetIndicatorWidth(1, i, GetIndicatorWidth(0, i));
                     SetEnabled(1, i, true);
-                    SetVisible(1, i, GetVisible(0, i));
+                    if(!skip_set_visible) SetVisible(1, i, OtherButtonIdHelpers.BitToID(bit_group, bit) != OtherButtonId.UNKNOWN && isVisible(bit_group, bit));//GetVisible(0, i));
 
                     //get the state from the console
-                    bool on = _console.GetOtherButtonState(OtherButtonIdHelpers.BitToID(0, i), _owningmeter.RX);
+                    bool on = _console.GetOtherButtonState(OtherButtonIdHelpers.BitToID(bit_group, bit), _owningmeter.RX);
                     SetOn(1, i, on);
 
                     SetFillColour(1, i, GetFillColour(0, i));
@@ -7323,7 +7459,13 @@ namespace Thetis
                 int index = base.ButtonIndex;
                 if (index == -1) return;
 
-                OtherButtonId id = OtherButtonIdHelpers.BitToID(0, index);
+                int bit = index % 32;
+                int bit_group = index / 32;
+                if (bit == 31) return;
+
+                OtherButtonId id = OtherButtonIdHelpers.BitToID(bit_group, bit);
+                if (id == OtherButtonId.UNKNOWN) return;
+
                 Debug.Print(id.ToString());
 
                 _console.BeginInvoke(new MethodInvoker(() =>
@@ -9101,6 +9243,8 @@ namespace Thetis
                 get { return int.MaxValue; }
                 set { }
             }
+            public virtual int GetVisibleBits(int bit_group) { return int.MaxValue; }
+            public virtual void SetVisibleBits(int bit_group, int bit_field) { }
             public virtual int Columns
             {
                 get { return _columns; }
@@ -17489,6 +17633,8 @@ namespace Thetis
             private bool _mute;
             private bool _bin;
             private bool _pan_swap;
+            private bool _xpa_in_use;
+            private bool _xpa_enabled;
 
             private bool _split;
             private double _vfoA;
@@ -17611,6 +17757,8 @@ namespace Thetis
                 _mute = false;
                 _bin = false;
                 _pan_swap = false;
+                _xpa_in_use = false;
+                _xpa_enabled = false;
 
                 _bandVfoA = Band.FIRST;
                 _bandVfoB = Band.FIRST;
@@ -21814,7 +21962,8 @@ namespace Thetis
 
                                             if(mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                bb.VisibleBits = igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0);
+                                                bb.SetVisibleBits(0, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
+                                                bb.SetVisibleBits(1, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
                                             }
                                             else if(mt == MeterType.TUNESTEP_BUTTONS)
                                             {                                                
@@ -23110,7 +23259,8 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", bb.VisibleBits);
+                                                igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", bb.GetVisibleBits(0));
+                                                igs.SetSetting<int>("buttonbox_other_buttons_bitfield_1", bb.GetVisibleBits(1));
                                             }
                                             else if (mt == MeterType.TUNESTEP_BUTTONS)
                                             {
@@ -25012,6 +25162,44 @@ namespace Thetis
                         {
                             clsMeterItem mi = kvp.Value;
                             mi.PanSwap = _pan_swap;
+                        }
+                    }
+                }
+            }
+            public bool XpaInUse
+            {
+                get
+                {
+                    return _xpa_in_use;
+                }
+                set
+                {
+                    _xpa_in_use = value;
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.XpaInUse = _xpa_in_use;
+                        }
+                    }
+                }
+            }
+            public bool XpaEnabled 
+            {
+                get
+                {
+                    return _xpa_enabled;
+                }
+                set
+                {
+                    _xpa_enabled = value;
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.XpaEnabled = _xpa_enabled;
                         }
                     }
                 }

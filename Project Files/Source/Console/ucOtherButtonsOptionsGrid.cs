@@ -55,29 +55,36 @@ namespace Thetis
         TWOTON = 5,
         DUP = 6,
         PS_A = 7,
-        REC = 8,
-        PLAY = 9,
-        NR = 10,
-        ANF = 11,
-        NB = 12,
-        SNB = 13,
-        MNF = 14,
-        MNF_PLUS = 15,
-        SPLT = 16,
-        A_TO_B = 17,
-        ZERO_BEAT = 18,
-        B_TO_A = 19,
-        IF_TO_V = 20,
-        SWAP_AB = 21,
-        AVG = 22,
-        PEAK = 23,
-        CTUN = 24,
-        VAC1 = 25,
-        VAC2 = 26,
-        MUTE = 27,
-        BIN = 28,
-        SUBRX = 29,
-        PAN_SWAP = 30,
+        XPA = 8,
+        REC = 9,
+        PLAY = 10,
+        NR = 11,
+        ANF = 12,
+        NB = 13,
+        SNB = 14,
+        MNF = 15,
+        MNF_PLUS = 16,
+        SPLT = 17,
+        A_TO_B = 18,
+        ZERO_BEAT = 19,
+        B_TO_A = 20,
+        IF_TO_V = 21,
+        SWAP_AB = 22,
+        AVG = 23,
+        PEAK = 24,
+        CTUN = 25,
+        VAC1 = 26,
+        VAC2 = 27,
+        MUTE = 28,
+        BIN = 29,
+        SUBRX = 30,
+        PAN_SWAP = 31,
+        NR1 = 32,
+        NR2 = 33,
+        NR3 = 34,
+        NR4 = 35,
+        NB1 = 36,
+        NB2 = 37,
         SPLITTER = 999,
         UNKNOWN = 1000
     }
@@ -95,33 +102,40 @@ namespace Thetis
             (OtherButtonId.TWOTON,    0,  5),
             (OtherButtonId.DUP,       0,  6),
             (OtherButtonId.PS_A,      0,  7),
-            (OtherButtonId.REC,       0,  8),
-            (OtherButtonId.PLAY,      0,  9),
+            (OtherButtonId.XPA,       0,  8),
+            (OtherButtonId.REC,       0,  9),
+            (OtherButtonId.PLAY,      0, 10),
             (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.NR,        0, 10),
-            (OtherButtonId.ANF,       0, 11),
-            (OtherButtonId.NB,        0, 12),
-            (OtherButtonId.SNB,       0, 13),
-            (OtherButtonId.MNF,       0, 14),
-            (OtherButtonId.MNF_PLUS,  0, 15),
+            (OtherButtonId.NR,        0, 11),
+            (OtherButtonId.NR1,       0, 12),
+            (OtherButtonId.NR2,       0, 13),
+            (OtherButtonId.NR3,       0, 14),
+            (OtherButtonId.NR4,       0, 15),
+            (OtherButtonId.ANF,       0, 16),
+            (OtherButtonId.NB,        0, 17),
+            (OtherButtonId.NB1,       0, 18),
+            (OtherButtonId.NB2,       0, 19),
+            (OtherButtonId.SNB,       0, 20),
+            (OtherButtonId.MNF,       0, 21),
+            (OtherButtonId.MNF_PLUS,  0, 22),
             (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.SPLT,      0, 16),
-            (OtherButtonId.A_TO_B,    0, 17),
-            (OtherButtonId.ZERO_BEAT, 0, 18),
-            (OtherButtonId.B_TO_A,    0, 19),
-            (OtherButtonId.IF_TO_V,   0, 20),
-            (OtherButtonId.SWAP_AB,   0, 21),
+            (OtherButtonId.SPLT,      0, 23),
+            (OtherButtonId.A_TO_B,    0, 24),
+            (OtherButtonId.ZERO_BEAT, 0, 25),
+            (OtherButtonId.B_TO_A,    0, 26),
+            (OtherButtonId.IF_TO_V,   0, 27),
+            (OtherButtonId.SWAP_AB,   0, 28),
             (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.AVG,       0, 22),
-            (OtherButtonId.PEAK,      0, 23),
-            (OtherButtonId.CTUN,      0, 24),
+            (OtherButtonId.AVG,       0, 29),
+            (OtherButtonId.PEAK,      0, 30),
+            (OtherButtonId.CTUN,      1, 0),
             (OtherButtonId.SPLITTER, -1, -1),
-            (OtherButtonId.VAC1,      0, 25),
-            (OtherButtonId.VAC2,      0, 26),
-            (OtherButtonId.MUTE,      0, 27),
-            (OtherButtonId.BIN,       0, 28),
-            (OtherButtonId.SUBRX,     0, 29),
-            (OtherButtonId.PAN_SWAP,    0, 30),
+            (OtherButtonId.VAC1,      1, 1),
+            (OtherButtonId.VAC2,      1, 2),
+            (OtherButtonId.MUTE,      1, 4),
+            (OtherButtonId.BIN,       1, 5),
+            (OtherButtonId.SUBRX,     1, 6),
+            (OtherButtonId.PAN_SWAP,  1, 7),
         };
 
         public static string OtherButtonIDToText(OtherButtonId id)
@@ -136,6 +150,7 @@ namespace Thetis
                 case OtherButtonId.TWOTON: return "2TON";
                 case OtherButtonId.DUP: return "DUP";
                 case OtherButtonId.PS_A: return "PS-A";
+                case OtherButtonId.XPA: return "xPA";
                 case OtherButtonId.REC: return "Rec";
                 case OtherButtonId.PLAY: return "Play";
                 case OtherButtonId.NR: return "NR";
@@ -159,6 +174,14 @@ namespace Thetis
                 case OtherButtonId.BIN: return "Bin";
                 case OtherButtonId.SUBRX: return "SubRX";
                 case OtherButtonId.PAN_SWAP: return "SwapLR";
+
+                case OtherButtonId.NR1: return "NR1";
+                case OtherButtonId.NR2: return "NR2";
+                case OtherButtonId.NR3: return "NR3";
+                case OtherButtonId.NR4: return "NR4";
+
+                case OtherButtonId.NB1: return "NB1";
+                case OtherButtonId.NB2: return "NB2";
 
                 case OtherButtonId.UNKNOWN: return "";
 
@@ -338,16 +361,25 @@ namespace Thetis
             _init = old_init;
         }
 
-        public int BitfieldGroup0
-        {
-            get { return get_bitfield(0); }
-            set { set_bitfield(0, value); }
-        }
+        //public int BitfieldGroup0
+        //{
+        //    get { return get_bitfield(0); }
+        //    set { set_bitfield(0, value); }
+        //}
 
-        public int BitfieldGroup1
+        //public int BitfieldGroup1
+        //{
+        //    get { return get_bitfield(1); }
+        //    set { set_bitfield(1, value); }
+        //}
+
+        public int GetBitfield(int bit_group)
         {
-            get { return get_bitfield(1); }
-            set { set_bitfield(1, value); }
+            return get_bitfield(bit_group);
+        }
+        public void SetBitfield(int bit_group, int value)
+        {
+            set_bitfield(bit_group, value);
         }
 
         public int GetCheckedCount()

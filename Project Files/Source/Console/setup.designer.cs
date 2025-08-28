@@ -65077,8 +65077,6 @@
             // ucOtherButtonsOptionsGrid_buttons
             // 
             this.ucOtherButtonsOptionsGrid_buttons.AutoScroll = true;
-            this.ucOtherButtonsOptionsGrid_buttons.BitfieldGroup0 = 0;
-            this.ucOtherButtonsOptionsGrid_buttons.BitfieldGroup1 = 0;
             this.ucOtherButtonsOptionsGrid_buttons.Location = new System.Drawing.Point(556, 23);
             this.ucOtherButtonsOptionsGrid_buttons.Name = "ucOtherButtonsOptionsGrid_buttons";
             this.ucOtherButtonsOptionsGrid_buttons.Size = new System.Drawing.Size(157, 182);

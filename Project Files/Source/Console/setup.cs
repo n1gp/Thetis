@@ -1327,7 +1327,15 @@ namespace Thetis
         private void getControlList(Control c, ref Dictionary<string, Control> a)
         {
             // we dont want to recurse into user controls
-            if (c.Controls.Count > 0 && !(c.GetType() == typeof(ucLGPicker) || c.GetType() == typeof(ucGradientDefault)))
+            if (c.Controls.Count > 0 && !(
+                c.GetType() == typeof(ucLGPicker) ||
+                c.GetType() == typeof(ucGradientDefault) || 
+                c.GetType() == typeof(ucOCLedStrip) ||
+                c.GetType() == typeof(ucOtherButtonsOptionsGrid) ||
+                c.GetType() == typeof(ucSignalSelect) ||
+                c.GetType() == typeof(ucUnderOverFlowWarningViewer) ||
+                c.GetType() == typeof(ucTunestepOptionsGrid)
+                ))
             {
                 foreach (Control c2 in c.Controls)
                     getControlList(c2, ref a);
@@ -25565,9 +25573,11 @@ namespace Thetis
             {
                 if (mt == MeterType.OTHER_BUTTONS)
                 {
-                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", ucOtherButtonsOptionsGrid_buttons.BitfieldGroup0);
+                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_0", ucOtherButtonsOptionsGrid_buttons.GetBitfield(0));
+                    igs.SetSetting<int>("buttonbox_other_buttons_bitfield_1", ucOtherButtonsOptionsGrid_buttons.GetBitfield(1));
 
                     int max_buttons = ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(0);
+                    max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(1);
                     max_buttons = Math.Max(1, max_buttons);
                     if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
                     if (nudBandButtons_columns.Maximum != max_buttons) nudBandButtons_columns.Maximum = max_buttons;
@@ -26176,7 +26186,8 @@ namespace Thetis
 
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
-                    ucOtherButtonsOptionsGrid_buttons.BitfieldGroup0 = igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0);
+                    ucOtherButtonsOptionsGrid_buttons.SetBitfield(0, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
+                    ucOtherButtonsOptionsGrid_buttons.SetBitfield(1, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
                 }
                 else if (mt == MeterType.TUNESTEP_BUTTONS)
                 {
@@ -26236,6 +26247,7 @@ namespace Thetis
                         break;
                     case MeterType.OTHER_BUTTONS:
                         max_buttons = ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(0);
+                        max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(1);
                         max_buttons = Math.Max(1, max_buttons);
                         columns = igs.GetSetting<int>("buttonbox_columns", true, 1, max_buttons, max_buttons);
                         if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
@@ -27320,6 +27332,7 @@ namespace Thetis
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
                     _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_0", currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_0", true, 0, int.MaxValue, 0));
+                    _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_1", currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_1", true, 0, int.MaxValue, 0));
                 }
                 else if(mt == MeterType.TUNESTEP_BUTTONS)
                 {

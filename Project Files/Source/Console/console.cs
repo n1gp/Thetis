@@ -46192,6 +46192,7 @@ namespace Thetis
         public delegate void VACEnabledChanged(int rx, bool old_state, bool new_state);
         public delegate void BINChanged(int rx, bool old_state, bool new_state);
         public delegate void PanSwapChanged(int rx, bool old_state, bool new_state);
+        public delegate void XPAChanged(bool in_use, bool old_state, bool new_state);
 
         public BandPreChange BandPreChangeHandlers; // when someone clicks a band button, before a change is made
         public BandNoChange BandNoChangeHandlers;
@@ -46320,6 +46321,7 @@ namespace Thetis
         public VACEnabledChanged VACEnabledChangedHandlers;
         public BINChanged BINChangedHandlers;
         public PanSwapChanged PanSwapChangedHandlers;
+        public XPAChanged XPAChangedHandlers;
 
         private bool m_bIgnoreFrequencyDupes = false;               // if an update is to be made, but the frequency is already in the filter, ignore it
         private bool m_bHideBandstackWindowOnSelect = false;        // hide the window if an entry is selected
@@ -46970,9 +46972,12 @@ namespace Thetis
         //-------------------------------
         #endregion
 
+        private bool _xpa_in_use = false;
         public void RepositionExternalPAButton(bool bShow)
         {
-            if(bShow)
+            bool old_in_use = _xpa_in_use;
+
+            if (bShow)
             {
                 // move the quick play/rec buttons down
                 ckQuickPlay.Top = ckQuickRec.Top = chkExternalPA.Top + 23;
@@ -46986,12 +46991,20 @@ namespace Thetis
                 chkExternalPA.Checked = false;
             }
             chkExternalPA.Visible = bShow;
-        }
+            _xpa_in_use = bShow;
 
+            if (_xpa_in_use != old_in_use)
+            {
+                XPAChangedHandlers?.Invoke(_xpa_in_use, false, chkExternalPA.Checked);
+            }
+        }
+        private bool _xpa_enabled = false;
         private void chkExternalPA_CheckedChanged(object sender, EventArgs e)
         {           
             //MW0LGE_21j
             if (!chkPower.Checked) return;
+
+            bool old_enabled = _xpa_enabled;            
 
             Band lo_band = BandByFreq(XVTRForm.TranslateFreq(VFOAFreq), rx1_xvtr_index, current_region);
             Band lo_bandb = BandByFreq(XVTRForm.TranslateFreq(VFOBFreq), rx2_xvtr_index, current_region);
@@ -47000,6 +47013,13 @@ namespace Thetis
             {
                 int bits = Penny.getPenny().UpdateExtCtrl(lo_band, lo_bandb, _mox, tuning, SetupForm.TestIMD, chkExternalPA.Checked);
                 if (!IsSetupFormNull) SetupForm.UpdateOCLedStrip(_mox, bits);
+            }
+
+            _xpa_enabled = chkExternalPA.Checked;
+
+            if (_xpa_enabled != old_enabled)
+            {                
+                XPAChangedHandlers?.Invoke(_xpa_in_use, old_enabled, chkExternalPA.Checked);
             }
         }
         public bool CATxPA
@@ -52444,6 +52464,45 @@ namespace Thetis
                 case OtherButtonId.BIN: SetBin(rx, !GetBin(rx)); break;
                 case OtherButtonId.SUBRX: SetSubRX(rx, !GetSubRX(rx)); break;
                 case OtherButtonId.PAN_SWAP: chkPanSwap.Checked = !chkPanSwap.Checked; break; // no rx2
+                case OtherButtonId.NR1:
+                    {
+                        if (GetSelectedNR(rx) == 1) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 1); }
+                    }
+                    break;
+                case OtherButtonId.NR2:
+                    {
+                        if (GetSelectedNR(rx) == 2) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 2); }
+                    }
+                    break;
+                case OtherButtonId.NR3:
+                    {
+                        if (GetSelectedNR(rx) == 3) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 3); }
+                    }
+                    break;
+                case OtherButtonId.NR4:
+                    {
+                        if (GetSelectedNR(rx) == 4) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 4); }
+                    }
+                    break;
+                case OtherButtonId.NB1:
+                    {
+                        if (GetSelectedNB(rx) == 1) { SetSelectedNB(rx, 0); } else { SetSelectedNB(rx, 1); }
+                    }
+                    break;
+                case OtherButtonId.NB2:
+                    {
+                        if (GetSelectedNB(rx) == 2) { SetSelectedNB(rx, 0); } else { SetSelectedNB(rx, 2); }
+                    }
+                    break;
+                case OtherButtonId.XPA:
+                    {
+                        (bool in_use, bool enabled) = GetXPAStatus();
+                        if (in_use)
+                        {
+                            chkExternalPA.Checked = !enabled;
+                        }
+                    }
+                    break;
             }
         }
         public bool GetOtherButtonState(OtherButtonId id, int rx)
@@ -52507,6 +52566,19 @@ namespace Thetis
                 case OtherButtonId.MUTE: return GetMute(rx);
                 case OtherButtonId.BIN: return GetBin(rx);
                 case OtherButtonId.SUBRX: return GetSubRX(rx);
+
+                case OtherButtonId.NR1: return GetSelectedNR(rx) == 1;
+                case OtherButtonId.NR2: return GetSelectedNR(rx) == 2;
+                case OtherButtonId.NR3: return GetSelectedNR(rx) == 3;
+                case OtherButtonId.NR4: return GetSelectedNR(rx) == 4;
+                case OtherButtonId.NB1: return GetSelectedNB(rx) == 1;
+                case OtherButtonId.NB2: return GetSelectedNB(rx) == 2;
+
+                case OtherButtonId.XPA: 
+                    {
+                        (bool in_use, bool enabled) = GetXPAStatus();
+                        return in_use && enabled;
+                    }
                 default: 
                     return false;
             }
@@ -52826,7 +52898,10 @@ namespace Thetis
                     return false;
             }
         }
-
+        public (bool in_use, bool enabled) GetXPAStatus()
+        {
+            return (_xpa_in_use, _xpa_enabled);
+        }
     }
 
     public class DigiMode
