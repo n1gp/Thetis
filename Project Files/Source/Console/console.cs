@@ -52531,7 +52531,12 @@ namespace Thetis
                 case OtherButtonId.SNB: SetSNB(rx, !GetSNB(rx)); break;
                 case OtherButtonId.MNF: TNFActive = !TNFActive; break; // no rx2
                 case OtherButtonId.MNF_PLUS: TNFAdd(1); break; // no rx2
-                case OtherButtonId.SPLT: chkVFOSplit.Checked = !chkVFOSplit.Checked; break; // no rx2
+                case OtherButtonId.SPLT: // no rx2
+                    {
+                        MouseEventArgs e = new MouseEventArgs(MouseButtons.Left, 1, 0, 0, 0);
+                        chkVFOSplit_MouseClick(this, e);
+                    }
+                    break;
                 case OtherButtonId.A_TO_B: btnVFOAtoB_Click(this, EventArgs.Empty);  break; // no rx2
                 case OtherButtonId.ZERO_BEAT: btnZeroBeat_Click(this, EventArgs.Empty); break; // no rx2
                 case OtherButtonId.B_TO_A: btnVFOBtoA_Click(this, EventArgs.Empty); break; // no rx2
@@ -52660,6 +52665,7 @@ namespace Thetis
                 case OtherButtonId.MUTE: return GetMute(rx);
                 case OtherButtonId.BIN: return GetBin(rx);
                 case OtherButtonId.SUBRX: return GetSubRX(rx);
+                case OtherButtonId.PAN_SWAP: return GetPanSwap(rx);
                 case OtherButtonId.NR1: return GetSelectedNR(rx) == 1;
                 case OtherButtonId.NR2: return GetSelectedNR(rx) == 2;
                 case OtherButtonId.NR3: return GetSelectedNR(rx) == 3;
