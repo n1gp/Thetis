@@ -125,6 +125,14 @@ namespace Thetis
         AGC_FAST,
         AGC_CUSTOM,
         AGC_AUTO,
+        DITHER,
+        RANDOM,
+        SR_48000,
+        SR_96000,
+        SR_192000,
+        SR_384000,
+        SR_768000,
+        SR_1536000,
 
         INFO_TEXT = 998,
         SPLITTER = 999,
@@ -197,7 +205,7 @@ namespace Thetis
             (OtherButtonId.CURSOR_INFO,   3, 16, "Cur Info", "", ""),
             (OtherButtonId.SPOTS,         3, 17, "Spots", "", ""),
             (OtherButtonId.FILL_SPECTRUM, 3, 18, "Fill", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Audio/DSP", "", ""),
+            (OtherButtonId.INFO_TEXT, -1, -1, "Audio / DSP", "", ""),
             (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
             (OtherButtonId.VAC1,      4, 0, "Vac1", "", ""),
             (OtherButtonId.VAC2,      4, 1, "Vac2", "", ""),
@@ -226,7 +234,17 @@ namespace Thetis
             (OtherButtonId.AGC_MEDIUM,5, 3, "MEDIUM", "", ""),
             (OtherButtonId.AGC_FAST,  5, 4, "FAST", "", ""),
             (OtherButtonId.AGC_CUSTOM,5, 5, "CUSTOM", "", ""),
-            (OtherButtonId.AGC_AUTO,  5, 6, "AUTO", "", "")
+            (OtherButtonId.AGC_AUTO,  5, 6, "AUTO", "", ""),
+            (OtherButtonId.INFO_TEXT, -1, -1, "Hardware", "", ""),
+            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
+            (OtherButtonId.DITHER,    6, 0, "Dither", "", ""),
+            (OtherButtonId.RANDOM,    6, 1, "Random", "", ""),
+            (OtherButtonId.SR_48000,    6, 2, "48k", "", ""),
+            (OtherButtonId.SR_96000,    6, 3, "96k", "", ""),
+            (OtherButtonId.SR_192000,    6, 4, "192k", "", ""),
+            (OtherButtonId.SR_384000,    6, 5, "384k", "", ""),
+            (OtherButtonId.SR_768000,    6, 6, "768k", "", ""),
+            (OtherButtonId.SR_1536000,    6, 7, "1536k", "", "")
         };
 
         public static string OtherButtonIDToText(OtherButtonId id)

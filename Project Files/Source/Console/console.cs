@@ -52590,8 +52590,8 @@ namespace Thetis
                 case OtherButtonId.AVG: SetAVG(rx, !GetAVG(rx)); break;
                 case OtherButtonId.PEAK: SetPeak(rx, !GetPeak(rx)); break;
                 case OtherButtonId.CTUN: SetCTUN(rx, !GetCTUN(rx)); break;
-                case OtherButtonId.VAC1: VACEnabled = !VACEnabled; break;
-                case OtherButtonId.VAC2: VAC2Enabled = !VAC2Enabled; break;
+                case OtherButtonId.VAC1: if (!IsSetupFormNull) { SetupForm.VACEnable = !SetupForm.VACEnable; } break;
+                case OtherButtonId.VAC2: if (!IsSetupFormNull) { SetupForm.VAC2Enable = !SetupForm.VAC2Enable; } break;
                 case OtherButtonId.MUTE: SetMute(rx, !GetMute(rx)); break;
                 case OtherButtonId.BIN: SetBin(rx, !GetBin(rx)); break;
                 case OtherButtonId.SUBRX: SetSubRX(rx, !GetSubRX(rx)); break;
@@ -52680,6 +52680,16 @@ namespace Thetis
                 case OtherButtonId.SQL: SetSqlMode(rx, SquelchState.LAST); break; // last is used to increment
                 case OtherButtonId.SQL_SQL: if (GetSqlMode(rx) == SquelchState.SQL) { SetSqlMode(rx, SquelchState.OFF); } else { SetSqlMode(rx, SquelchState.SQL); } break;
                 case OtherButtonId.SQL_VSQL: if (GetSqlMode(rx) == SquelchState.VSQL) { SetSqlMode(rx, SquelchState.OFF); } else { SetSqlMode(rx, SquelchState.VSQL); } break;
+
+                case OtherButtonId.DITHER: DoGeneralSettingAction(rx, OtherButtonId.DITHER, !GetGeneralSetting(rx, OtherButtonId.DITHER)); break;
+                case OtherButtonId.RANDOM: DoGeneralSettingAction(rx, OtherButtonId.RANDOM, !GetGeneralSetting(rx, OtherButtonId.RANDOM)); break;
+
+                case OtherButtonId.SR_48000: DoGeneralSettingAction(rx, OtherButtonId.SR_48000, true); break;
+                case OtherButtonId.SR_96000: DoGeneralSettingAction(rx, OtherButtonId.SR_96000, true); break;
+                case OtherButtonId.SR_192000: DoGeneralSettingAction(rx, OtherButtonId.SR_192000, true); break;
+                case OtherButtonId.SR_384000: DoGeneralSettingAction(rx, OtherButtonId.SR_384000, true); break;
+                case OtherButtonId.SR_768000: DoGeneralSettingAction(rx, OtherButtonId.SR_768000, true); break;
+                case OtherButtonId.SR_1536000: DoGeneralSettingAction(rx, OtherButtonId.SR_1536000, true); break;
             }
         }
         public bool GetOtherButtonState(OtherButtonId id, int rx)
@@ -52705,8 +52715,8 @@ namespace Thetis
                 case OtherButtonId.AVG: return GetAVG(rx);
                 case OtherButtonId.PEAK: return GetPeak(rx);
                 case OtherButtonId.CTUN: return GetCTUN(rx);
-                case OtherButtonId.VAC1: return VACEnabled;
-                case OtherButtonId.VAC2: return VAC2Enabled;
+                case OtherButtonId.VAC1: if (!IsSetupFormNull) { return SetupForm.VACEnable; } else { return false; }
+                case OtherButtonId.VAC2: if (!IsSetupFormNull) { return SetupForm.VAC2Enable; } else { return false; }
                 case OtherButtonId.MUTE: return GetMute(rx);
                 case OtherButtonId.BIN: return GetBin(rx);
                 case OtherButtonId.SUBRX: return GetSubRX(rx);
@@ -52764,6 +52774,16 @@ namespace Thetis
                 case OtherButtonId.SQL: return GetSqlMode(rx) != SquelchState.OFF;
                 case OtherButtonId.SQL_SQL: return GetSqlMode(rx) == SquelchState.SQL;
                 case OtherButtonId.SQL_VSQL: return GetSqlMode(rx) == SquelchState.VSQL;
+
+                case OtherButtonId.DITHER: return GetGeneralSetting(rx, OtherButtonId.DITHER);
+                case OtherButtonId.RANDOM: return GetGeneralSetting(rx, OtherButtonId.RANDOM);
+
+                case OtherButtonId.SR_48000: return GetGeneralSetting(rx, OtherButtonId.SR_48000);
+                case OtherButtonId.SR_96000: return GetGeneralSetting(rx, OtherButtonId.SR_96000);
+                case OtherButtonId.SR_192000: return GetGeneralSetting(rx, OtherButtonId.SR_192000);
+                case OtherButtonId.SR_384000: return GetGeneralSetting(rx, OtherButtonId.SR_384000);
+                case OtherButtonId.SR_768000: return GetGeneralSetting(rx, OtherButtonId.SR_768000);
+                case OtherButtonId.SR_1536000: return GetGeneralSetting(rx, OtherButtonId.SR_1536000);
 
                 default: 
                     return false;
@@ -53285,7 +53305,7 @@ namespace Thetis
             }
         }
         
-        private Dictionary<OtherButtonId, bool>[] _audio_settings = new Dictionary<OtherButtonId, bool>[2];
+        private Dictionary<OtherButtonId, bool>[] _general_settings = new Dictionary<OtherButtonId, bool>[2];
         public bool GetGeneralSetting(int rx, OtherButtonId id)
         {
             if (rx < 1 || rx > 2) return false;
@@ -53332,15 +53352,26 @@ namespace Thetis
                     return RITOn;
                 case OtherButtonId.XIT:
                     return XITOn;
+                case OtherButtonId.DITHER:
+                    if (!IsSetupFormNull) return SetupForm.MercDither;
+                    break;
+                case OtherButtonId.RANDOM:
+                    if (!IsSetupFormNull) return SetupForm.MercRandom;
+                    break;
+                case OtherButtonId.SR_48000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 48000; break;
+                case OtherButtonId.SR_96000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 96000; break;
+                case OtherButtonId.SR_192000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 192000; break;
+                case OtherButtonId.SR_384000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 384000; break;
+                case OtherButtonId.SR_768000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 768000; break;
+                case OtherButtonId.SR_1536000: if (!IsSetupFormNull) return SetupForm.GetHWSampleRate(rx) == 1536000; break;
             }
             return false;
         }
         private void initGeneralSettings(int rx)
         {
             if (rx < 0 || rx > 2) return; //0 is all meters
-
+            _init_general_setting = true; // dont call the delegates when SetGeneralSetting called
             int tmp_rx = 1; // all these are rx agnostic, so just pass in rx1
-            SetGeneralSetting(0, OtherButtonId.MIC, GetGeneralSetting(tmp_rx, OtherButtonId.MIC));
             SetGeneralSetting(0, OtherButtonId.VOX, GetGeneralSetting(tmp_rx, OtherButtonId.VOX));
             SetGeneralSetting(0, OtherButtonId.DEXP, GetGeneralSetting(tmp_rx, OtherButtonId.DEXP));
             SetGeneralSetting(0, OtherButtonId.TX_FILTER, GetGeneralSetting(tmp_rx, OtherButtonId.TX_FILTER));
@@ -53357,14 +53388,27 @@ namespace Thetis
             SetGeneralSetting(0, OtherButtonId.PEAK_BLOBS, GetGeneralSetting(tmp_rx, OtherButtonId.PEAK_BLOBS));
             SetGeneralSetting(0, OtherButtonId.CURSOR_INFO, GetGeneralSetting(tmp_rx, OtherButtonId.CURSOR_INFO));
             SetGeneralSetting(0, OtherButtonId.SPOTS, GetGeneralSetting(tmp_rx, OtherButtonId.SPOTS));
+            SetGeneralSetting(0, OtherButtonId.DITHER, GetGeneralSetting(tmp_rx, OtherButtonId.DITHER));
+            SetGeneralSetting(0, OtherButtonId.RANDOM, GetGeneralSetting(tmp_rx, OtherButtonId.RANDOM));
 
             // per meter here
-            //int start = rx == 0 ? 1 : rx;
-            //int end = rx == 0 ? 2 : rx;
-            //for (int n = start; n <= end; n++)
-            //{
-            //}
+            int start = rx == 0 ? 1 : rx;
+            int end = rx == 0 ? 2 : rx;
+            for (int n = start; n <= end; n++)
+            {
+                SetGeneralSetting(n, OtherButtonId.SR_48000, GetGeneralSetting(n, OtherButtonId.SR_48000));
+                SetGeneralSetting(n, OtherButtonId.SR_96000, GetGeneralSetting(n, OtherButtonId.SR_96000));
+                SetGeneralSetting(n, OtherButtonId.SR_192000, GetGeneralSetting(n, OtherButtonId.SR_192000));
+                SetGeneralSetting(n, OtherButtonId.SR_384000, GetGeneralSetting(n, OtherButtonId.SR_384000));
+                SetGeneralSetting(n, OtherButtonId.SR_768000, GetGeneralSetting(n, OtherButtonId.SR_768000));                
+                SetGeneralSetting(n, OtherButtonId.SR_1536000, GetGeneralSetting(n, OtherButtonId.SR_1536000));
+            }
+
+            // last
+            _init_general_setting = false; // send to delegates
+            SetGeneralSetting(0, OtherButtonId.MIC, GetGeneralSetting(tmp_rx, OtherButtonId.MIC));
         }
+        private bool _init_general_setting = false;
         public void SetGeneralSetting(int rx, OtherButtonId id, bool state)
         {
             if (rx < 0 || rx > 2) return; // 0 is all rx
@@ -53373,17 +53417,17 @@ namespace Thetis
 
             for (int n = start; n <= end; n++)
             {
-                if (_audio_settings[n - 1] == null) _audio_settings[n - 1] = new Dictionary<OtherButtonId, bool>();
+                if (_general_settings[n - 1] == null) _general_settings[n - 1] = new Dictionary<OtherButtonId, bool>();
 
-                Dictionary<OtherButtonId, bool> settings = _audio_settings[n - 1];
+                Dictionary<OtherButtonId, bool> settings = _general_settings[n - 1];
 
                 bool old_state = false;
                 if (settings.ContainsKey(id)) old_state = settings[id];
                 settings[id] = state;
 
-                if (old_state != state)
+                if (!_init_general_setting && old_state != state)
                 {
-                    Dictionary<OtherButtonId, bool> dict = new Dictionary<OtherButtonId, bool>(_audio_settings[n - 1]);
+                    Dictionary<OtherButtonId, bool> dict = new Dictionary<OtherButtonId, bool>(_general_settings[n - 1]);
                     GeneralSettingsChangedHandlers?.Invoke(n, id, old_state, state, dict);
                 }
             }
@@ -53449,8 +53493,62 @@ namespace Thetis
                 case OtherButtonId.XIT0:
                     btnXITReset_Click(this, EventArgs.Empty);
                     return true;
+                case OtherButtonId.DITHER:
+                    if (!IsSetupFormNull) SetupForm.MercDither = state;
+                    return true;
+                case OtherButtonId.RANDOM:
+                    if (!IsSetupFormNull) SetupForm.MercRandom = state;
+                    return true;
+                case OtherButtonId.SR_48000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 48000); return true;
+                case OtherButtonId.SR_96000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 96000); return true;
+                case OtherButtonId.SR_192000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 192000); return true;
+                case OtherButtonId.SR_384000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 384000); return true;
+                case OtherButtonId.SR_768000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 768000); return true;
+                case OtherButtonId.SR_1536000:
+                    if (!IsSetupFormNull) SetupForm.SetHWSampleRate(rx, 1536000); return true;
             }
             return false;
+        }
+
+        public void SetHWSampleRateSetting(int rx, int rate)
+        {
+            if (rx < 1 || rx > 2) return;
+            if (!(rate == 48000 || rate == 96000 || rate == 192000 || rate == 384000 || rate == 768000 || rate == 1536000)) return;
+
+            //set all off
+            SetGeneralSetting(rx, OtherButtonId.SR_48000, false);
+            SetGeneralSetting(rx, OtherButtonId.SR_96000, false);
+            SetGeneralSetting(rx, OtherButtonId.SR_192000, false);
+            SetGeneralSetting(rx, OtherButtonId.SR_384000, false);
+            SetGeneralSetting(rx, OtherButtonId.SR_768000, false);
+            SetGeneralSetting(rx, OtherButtonId.SR_1536000, false);
+
+            switch(rate)
+            {
+                case 48000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_48000, true);
+                    break;
+                case 96000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_96000, true);
+                    break;
+                case 192000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_192000, true);
+                    break;
+                case 384000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_384000, true);
+                    break;
+                case 768000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_768000, true);
+                    break;
+                case 1536000:
+                    SetGeneralSetting(rx, OtherButtonId.SR_1536000, true);
+                    break;
+            }
         }
     }
 

@@ -840,7 +840,38 @@ namespace Thetis
             if (needsRecovering(recoveryList, "radP1DDC6ADC1")) radP1DDC6ADC1.Checked = false;
             if (needsRecovering(recoveryList, "radP1DDC6ADC2")) radP1DDC6ADC2.Checked = false;
         }
+        public void SetHWSampleRate(int rx, int rate)
+        {
+            if (rx < 1 || rx > 2) return;
+            if (!(rate == 48000 || rate == 96000 || rate == 192000 || rate == 384000 || rate == 768000 || rate == 1536000)) return;
+            if (comboAudioSampleRate1 == null || comboAudioSampleRateRX2 == null) return;
 
+            string sRate = rate.ToString();
+
+            switch (rx)
+            {
+                case 1:
+                    if (comboAudioSampleRate1.Items.Contains(rate)) comboAudioSampleRate1.Text = sRate;
+                    break;
+                case 2:
+                    if (comboAudioSampleRateRX2.Items.Contains(rate)) comboAudioSampleRateRX2.Text = sRate;
+                    break;
+            }
+        }
+        public int GetHWSampleRate(int rx)
+        {
+            // use console version of sample rate as it will be set by the selected index changed on these setup combos
+            if (rx < 1 || rx > 2) return 0;
+
+            switch (rx)
+            {
+                case 1:
+                    return console.SampleRateRX1;
+                case 2:
+                    return console.SampleRateRX2;
+            }
+            return 0;
+        }
         public void InitAudioTab(List<string> recoveryList = null, bool only_rates = false)
         {
             // refactored 2.10.3.7
@@ -7008,15 +7039,15 @@ namespace Thetis
 
         }
 
-        public void forceAudioSampleRate1(String rate)
-        {
-            comboAudioSampleRate1.Text = rate;
-        }
+        //public void forceAudioSampleRate1(String rate)
+        //{
+        //    comboAudioSampleRate1.Text = rate;
+        //}
 
-        public void forceAudioSampleRateRX2(String rate)
-        {
-            comboAudioSampleRateRX2.Text = rate;
-        }
+        //public void forceAudioSampleRateRX2(String rate)
+        //{
+        //    comboAudioSampleRateRX2.Text = rate;
+        //}
 
         public void ForceAudioReset()
         {
@@ -7264,6 +7295,8 @@ namespace Thetis
             {
                 console.HWSampleRateChangedHandlers?.Invoke(1, old_rate, new_rate);
             }
+
+            if (console != null) console.SetHWSampleRateSetting(1, new_rate);
         }
 
         private void comboAudioSampleRateRX2_SelectedIndexChanged(object sender, System.EventArgs e)
@@ -7342,6 +7375,8 @@ namespace Thetis
             {
                 console.HWSampleRateChangedHandlers?.Invoke(2, old_rate, new_rate);
             }
+
+            if (console != null) console.SetHWSampleRateSetting(2, new_rate);
         }
 
         private void comboAudioSampleRate2_SelectedIndexChanged(object sender, System.EventArgs e)
@@ -13377,13 +13412,40 @@ namespace Thetis
             if (initializing) return;
             int v = chkMercDither.Checked ? 1 : 0;
             NetworkIO.SetADCDither(v);
-        }
 
+            console.SetGeneralSetting(0, OtherButtonId.DITHER, chkMercDither.Checked);
+        }
+        public bool MercDither
+        {
+            get 
+            {
+                if (chkMercDither == null) return false;
+                return chkMercDither.Checked; 
+            }
+            set 
+            {
+                if (chkMercDither != null) chkMercDither.Checked = value;
+            }
+        }
         private void chkMercRandom_CheckedChanged(object sender, System.EventArgs e)
         {
             if (initializing) return;
             int v = chkMercRandom.Checked ? 1 : 0;
             NetworkIO.SetADCRandom(v);
+
+            console.SetGeneralSetting(0, OtherButtonId.RANDOM, chkMercRandom.Checked);
+        }
+        public bool MercRandom
+        {
+            get
+            {
+                if (chkMercRandom == null) return false;
+                return chkMercRandom.Checked;
+            }
+            set
+            {
+                if (chkMercRandom != null) chkMercRandom.Checked = value;
+            }
         }
 
         private RadioButtonTS[][] _AlexRxAntButtons = null;
