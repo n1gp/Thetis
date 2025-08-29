@@ -2926,7 +2926,12 @@ namespace Thetis
             chkLegacyItems_vfob_CheckedChanged(this, e);
             chkLegacyItems_expand_spectral_top_CheckedChanged(this, e);
             chkLegacyItems_vfosync_CheckedChanged(this, e);
-
+            chkLegacyItems_power_rx2_CheckedChanged(this, e);
+            chkLegacyItems_mon_tun_CheckedChanged(this, e);
+            chkLegacyItems_hide_split_rit_CheckedChanged(this, e);
+            chkLegacyItems_hide_noise_mnf_CheckedChanged(this, e);
+            chkLegacyItems_hide_mic_comp_CheckedChanged(this, e);
+            chkLegacyItems_hide_avg_peak_CheckedChanged(this, e);
             //
             chkDiscordEnabled_CheckedChanged(this, e);
 
@@ -35236,6 +35241,42 @@ namespace Thetis
         private void chkButtonBox_use_icons_CheckedChanged(object sender, EventArgs e)
         {
             updateMeterType();
+        }
+
+        private void chkLegacyItems_power_rx2_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HidePowerRx = chkLegacyItems_power_rx2.Checked;
+        }
+
+        private void chkLegacyItems_mon_tun_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HideMonTune = chkLegacyItems_mon_tun.Checked;
+        }
+
+        private void chkLegacyItems_hide_split_rit_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HideSplitRitVac = chkLegacyItems_hide_split_rit.Checked;
+        }
+
+        private void chkLegacyItems_hide_noise_mnf_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HideNoiseMnf = chkLegacyItems_hide_noise_mnf.Checked;
+        }
+
+        private void chkLegacyItems_hide_mic_comp_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HideMicCompVox = chkLegacyItems_hide_mic_comp.Checked;
+        }
+
+        private void chkLegacyItems_hide_avg_peak_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            LegacyItemController.HideDisplayControls = chkLegacyItems_hide_avg_peak.Checked;
         }
     }
 

@@ -3395,6 +3395,12 @@
             this.lblSkinServersInfo = new System.Windows.Forms.LabelTS();
             this.tpLegacyItems = new System.Windows.Forms.TabPage();
             this.groupBoxTS44 = new System.Windows.Forms.GroupBoxTS();
+            this.chkLegacyItems_hide_avg_peak = new System.Windows.Forms.CheckBoxTS();
+            this.chkLegacyItems_hide_mic_comp = new System.Windows.Forms.CheckBoxTS();
+            this.chkLegacyItems_hide_noise_mnf = new System.Windows.Forms.CheckBoxTS();
+            this.chkLegacyItems_hide_split_rit = new System.Windows.Forms.CheckBoxTS();
+            this.chkLegacyItems_mon_tun = new System.Windows.Forms.CheckBoxTS();
+            this.chkLegacyItems_power_rx2 = new System.Windows.Forms.CheckBoxTS();
             this.chkLegacyItems_expand_spectral_top = new System.Windows.Forms.CheckBoxTS();
             this.chkLegacyItems_vfosync = new System.Windows.Forms.CheckBoxTS();
             this.chkLegacyItems_vfob = new System.Windows.Forms.CheckBoxTS();
@@ -3966,6 +3972,7 @@
             this.chkTextOverlay_tx_on_led = new System.Windows.Forms.CheckBoxTS();
             this.chkBandButtons_band_inactive_use = new System.Windows.Forms.CheckBoxTS();
             this.chkButtonBox_fix_text_size = new System.Windows.Forms.CheckBoxTS();
+            this.chkButtonBox_use_icons = new System.Windows.Forms.CheckBoxTS();
             this.timer_VAC_Monitor = new System.Windows.Forms.Timer(this.components);
             this.timer_LED_Mirror = new System.Windows.Forms.Timer(this.components);
             this.timer_RawInputMouseWheel = new System.Windows.Forms.Timer(this.components);
@@ -4322,7 +4329,6 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
-            this.chkButtonBox_use_icons = new System.Windows.Forms.CheckBoxTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -55232,6 +55238,12 @@
             // 
             // groupBoxTS44
             // 
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_hide_avg_peak);
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_hide_mic_comp);
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_hide_noise_mnf);
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_hide_split_rit);
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_mon_tun);
+            this.groupBoxTS44.Controls.Add(this.chkLegacyItems_power_rx2);
             this.groupBoxTS44.Controls.Add(this.chkLegacyItems_expand_spectral_top);
             this.groupBoxTS44.Controls.Add(this.chkLegacyItems_vfosync);
             this.groupBoxTS44.Controls.Add(this.chkLegacyItems_vfob);
@@ -55243,16 +55255,88 @@
             this.groupBoxTS44.Controls.Add(this.chkLegacyMeters);
             this.groupBoxTS44.Location = new System.Drawing.Point(21, 16);
             this.groupBoxTS44.Name = "groupBoxTS44";
-            this.groupBoxTS44.Size = new System.Drawing.Size(457, 193);
+            this.groupBoxTS44.Size = new System.Drawing.Size(563, 259);
             this.groupBoxTS44.TabIndex = 0;
             this.groupBoxTS44.TabStop = false;
             this.groupBoxTS44.Text = "Expanded Console UI";
+            // 
+            // chkLegacyItems_hide_avg_peak
+            // 
+            this.chkLegacyItems_hide_avg_peak.AutoSize = true;
+            this.chkLegacyItems_hide_avg_peak.Image = null;
+            this.chkLegacyItems_hide_avg_peak.Location = new System.Drawing.Point(240, 213);
+            this.chkLegacyItems_hide_avg_peak.Name = "chkLegacyItems_hide_avg_peak";
+            this.chkLegacyItems_hide_avg_peak.Size = new System.Drawing.Size(153, 17);
+            this.chkLegacyItems_hide_avg_peak.TabIndex = 100;
+            this.chkLegacyItems_hide_avg_peak.Text = "Hide AVG / PEAK / CTUN";
+            this.chkLegacyItems_hide_avg_peak.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_hide_avg_peak.CheckedChanged += new System.EventHandler(this.chkLegacyItems_hide_avg_peak_CheckedChanged);
+            // 
+            // chkLegacyItems_hide_mic_comp
+            // 
+            this.chkLegacyItems_hide_mic_comp.AutoSize = true;
+            this.chkLegacyItems_hide_mic_comp.Image = null;
+            this.chkLegacyItems_hide_mic_comp.Location = new System.Drawing.Point(240, 190);
+            this.chkLegacyItems_hide_mic_comp.Name = "chkLegacyItems_hide_mic_comp";
+            this.chkLegacyItems_hide_mic_comp.Size = new System.Drawing.Size(259, 17);
+            this.chkLegacyItems_hide_mic_comp.TabIndex = 99;
+            this.chkLegacyItems_hide_mic_comp.Text = "Hide MIC / COMP etc. (sliders are not hidden yet)";
+            this.chkLegacyItems_hide_mic_comp.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_hide_mic_comp.CheckedChanged += new System.EventHandler(this.chkLegacyItems_hide_mic_comp_CheckedChanged);
+            // 
+            // chkLegacyItems_hide_noise_mnf
+            // 
+            this.chkLegacyItems_hide_noise_mnf.AutoSize = true;
+            this.chkLegacyItems_hide_noise_mnf.Image = null;
+            this.chkLegacyItems_hide_noise_mnf.Location = new System.Drawing.Point(240, 167);
+            this.chkLegacyItems_hide_noise_mnf.Name = "chkLegacyItems_hide_noise_mnf";
+            this.chkLegacyItems_hide_noise_mnf.Size = new System.Drawing.Size(228, 17);
+            this.chkLegacyItems_hide_noise_mnf.TabIndex = 98;
+            this.chkLegacyItems_hide_noise_mnf.Text = "Hide Noise / MNF / AGC / SubRX / Swap";
+            this.chkLegacyItems_hide_noise_mnf.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_hide_noise_mnf.CheckedChanged += new System.EventHandler(this.chkLegacyItems_hide_noise_mnf_CheckedChanged);
+            // 
+            // chkLegacyItems_hide_split_rit
+            // 
+            this.chkLegacyItems_hide_split_rit.AutoSize = true;
+            this.chkLegacyItems_hide_split_rit.Image = null;
+            this.chkLegacyItems_hide_split_rit.Location = new System.Drawing.Point(240, 144);
+            this.chkLegacyItems_hide_split_rit.Name = "chkLegacyItems_hide_split_rit";
+            this.chkLegacyItems_hide_split_rit.Size = new System.Drawing.Size(313, 17);
+            this.chkLegacyItems_hide_split_rit.TabIndex = 97;
+            this.chkLegacyItems_hide_split_rit.Text = "Hide SPLT / RIT / XIT / VAC (rit/xit nuds are not hidden yet)";
+            this.chkLegacyItems_hide_split_rit.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_hide_split_rit.CheckedChanged += new System.EventHandler(this.chkLegacyItems_hide_split_rit_CheckedChanged);
+            // 
+            // chkLegacyItems_mon_tun
+            // 
+            this.chkLegacyItems_mon_tun.AutoSize = true;
+            this.chkLegacyItems_mon_tun.Image = null;
+            this.chkLegacyItems_mon_tun.Location = new System.Drawing.Point(240, 121);
+            this.chkLegacyItems_mon_tun.Name = "chkLegacyItems_mon_tun";
+            this.chkLegacyItems_mon_tun.Size = new System.Drawing.Size(131, 17);
+            this.chkLegacyItems_mon_tun.TabIndex = 96;
+            this.chkLegacyItems_mon_tun.Text = "Hide MON / TUN etc.";
+            this.chkLegacyItems_mon_tun.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_mon_tun.CheckedChanged += new System.EventHandler(this.chkLegacyItems_mon_tun_CheckedChanged);
+            // 
+            // chkLegacyItems_power_rx2
+            // 
+            this.chkLegacyItems_power_rx2.AutoSize = true;
+            this.chkLegacyItems_power_rx2.Image = null;
+            this.chkLegacyItems_power_rx2.Location = new System.Drawing.Point(240, 98);
+            this.chkLegacyItems_power_rx2.Name = "chkLegacyItems_power_rx2";
+            this.chkLegacyItems_power_rx2.Size = new System.Drawing.Size(113, 17);
+            this.chkLegacyItems_power_rx2.TabIndex = 95;
+            this.chkLegacyItems_power_rx2.Text = "Hide Power / RX2";
+            this.chkLegacyItems_power_rx2.UseVisualStyleBackColor = true;
+            this.chkLegacyItems_power_rx2.CheckedChanged += new System.EventHandler(this.chkLegacyItems_power_rx2_CheckedChanged);
             // 
             // chkLegacyItems_expand_spectral_top
             // 
             this.chkLegacyItems_expand_spectral_top.AutoSize = true;
             this.chkLegacyItems_expand_spectral_top.Image = null;
-            this.chkLegacyItems_expand_spectral_top.Location = new System.Drawing.Point(19, 159);
+            this.chkLegacyItems_expand_spectral_top.Location = new System.Drawing.Point(19, 197);
             this.chkLegacyItems_expand_spectral_top.Name = "chkLegacyItems_expand_spectral_top";
             this.chkLegacyItems_expand_spectral_top.Size = new System.Drawing.Size(156, 17);
             this.chkLegacyItems_expand_spectral_top.TabIndex = 94;
@@ -55266,9 +55350,9 @@
             this.chkLegacyItems_vfosync.Image = null;
             this.chkLegacyItems_vfosync.Location = new System.Drawing.Point(240, 75);
             this.chkLegacyItems_vfosync.Name = "chkLegacyItems_vfosync";
-            this.chkLegacyItems_vfosync.Size = new System.Drawing.Size(215, 17);
+            this.chkLegacyItems_vfosync.Size = new System.Drawing.Size(294, 17);
             this.chkLegacyItems_vfosync.TabIndex = 93;
-            this.chkLegacyItems_vfosync.Text = "Hide VFOSync box (no replacement yet)";
+            this.chkLegacyItems_vfosync.Text = "Hide VFOSync box (not all items have a replacement yet)";
             this.chkLegacyItems_vfosync.UseVisualStyleBackColor = true;
             this.chkLegacyItems_vfosync.CheckedChanged += new System.EventHandler(this.chkLegacyItems_vfosync_CheckedChanged);
             // 
@@ -55300,7 +55384,7 @@
             // 
             this.chkLegacyItems_expand_spectral.AutoSize = true;
             this.chkLegacyItems_expand_spectral.Image = null;
-            this.chkLegacyItems_expand_spectral.Location = new System.Drawing.Point(19, 136);
+            this.chkLegacyItems_expand_spectral.Location = new System.Drawing.Point(19, 174);
             this.chkLegacyItems_expand_spectral.Name = "chkLegacyItems_expand_spectral";
             this.chkLegacyItems_expand_spectral.Size = new System.Drawing.Size(183, 17);
             this.chkLegacyItems_expand_spectral.TabIndex = 90;
@@ -63921,6 +64005,19 @@
             this.chkButtonBox_fix_text_size.UseVisualStyleBackColor = true;
             this.chkButtonBox_fix_text_size.CheckedChanged += new System.EventHandler(this.chkButtonBox_fix_text_size_CheckedChanged);
             // 
+            // chkButtonBox_use_icons
+            // 
+            this.chkButtonBox_use_icons.AutoSize = true;
+            this.chkButtonBox_use_icons.Image = null;
+            this.chkButtonBox_use_icons.Location = new System.Drawing.Point(265, 172);
+            this.chkButtonBox_use_icons.Name = "chkButtonBox_use_icons";
+            this.chkButtonBox_use_icons.Size = new System.Drawing.Size(52, 17);
+            this.chkButtonBox_use_icons.TabIndex = 170;
+            this.chkButtonBox_use_icons.Text = "Icons";
+            this.toolTip1.SetToolTip(this.chkButtonBox_use_icons, "Use icons if a buton has one associated with it.");
+            this.chkButtonBox_use_icons.UseVisualStyleBackColor = true;
+            this.chkButtonBox_use_icons.CheckedChanged += new System.EventHandler(this.chkButtonBox_use_icons_CheckedChanged);
+            // 
             // timer_VAC_Monitor
             // 
             this.timer_VAC_Monitor.Enabled = true;
@@ -68825,19 +68922,6 @@
             this.radioButtonTS6.TabStop = true;
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
-            // 
-            // chkButtonBox_use_icons
-            // 
-            this.chkButtonBox_use_icons.AutoSize = true;
-            this.chkButtonBox_use_icons.Image = null;
-            this.chkButtonBox_use_icons.Location = new System.Drawing.Point(265, 172);
-            this.chkButtonBox_use_icons.Name = "chkButtonBox_use_icons";
-            this.chkButtonBox_use_icons.Size = new System.Drawing.Size(52, 17);
-            this.chkButtonBox_use_icons.TabIndex = 170;
-            this.chkButtonBox_use_icons.Text = "Icons";
-            this.toolTip1.SetToolTip(this.chkButtonBox_use_icons, "Use icons if a buton has one associated with it.");
-            this.chkButtonBox_use_icons.UseVisualStyleBackColor = true;
-            this.chkButtonBox_use_icons.CheckedChanged += new System.EventHandler(this.chkButtonBox_use_icons_CheckedChanged);
             // 
             // Setup
             // 
@@ -74522,5 +74606,11 @@
         private ucOtherButtonsOptionsGrid ucOtherButtonsOptionsGrid_buttons;
         private CheckBoxTS chkButtonBox_fix_text_size;
         private CheckBoxTS chkButtonBox_use_icons;
+        private CheckBoxTS chkLegacyItems_mon_tun;
+        private CheckBoxTS chkLegacyItems_power_rx2;
+        private CheckBoxTS chkLegacyItems_hide_avg_peak;
+        private CheckBoxTS chkLegacyItems_hide_mic_comp;
+        private CheckBoxTS chkLegacyItems_hide_noise_mnf;
+        private CheckBoxTS chkLegacyItems_hide_split_rit;
     }
 }

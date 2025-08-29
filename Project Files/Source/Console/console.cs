@@ -31155,6 +31155,52 @@ namespace Thetis
             udTXFilterLow.Visible = visible;
             udTXFilterHigh.Visible = visible;
         }
+        public void PowerRxPanelVisible(bool visible)
+        {
+            panelPower.Visible = visible;
+        }
+        public void MonTunePanelVisible(bool visible)
+        {
+            panelOptions.Visible = visible;
+        }
+        public void SplitRitVacPanelVisible(bool visible)
+        {
+            //panelVFO.Visible = false;  //we have no replacement for rit nud controls yet
+            foreach(Control c in panelVFO.Controls)
+            {
+                if (c.GetType() == typeof(NumericUpDownTS) || c.GetType() == typeof(NumericUpDown)) continue;
+                c.Visible = visible;
+            }
+        }
+        public void NoiseMnfPanelVisible(bool visible)
+        {
+            panelDSP.Visible = visible;
+            panelRX2DSP.Visible = visible;
+
+            //hide the agc controls on rx1, as rx2 is part of panelRX2DSP
+            lblAGC.Visible = visible;
+            comboAGC.Visible = visible;
+
+            //here for now, but part of audio
+            chkEnableMultiRX.Visible = visible;
+            chkPanSwap.Visible = visible;
+            chkRXEQ.Visible = visible;
+            chkTXEQ.Visible = visible;
+            chkShowTXFilter.Visible = visible;
+        }
+        public void MicCompVoxPanelVisible(bool visible)
+        {
+            //panelModeSpecificPhone
+            chkMicMute.Visible = visible;
+			chkCPDR.Visible = visible;
+            chkVOX.Visible = visible;
+            chkNoiseGate.Visible = visible;
+        }
+        public void DisplayControlsPanelVisible(bool visible)
+        {
+            panelDisplay2.Visible = visible;
+            panelRX2Display.Visible = visible;
+        }
         public void ExtendPanelDisplaySizeRight(bool expand)
         {
             if (IsCollapsedView && !IsExpandedView) // to be sure to be sure
