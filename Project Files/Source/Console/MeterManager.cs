@@ -2090,6 +2090,21 @@ namespace Thetis
             resource_bitmaps.Add("play", Properties.Resources.ob_play);
             resource_bitmaps.Add("power", Properties.Resources.ob_power);
             resource_bitmaps.Add("record", Properties.Resources.ob_circle);
+            resource_bitmaps.Add("mute_on", Properties.Resources.ob_mute_on);
+            resource_bitmaps.Add("mute_off", Properties.Resources.ob_mute_off);
+            resource_bitmaps.Add("mic_off", Properties.Resources.ob_mic_off);
+            resource_bitmaps.Add("mic_on", Properties.Resources.ob_mic_on);
+            resource_bitmaps.Add("spectrum", Properties.Resources.ob_spectrum);
+            resource_bitmaps.Add("scope", Properties.Resources.ob_scope);
+            resource_bitmaps.Add("scope2", Properties.Resources.ob_scope2);
+            resource_bitmaps.Add("histogram", Properties.Resources.ob_histogram);
+            resource_bitmaps.Add("phase", Properties.Resources.ob_phase);
+            resource_bitmaps.Add("panadapter", Properties.Resources.ob_panadapter);
+            resource_bitmaps.Add("waterfall", Properties.Resources.ob_waterfall);
+            resource_bitmaps.Add("panafall", Properties.Resources.ob_panafall);
+            resource_bitmaps.Add("panascope", Properties.Resources.ob_panascope);
+            resource_bitmaps.Add("spectrascope", Properties.Resources.ob_spectrascope);
+            resource_bitmaps.Add("display_off", Properties.Resources.ob_display_off);
             //
 
             foreach (KeyValuePair<string, System.Drawing.Bitmap> kvp in resource_bitmaps)
@@ -7545,18 +7560,27 @@ namespace Thetis
                                     sText = "SPLT";
                             }
                             break;
-                        case OtherButtonId.POWER:
-                            SetTextIsIconName(1, i, true);
-                            sText = "power";
-                            break;
-                        case OtherButtonId.REC:
-                            SetTextIsIconName(1, i, true);
-                            sText = "record";
-                            break;
-                        case OtherButtonId.PLAY:
-                            SetTextIsIconName(1, i, true);
-                            sText = "play";
-                            break;
+                        //case OtherButtonId.POWER:
+                        //    SetTextIsIconName(1, i, UseIcons);
+                        //    if (UseIcons)
+                        //        sText = "power";
+                        //    else
+                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
+                        //    break;
+                        //case OtherButtonId.REC:
+                        //    SetTextIsIconName(1, i, UseIcons);
+                        //    if (UseIcons)
+                        //        sText = "record";
+                        //    else
+                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
+                        //    break;
+                        //case OtherButtonId.PLAY:
+                        //    SetTextIsIconName(1, i, UseIcons);
+                        //    if (UseIcons)
+                        //        sText = "play";
+                        //    else
+                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
+                        //    break;
                         case OtherButtonId.XPA:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             (bool in_use, bool enabled) = _console.GetXPAStatus();
@@ -7577,6 +7601,25 @@ namespace Thetis
                         default:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             break;
+                    }
+
+                    if(UseIcons)
+                    {
+                        (string icon_on, string icon_off) = OtherButtonIdHelpers.BitToIcon(bit_group, bit);
+                        if(!string.IsNullOrEmpty(icon_on))
+                        {
+                            SetIconOn(1, i, icon_on);
+                            SetIconOff(1, i, icon_off);
+                            SetUseIcon(1, i, true);
+                        }
+                        else
+                        {
+                            SetUseIcon(1, i, false);
+                        }
+                    }
+                    else
+                    {
+                        SetUseIcon(1, i, false);
                     }
 
                     SetText(1, i, sText);
@@ -9341,6 +9384,8 @@ namespace Thetis
             private float _font_shift_x;
             private float _font_shift_y;
 
+            private bool _fix_text_size;
+
             private System.Drawing.Color[][] _fill_colour;
             private System.Drawing.Color[][] _hover_colour;
             private System.Drawing.Color[][] _border_colour;
@@ -9362,7 +9407,9 @@ namespace Thetis
 
             private string[][] _text;
 
-            private bool[][] _text_is_icon_name;
+            private bool[][] _use_icon;
+            private string[][] _icon_on;
+            private string[][] _icon_off;
 
             private bool[][] _enabled;
 
@@ -9374,6 +9421,8 @@ namespace Thetis
             private bool _rebuild_buttons;
 
             private int _total_buttons_visible;
+
+            private bool _use_icons;
 
             public clsButtonBox()
             {
@@ -9390,7 +9439,10 @@ namespace Thetis
                 _font_shift_x = 0f;
                 _font_shift_y = 0f;
 
-                _rebuild_buttons = true;                
+                _fix_text_size = false;
+                _use_icons = true;
+
+                _rebuild_buttons = true;
 
                 UpdateInterval = 50;
 
@@ -9419,7 +9471,9 @@ namespace Thetis
 
                 _text = new string[2][];
 
-                _text_is_icon_name = new bool[2][];
+                _use_icon = new bool[2][];
+                _icon_on = new string[2][];
+                _icon_off = new string[2][];
 
                 _enabled = new bool[2][];
                 _visible = new bool[2][];
@@ -9450,7 +9504,9 @@ namespace Thetis
 
                     _text[n] = new string[MAX_BUTTONS];
 
-                    _text_is_icon_name[n] = new bool[MAX_BUTTONS];
+                    _use_icon[n] = new bool[MAX_BUTTONS];
+                    _icon_on[n] = new string[MAX_BUTTONS];
+                    _icon_off[n] = new string[MAX_BUTTONS];
 
                     _enabled[n] = new bool[MAX_BUTTONS];
                     _visible[n] = new bool[MAX_BUTTONS];
@@ -9487,7 +9543,10 @@ namespace Thetis
                         _font_colour[n][b] = System.Drawing.Color.White;
 
                         _text[n][b] = "";
-                        _text_is_icon_name[n][b] = false;
+
+                        _use_icon[n][b] = false;
+                        _icon_on[n][b] = "";
+                        _icon_off[n][b] = "";
 
                         _enabled[n][b] = true;
                         _visible[n][b] = true;
@@ -9517,6 +9576,16 @@ namespace Thetis
             {
                 get { return _font_shift_y; }
                 set { _font_shift_y = value; }
+            }
+            public bool FixTextSize
+            {
+                get { return _fix_text_size; }
+                set { _fix_text_size = value; }
+            }
+            public bool UseIcons
+            {
+                get { return _use_icons; }
+                set { _use_icons = value; }
             }
             public int ButtonIndex
             {
@@ -9714,15 +9783,35 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return "";
                 return _text[bank][button];
             }
-            public void SetTextIsIconName(int bank, int button, bool icon)
+            public void SetIconOn(int bank, int button, string text)
             {
                 if (button < 0 || button >= _number_of_buttons) return;
-                _text_is_icon_name[bank][button] = icon;
+                _icon_on[bank][button] = text;
             }
-            public bool GetTextIsIconName(int bank, int button)
+            public string GetIconOn(int bank, int button)
+            {
+                if (button < 0 || button >= _number_of_buttons) return "";
+                return _icon_on[bank][button];
+            }
+            public void SetIconOff(int bank, int button, string text)
+            {
+                if (button < 0 || button >= _number_of_buttons) return;
+                _icon_off[bank][button] = text;
+            }
+            public string GetIconOff(int bank, int button)
+            {
+                if (button < 0 || button >= _number_of_buttons) return "";
+                return _icon_off[bank][button];
+            }
+            public void SetUseIcon(int bank, int button, bool icon)
+            {
+                if (button < 0 || button >= _number_of_buttons) return;
+                _use_icon[bank][button] = icon;
+            }
+            public bool GetUseIcon(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
-                return _text_is_icon_name[bank][button];
+                return _use_icon[bank][button];
             }
             public void SetEnabled(int bank, int button, bool enabled)
             {
@@ -22264,7 +22353,10 @@ namespace Thetis
                                             bb.FontShiftX = igs.GetSetting<float>("buttonbox_font_shift_x", true, -0.25f, 0.25f, 0f);
                                             bb.FontShiftY = igs.GetSetting<float>("buttonbox_font_shift_y", true, -0.25f, 0.25f, 0f);
 
-                                            if(mt == MeterType.OTHER_BUTTONS)
+                                            bb.FixTextSize = igs.GetSetting<bool>("buttonbox_fix_text_size", false, false, false, false);
+                                            bb.UseIcons = igs.GetSetting<bool>("buttonbox_use_icons", false, false, false, true);
+
+                                            if (mt == MeterType.OTHER_BUTTONS)
                                             {
                                                 for (int n = 0; n < clsOtherButtons.BITFIELD_GROUPS; n++)
                                                 {
@@ -23562,6 +23654,9 @@ namespace Thetis
                                             igs.SetSetting<float>("buttonbox_font_scale", bb.FontScale);
                                             igs.SetSetting<float>("buttonbox_font_shift_x", bb.FontShiftX);
                                             igs.SetSetting<float>("buttonbox_font_shift_y", bb.FontShiftY);
+
+                                            igs.SetSetting<bool>("buttonbox_fix_text_size", bb.FixTextSize);
+                                            igs.SetSetting<bool>("buttonbox_use_icons", bb.UseIcons);
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
@@ -26419,6 +26514,7 @@ namespace Thetis
             }
             private void convertImageToDX(string sID, bool make_bitmap_brush = false)
             {
+                if (string.IsNullOrEmpty(sID)) return;
                 if (_images.ContainsKey(sID)) return;
 
                 System.Drawing.Bitmap cachedBMP = MeterManager.GetBitmap(sID);
@@ -33374,7 +33470,7 @@ namespace Thetis
                             System.Drawing.Color indicator_colour;
                             bool indicator_draw;
 
-                            if(bb.GetOn(1, button_index))
+                            if(on)
                             {
                                 indicator_colour = on_colour;
                                 indicator_draw = true;
@@ -33554,25 +33650,33 @@ namespace Thetis
                                 float cx = rectBB.Left + (rectBB.Width / 2f);
                                 float cy = rectBB.Top + (rectBB.Height / 2f);
 
-                                if (bb.GetTextIsIconName(1, button_index))
+                                if (bb.GetUseIcon(1, button_index))
                                 {
-                                    convertImageToDX(text, true);
+                                    string icon_on = bb.GetIconOn(1, button_index);
+                                    string icon_off = bb.GetIconOff(1, button_index);
 
-                                    if (_images.ContainsKey(text) && _bitmap_brushes.ContainsKey(text))
+                                    convertImageToDX(icon_on, true);
+                                    convertImageToDX(icon_off, true);
+
+                                    if (string.IsNullOrEmpty(icon_off)) icon_off = icon_on;
+                                    string icon = on ? icon_on : icon_off;
+
+                                    if (!string.IsNullOrEmpty(icon) && _images.ContainsKey(icon) && _bitmap_brushes.ContainsKey(icon))
                                     {
                                         Matrix3x2 originalTransform = _renderTarget.Transform;
                                         AntialiasMode originalAM = _renderTarget.AntialiasMode;
                                         _renderTarget.AntialiasMode = AntialiasMode.Aliased;
                                         _renderTarget.Transform = Matrix3x2.Identity;
 
-                                        SharpDX.Direct2D1.Bitmap b = _images[text];
+                                        SharpDX.Direct2D1.Bitmap b = _images[icon];
 
                                         float smallest_dim = rectBB.Size.Width <= rectBB.Height ? rectBB.Size.Width : rectBB.Size.Height;
                                         float icon_size = smallest_dim * bb.FontScale * 0.7f;
 
                                         SharpDX.RectangleF rct = new SharpDX.RectangleF(cx - (icon_size / 2f), cy - (icon_size / 2f), icon_size, icon_size);
 
-                                        _renderTarget.FillOpacityMask(b, getDXBrushForColour(text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255), OpacityMaskContent.Graphics, rct, new RawRectangleF(0, 0, b.Size.Width, b.Size.Height));
+                                        _renderTarget.FillOpacityMask(b, getDXBrushForColour(text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255), 
+                                            OpacityMaskContent.Graphics, rct, new RawRectangleF(0, 0, b.Size.Width, b.Size.Height));
 
                                         _renderTarget.AntialiasMode = originalAM;
                                         _renderTarget.Transform = originalTransform;
@@ -33580,7 +33684,25 @@ namespace Thetis
                                 }
                                 else
                                 {
-                                    plotText(text, cx + (bb.FontShiftX * wh / (float)(buttons_per_row * 2f)), cy + (bb.FontShiftY * wh / (float)(buttons_per_row * 2f)), rect.Width, bb.GetFontSize(1, button_index), text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255, bb.GetFontFamily(1, button_index), bb.GetFontStyle(1, button_index), false, true, rectBB.Width * text_size_modifier * bb.FontScale, true, rectBB.Height * text_size_modifier * bb.FontScale);
+                                    float text_box_width;
+                                    float text_box_height;
+                                    float font_size = bb.GetFontSize(1, button_index);
+
+                                    if (bb.FixTextSize)
+                                    {
+                                        text_box_width = 0;
+                                        text_box_height = 0;
+                                        font_size *= 2.95f * bb.FontScale;
+                                    }
+                                    else
+                                    {
+                                        text_box_width = rectBB.Width * text_size_modifier * bb.FontScale;
+                                        text_box_height = rectBB.Height * text_size_modifier * bb.FontScale;
+                                    }
+
+                                    plotText(text, cx + (bb.FontShiftX * wh / (float)(buttons_per_row * 2f)), cy + (bb.FontShiftY * wh / (float)(buttons_per_row * 2f)),
+                                        rect.Width, font_size, text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255, bb.GetFontFamily(1, button_index),
+                                        bb.GetFontStyle(1, button_index), false, true, text_box_width, true, text_box_height);
                                 }
                             }
                         }

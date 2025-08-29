@@ -872,6 +872,7 @@ namespace Thetis
             //MW0LGE [2.9.0.8]
             //start multimer renderers
             Splash.SetStatus("Setting up meters");
+            initGeneralSettings(0);
             MeterManager.RunAllRendererDisplays();
 
             Splash.SetStatus("Setting up DSP");                       // Set progress point
@@ -918,8 +919,6 @@ namespace Thetis
             _frmFinder.GatherSearchData(psform, psform.ToolTip);
             _frmFinder.GatherCATStructData(Application.StartupPath + "\\CATStructs.xml");
             _frmFinder.WriteXmlFinderFile(AppDataPath); // note: this will only happen if not already there
-
-            
 
             Splash.SetStatus("Finished");
 
@@ -53289,6 +53288,36 @@ namespace Thetis
                     return XITOn;
             }
             return false;
+        }
+        private void initGeneralSettings(int rx)
+        {
+            if (rx < 0 || rx > 2) return; //0 is all meters
+
+            int tmp_rx = 1; // all these are rx agnostic, so just pass in rx1
+            SetGeneralSetting(0, OtherButtonId.MIC, GetGeneralSetting(tmp_rx, OtherButtonId.MIC));
+            SetGeneralSetting(0, OtherButtonId.VOX, GetGeneralSetting(tmp_rx, OtherButtonId.VOX));
+            SetGeneralSetting(0, OtherButtonId.DEXP, GetGeneralSetting(tmp_rx, OtherButtonId.DEXP));
+            SetGeneralSetting(0, OtherButtonId.TX_FILTER, GetGeneralSetting(tmp_rx, OtherButtonId.TX_FILTER));
+            SetGeneralSetting(0, OtherButtonId.RX_EQ, GetGeneralSetting(tmp_rx, OtherButtonId.RX_EQ));
+            SetGeneralSetting(0, OtherButtonId.TX_EQ, GetGeneralSetting(tmp_rx, OtherButtonId.TX_EQ));
+            SetGeneralSetting(0, OtherButtonId.RIT, GetGeneralSetting(tmp_rx, OtherButtonId.RIT));
+            SetGeneralSetting(0, OtherButtonId.XIT, GetGeneralSetting(tmp_rx, OtherButtonId.XIT));
+            SetGeneralSetting(0, OtherButtonId.COMP, GetGeneralSetting(tmp_rx, OtherButtonId.COMP));
+            SetGeneralSetting(0, OtherButtonId.PAUSE, GetGeneralSetting(tmp_rx, OtherButtonId.PAUSE));
+            SetGeneralSetting(0, OtherButtonId.LEVELER, GetGeneralSetting(tmp_rx, OtherButtonId.LEVELER));
+            SetGeneralSetting(0, OtherButtonId.FILL_SPECTRUM, GetGeneralSetting(tmp_rx, OtherButtonId.FILL_SPECTRUM));
+            SetGeneralSetting(0, OtherButtonId.CFC, GetGeneralSetting(tmp_rx, OtherButtonId.CFC));
+            SetGeneralSetting(0, OtherButtonId.CFC_EQ, GetGeneralSetting(tmp_rx, OtherButtonId.CFC_EQ));
+            SetGeneralSetting(0, OtherButtonId.PEAK_BLOBS, GetGeneralSetting(tmp_rx, OtherButtonId.PEAK_BLOBS));
+            SetGeneralSetting(0, OtherButtonId.CURSOR_INFO, GetGeneralSetting(tmp_rx, OtherButtonId.CURSOR_INFO));
+            SetGeneralSetting(0, OtherButtonId.SPOTS, GetGeneralSetting(tmp_rx, OtherButtonId.SPOTS));
+
+            // per meter here
+            //int start = rx == 0 ? 1 : rx;
+            //int end = rx == 0 ? 2 : rx;
+            //for (int n = start; n <= end; n++)
+            //{
+            //}
         }
         public void SetGeneralSetting(int rx, OtherButtonId id, bool state)
         {

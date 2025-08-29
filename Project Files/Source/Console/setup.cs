@@ -25651,6 +25651,9 @@ namespace Thetis
                 igs.SetSetting<float>("buttonbox_font_shift_x", (float)nudButtonBox_font_x_shift.Value);
                 igs.SetSetting<float>("buttonbox_font_shift_y", (float)nudButtonBox_font_y_shift.Value);
 
+                igs.SetSetting<bool>("buttonbox_fix_text_size", chkButtonBox_fix_text_size.Checked);
+                igs.SetSetting<bool>("buttonbox_use_icons", chkButtonBox_use_icons.Checked);
+
                 if (_bandButtons_font != null)
                 {
                     igs.FontFamily1 = _bandButtons_font.FontFamily.Name;
@@ -26299,6 +26302,9 @@ namespace Thetis
                 nudButtonBox_font_scale.Value = (decimal)igs.GetSetting<float>("buttonbox_font_scale", true, 0.01f, 2f, 1f);
                 nudButtonBox_font_x_shift.Value = (decimal)igs.GetSetting<float>("buttonbox_font_shift_x", true, -0.25f, 0.25f, 0f);
                 nudButtonBox_font_y_shift.Value = (decimal)igs.GetSetting<float>("buttonbox_font_shift_y", true, -0.25f, 0.25f, 0f);
+
+                chkButtonBox_fix_text_size.Checked = igs.GetSetting<bool>("buttonbox_fix_text_size", false, false, false, false);
+                chkButtonBox_use_icons.Checked = igs.GetSetting<bool>("buttonbox_use_icons", false, false, false, true);
 
                 _bandButtons_font = new Font(igs.FontFamily1, igs.FontSize1, igs.FontStyle1);
                 chkBandButtons_fade_rx.Checked = igs.FadeOnRx;
@@ -27151,18 +27157,20 @@ namespace Thetis
                         grpBandButtons.Location = loc;
                         grpBandButtons.Visible = true;
 
+                        Point pos = new Point(150, 194);
+
                         switch (mt)
                         {
                             case MeterType.ANTENNA_BUTTONS:
                                 pnlButtonBox_antenna_toggles.Parent = grpBandButtons;
-                                pnlButtonBox_antenna_toggles.Location = new Point(166, 194);
+                                pnlButtonBox_antenna_toggles.Location = pos;
                                 pnlButtonBox_antenna_toggles.Visible = true;
                                 ucTunestepOptionsGrid_buttons.Visible = false;
                                 ucOtherButtonsOptionsGrid_buttons.Visible = false;
                                 break;
                             case MeterType.TUNESTEP_BUTTONS:
                                 ucTunestepOptionsGrid_buttons.Parent = grpBandButtons;
-                                ucTunestepOptionsGrid_buttons.Location = new Point(166, 194);
+                                ucTunestepOptionsGrid_buttons.Location = pos;
                                 ucTunestepOptionsGrid_buttons.Visible = true;
                                 pnlButtonBox_antenna_toggles.Visible = false;
                                 ucOtherButtonsOptionsGrid_buttons.Visible = false;
@@ -27173,7 +27181,7 @@ namespace Thetis
                                 break;
                             case MeterType.OTHER_BUTTONS:
                                 ucOtherButtonsOptionsGrid_buttons.Parent = grpBandButtons;
-                                ucOtherButtonsOptionsGrid_buttons.Location = new Point(166, 194);
+                                ucOtherButtonsOptionsGrid_buttons.Location = pos;
                                 ucOtherButtonsOptionsGrid_buttons.Visible = true;
                                 ucTunestepOptionsGrid_buttons.Visible = false;
                                 pnlButtonBox_antenna_toggles.Visible = false;                                    
@@ -35216,6 +35224,16 @@ namespace Thetis
         }
 
         private void ucOtherButtonsOptionsGrid_buttons_CheckboxChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+        }
+
+        private void chkButtonBox_fix_text_size_CheckedChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+        }
+
+        private void chkButtonBox_use_icons_CheckedChanged(object sender, EventArgs e)
         {
             updateMeterType();
         }
