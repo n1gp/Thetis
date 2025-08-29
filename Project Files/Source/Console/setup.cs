@@ -25201,9 +25201,20 @@ namespace Thetis
             //mtci_tmp = new clsMeterTypeComboboxItem(MeterType.TEXT_OVERLAY, -1);
             //notinuse.Add(mtci_tmp);
 
+
             foreach (clsMeterTypeComboboxItem mtci in notinuse)
             {
-                lstMetersAvailable.Items.Add(mtci);
+                //if ((int)mtci.MeterType < (int)MeterType.MAGIC_EYE)
+                //{
+                //    // add directly as these are not special items
+                //    lstMetersAvailable.Items.Add(mtci);
+                //}
+                //else
+                //{
+                    // work out where to add it alphabetically, per block, rx, tx, special
+                    int insert_pos = findIndexForInsertOfSpecialItem(mtci, lstMetersAvailable);
+                    lstMetersAvailable.Items.Insert(insert_pos, mtci);
+                //}
             }
             foreach (clsMeterTypeComboboxItem mtci in inuse.OrderBy(o => o.Order))
             {
@@ -25213,7 +25224,51 @@ namespace Thetis
             lstMetersAvailable_SelectedIndexChanged(this, EventArgs.Empty);
             lstMetersInUse_SelectedIndexChanged(this, EventArgs.Empty);
         }
+        private int findIndexForInsertOfSpecialItem(clsMeterTypeComboboxItem mtci, ListBox lb)
+        {
+            // block 0=rx, 1=tx, 2=special
+            if (lb == null || mtci == null) return 0;
+            if (lb.Items.Count == 0) return 0;
 
+            MeterType t = mtci.MeterType;
+            int block = -1;
+            if( ((int)t > (int)MeterType.NONE) && ((int)t <= (int)MeterType.ESTIMATED_PBSNR) )
+            {
+                block = 0;
+            }
+            else if (((int)t >= (int)MeterType.MIC) && ((int)t <= (int)MeterType.SWR))
+            {
+                block = 1;
+            }
+            else if (((int)t >= (int)MeterType.MAGIC_EYE) && ((int)t < (int)MeterType.LAST))
+            {
+                block = 2;
+            }
+            else
+                return 0;
+
+            for (int n = 0; n < lb.Items.Count; n++)
+            {
+                clsMeterTypeComboboxItem mi = (clsMeterTypeComboboxItem)lb.Items[n];
+                bool good_block = false;
+                switch (block)
+                {
+                    case 0:
+                        good_block = ((int)mi.MeterType > (int)MeterType.NONE) && ((int)mi.MeterType <= (int)MeterType.ESTIMATED_PBSNR);
+                        break;
+                    case 1:
+                        good_block = ((int)mi.MeterType >= (int)MeterType.MIC) &&((int)mi.MeterType <= (int)MeterType.SWR);
+                        break;
+                    case 2:
+                        good_block = ((int)mi.MeterType >= (int)MeterType.MAGIC_EYE) && ((int)mi.MeterType < (int)MeterType.LAST);
+                        break;
+                }
+                if (!good_block) continue;
+
+                if (string.Compare(mtci.ToString(), MeterManager.MeterName(mi.MeterType), true) < 0) return n;
+            }
+            return lb.Items.Count;
+        }
         private void btnContainerDelete_Click(object sender, EventArgs e)
         {
             if (chkLockContainer.Checked) return;
