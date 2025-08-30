@@ -25710,7 +25710,7 @@ namespace Thetis
                 if (mt == MeterType.OTHER_BUTTONS)
                 {
                     int max_buttons = 0;
-                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), ucOtherButtonsOptionsGrid_buttons.GetBitfield(n));
                         max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
@@ -26326,7 +26326,7 @@ namespace Thetis
 
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
-                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         ucOtherButtonsOptionsGrid_buttons.SetBitfield(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
                     }
@@ -26389,7 +26389,7 @@ namespace Thetis
                         break;
                     case MeterType.OTHER_BUTTONS:
                         max_buttons = 0;
-                        for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                        for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                         {
                             max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
                         }
@@ -27481,7 +27481,7 @@ namespace Thetis
 
                 if(mt == MeterType.OTHER_BUTTONS)
                 {
-                    for (int n = 0; n < MeterManager.clsOtherButtons.BITFIELD_GROUPS; n++)
+                    for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
                     }

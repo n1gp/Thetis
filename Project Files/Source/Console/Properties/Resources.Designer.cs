@@ -672,6 +672,26 @@ namespace Thetis.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap ob_mute_all_off {
+            get {
+                object obj = ResourceManager.GetObject("ob_mute_all_off", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap ob_mute_all_on {
+            get {
+                object obj = ResourceManager.GetObject("ob_mute_all_on", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap ob_mute_off {
             get {
                 object obj = ResourceManager.GetObject("ob_mute_off", resourceCulture);

@@ -1651,9 +1651,10 @@ namespace Thetis
             process_key(e.KeyChar);
         }
 
-        // process the 'Key' button which start transmitter with key down
-        private void keyButton_Click(object sender, System.EventArgs e)	// the 'Key' button
+        public void KeyAction()
         {
+            if (!_shown) return;
+
             if (keying)
             {
                 quitshut();
@@ -1680,6 +1681,11 @@ namespace Thetis
             setptt(true);
             setkey(true);
             keying = true;
+        }
+        // process the 'Key' button which start transmitter with key down
+        private void keyButton_Click(object sender, System.EventArgs e)	// the 'Key' button
+        {
+            KeyAction();
         }
         private bool checkPTT(bool bShowWarning = true)
         {
@@ -1735,6 +1741,7 @@ namespace Thetis
             //	e.Cancel = true;
         }
         private bool _shown = false;
+        public bool IsShown { get { return _shown; } }
         public new void Show()
         { // shadow of show
 
@@ -1750,6 +1757,8 @@ namespace Thetis
             _shown = true;
 
             base.Show();
+
+            if (console != null) console.CWXShownHandlers?.Invoke(_shown);
         }
 
         // Callback method called by the Win32 multimedia timer when a timer
@@ -1759,6 +1768,12 @@ namespace Thetis
             process_element();
         }
 
+        public void PressFNkey(int fn_number)
+        {
+            if (!_shown) return;
+            if (fn_number < 1 || fn_number > 9) return;
+            queue_start(fn_number);
+        }
         private void s1_Click(object sender, System.EventArgs e)
         {
 
@@ -1853,12 +1868,17 @@ namespace Thetis
             if (e.Button.Equals(MouseButtons.Right)) msg2keys(9);
         }
 
-        // stop button clicked
-        private void stopButton_Click(object sender, System.EventArgs e)
+        public void StopAction()
         {
+            if (!_shown) return;
             clear_show();
             quit = true;
             kquit = true;
+        }
+        // stop button clicked
+        private void stopButton_Click(object sender, System.EventArgs e)
+        {
+            StopAction();
         }
         private void udWPM_ValueChanged(object sender, System.EventArgs e)
         {
@@ -2487,6 +2507,8 @@ namespace Thetis
             _shown = false;
             e.Cancel = true;
             this.Hide();
+
+            if(console != null) console.CWXShownHandlers?.Invoke(_shown);
         }
 
         private void backspace()

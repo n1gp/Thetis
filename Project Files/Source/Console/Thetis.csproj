@@ -850,6 +850,8 @@
     <None Include="Resources\ob_spectrascope.png" />
     <None Include="Resources\ob_panafall.png" />
     <None Include="Resources\ob_display_off.png" />
+    <None Include="Resources\ob_mute_all_on.png" />
+    <None Include="Resources\ob_mute_all_off.png" />
     <Content Include="Resources\Thetis2_256.ico" />
     <Content Include="Resources\Thetis2_48.ico" />
     <None Include="Resources\resizegrab.png" />

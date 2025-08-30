@@ -16,6 +16,7 @@ Please report any issue over on [GitHub here](https://github.com/ramdor/Thetis/i
 - [add] it is now possible to use the condition of a led indicator to show/hide text overlay
 - [add] new meter item, OtherButtons. Some buttons have icons associated with them. Also button style 13 uses active indicator colour for the text/icon colour. New [fix] option that ignores button size, and uses Scale instead. 
 - [add] more legacy items can be hidden
+- [change] on DirectX errors RecreateTarget, DeviceRemoved and DeviceReset, the display engines will now attempt to restart, up to a total of 10 times
 - [change] available meter items are listed alphabetically per rx/tx/special group
 - [change] changed ZZIS cat command so that it takes/returns the actual filter width and not the slider width position. ZZIS; will return ZZISxxxxx; where xxxxx is 0 padded filter width. ZZIS00500; will set filter width to 500HZ. Symmetrical modes such as AM, SAM will take the full size width, so ZZIS20000; will be +-10k on AM. Note. FilterWdithMode is switched to linear whilst this is applied
 - [change] private scope added to in/out firewall rules when [Firewall Check] is used from Setup. Previously was only setting Domain + Public
@@ -30,6 +31,7 @@ Please report any issue over on [GitHub here](https://github.com/ramdor/Thetis/i
 - [fix] fixed a CAT tci/ip server issue where AI broadcast messages could get interleaved between a cat request and reply, which could cause issues for external systems that rely on a correct response, such as HamLib.
 - [fix] cw auto mode switch will now not return to previous non cw mode if activated from cw. The return delay now works as expected
 - [fix] text overlay now displays vfob mode correctly
+- [fix] unnecessary recursive calling when setting PreampMode and AttenuatorData
 
 ## v2.10.3.11 - Change Log
 - [add] two new noise reduction methods added, NR3 and NR4. When starting up this version for the first time if NR was enabled, will now be set to off. Settings in the normal NR settings page of Setup

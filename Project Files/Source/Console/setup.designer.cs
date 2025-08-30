@@ -65203,6 +65203,7 @@
             // ucOtherButtonsOptionsGrid_buttons
             // 
             this.ucOtherButtonsOptionsGrid_buttons.AutoScroll = true;
+            this.ucOtherButtonsOptionsGrid_buttons.BackColor = System.Drawing.SystemColors.ControlLight;
             this.ucOtherButtonsOptionsGrid_buttons.Location = new System.Drawing.Point(465, 24);
             this.ucOtherButtonsOptionsGrid_buttons.Name = "ucOtherButtonsOptionsGrid_buttons";
             this.ucOtherButtonsOptionsGrid_buttons.Size = new System.Drawing.Size(170, 178);

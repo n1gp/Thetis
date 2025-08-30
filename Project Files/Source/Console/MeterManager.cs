@@ -2092,6 +2092,8 @@ namespace Thetis
             resource_bitmaps.Add("record", Properties.Resources.ob_circle);
             resource_bitmaps.Add("mute_on", Properties.Resources.ob_mute_on);
             resource_bitmaps.Add("mute_off", Properties.Resources.ob_mute_off);
+            resource_bitmaps.Add("mute_all_on", Properties.Resources.ob_mute_all_on);
+            resource_bitmaps.Add("mute_all_off", Properties.Resources.ob_mute_all_off);
             resource_bitmaps.Add("mic_off", Properties.Resources.ob_mic_off);
             resource_bitmaps.Add("mic_on", Properties.Resources.ob_mic_on);
             resource_bitmaps.Add("spectrum", Properties.Resources.ob_spectrum);
@@ -3056,6 +3058,7 @@ namespace Thetis
             _console.AGCAutoModeChangedHandlers += OnAGCAutoModeChanged;
             _console.GeneralSettingsChangedHandlers += OnGeneralSettingsChanged;
             _console.SQLChangedHandlers += OnSqlChanged;
+            _console.CWXShownHandlers += OnCWXShown;
 
             _delegatesAdded = true;
         }
@@ -3159,6 +3162,7 @@ namespace Thetis
             _console.AGCAutoModeChangedHandlers -= OnAGCAutoModeChanged;
             _console.GeneralSettingsChangedHandlers -= OnGeneralSettingsChanged;
             _console.SQLChangedHandlers -= OnSqlChanged;
+            _console.CWXShownHandlers -= OnCWXShown;
 
             foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
             {
@@ -3168,6 +3172,18 @@ namespace Thetis
             _delegatesAdded = false;
         }
 
+        public static void OnCWXShown(bool shown)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)
+                {
+                    clsMeter m = ms.Value;
+
+                    m.CWXShown = shown;
+                }
+            }
+        }
         public static void OnCWPitchChanged(int old_pitch, int new_pitch, bool show_cwzero)
         {
             lock (_metersLock)
@@ -4399,6 +4415,7 @@ namespace Thetis
             m.AGCAutoMode = _console.GetAGCAuto(m.RX);
             //
             Dictionary<OtherButtonId, bool> general_settings = new Dictionary<OtherButtonId, bool>();
+            general_settings.Add(OtherButtonId.MUTE_ALL, _console.GetGeneralSetting(m.RX, OtherButtonId.MUTE_ALL));
             general_settings.Add(OtherButtonId.MIC, _console.GetGeneralSetting(m.RX, OtherButtonId.MIC));
             general_settings.Add(OtherButtonId.COMP, _console.GetGeneralSetting(m.RX, OtherButtonId.COMP));
             general_settings.Add(OtherButtonId.VOX, _console.GetGeneralSetting(m.RX, OtherButtonId.VOX));
@@ -4416,9 +4433,38 @@ namespace Thetis
             general_settings.Add(OtherButtonId.FILL_SPECTRUM, _console.GetGeneralSetting(m.RX, OtherButtonId.FILL_SPECTRUM));
             general_settings.Add(OtherButtonId.RIT, _console.GetGeneralSetting(m.RX, OtherButtonId.RIT));
             general_settings.Add(OtherButtonId.XIT, _console.GetGeneralSetting(m.RX, OtherButtonId.XIT));
+
+            general_settings.Add(OtherButtonId.DITHER, _console.GetGeneralSetting(m.RX, OtherButtonId.DITHER));
+            general_settings.Add(OtherButtonId.RANDOM, _console.GetGeneralSetting(m.RX, OtherButtonId.RANDOM));
+
+            general_settings.Add(OtherButtonId.SR_48000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_48000));
+            general_settings.Add(OtherButtonId.SR_96000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_96000));
+            general_settings.Add(OtherButtonId.SR_192000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_192000));
+            general_settings.Add(OtherButtonId.SR_384000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_384000));
+            general_settings.Add(OtherButtonId.SR_768000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_768000));
+            general_settings.Add(OtherButtonId.SR_1536000, _console.GetGeneralSetting(m.RX, OtherButtonId.SR_1536000));
+
+            general_settings.Add(OtherButtonId.ATT_STEP, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_STEP));
+            general_settings.Add(OtherButtonId.ATT_0, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_0));
+            general_settings.Add(OtherButtonId.ATT_10, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_10));
+            general_settings.Add(OtherButtonId.ATT_20, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_20));
+            general_settings.Add(OtherButtonId.ATT_30, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_30));
+            general_settings.Add(OtherButtonId.ATT_40, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_40));
+            general_settings.Add(OtherButtonId.ATT_50, _console.GetGeneralSetting(m.RX, OtherButtonId.ATT_50));
+
+            general_settings.Add(OtherButtonId.ZOOM_0P5, _console.GetGeneralSetting(m.RX, OtherButtonId.ZOOM_0P5));
+            general_settings.Add(OtherButtonId.ZOOM_1, _console.GetGeneralSetting(m.RX, OtherButtonId.ZOOM_1));
+            general_settings.Add(OtherButtonId.ZOOM_2, _console.GetGeneralSetting(m.RX, OtherButtonId.ZOOM_2));
+            general_settings.Add(OtherButtonId.ZOOM_4, _console.GetGeneralSetting(m.RX, OtherButtonId.ZOOM_4));
+
+            general_settings.Add(OtherButtonId.VFO_SYNC, _console.GetGeneralSetting(m.RX, OtherButtonId.VFO_SYNC));
+            general_settings.Add(OtherButtonId.LOCK_A, _console.GetGeneralSetting(m.RX, OtherButtonId.LOCK_A));
+            general_settings.Add(OtherButtonId.LOCK_B, _console.GetGeneralSetting(m.RX, OtherButtonId.LOCK_B));
+
             m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = general_settings };
             //
             m.SqlMode = _console.GetSqlMode(m.RX);
+            m.CWXShown = _console.CWXForm.IsShown;
 
             (bool in_use, bool enabled) = _console.GetXPAStatus();
             m.XpaInUse = in_use;
@@ -6248,7 +6294,11 @@ namespace Thetis
                 get { return new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = null }; }
                 set { }
             }
-
+            public virtual bool CWXShown
+            {
+                get { return false; }
+                set { }
+            }
             public virtual bool PanSwap
             {
                 get { return false; }
@@ -6847,9 +6897,9 @@ namespace Thetis
 
                 Filter f = (Filter)((int)Filter.F1 + index);
 
-                setFilter(f);
+                setFilter(f, Common.ShiftKeyDown);
             }
-            private void setFilter(Filter f)
+            private void setFilter(Filter f, bool shift)
             {
                 //note rx2 only has 9 filters
                 if (f == Filter.FIRST) return;
@@ -6858,14 +6908,20 @@ namespace Thetis
                 {
                     _console.BeginInvoke(new MethodInvoker(() =>
                     {
-                        _console.RX2Filter = f;
+                        if (shift)
+                            _console.SetTXFilter(f);
+                        else
+                            _console.RX2Filter = f;
                     }));
                 }
                 else
                 {
                     _console.BeginInvoke(new MethodInvoker(() =>
                     {
-                        _console.RX1Filter = f;
+                        if (shift)
+                            _console.SetTXFilter(f);
+                        else
+                            _console.RX1Filter = f;
                     }));
                 }
             }
@@ -7150,8 +7206,6 @@ namespace Thetis
 
             private int[] _visible_bits;
 
-            public const int BITFIELD_GROUPS = 10;
-
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
                 _owningmeter = owningmeter;
@@ -7160,10 +7214,10 @@ namespace Thetis
 
                 ItemType = MeterItemType.OTHER_BUTTONS;
 
-                base.Buttons = 32 * BITFIELD_GROUPS;
+                base.Buttons = 32 * OtherButtonIdHelpers.MAX_BITFIELD_GROUP;
 
-                _visible_bits = new int[BITFIELD_GROUPS]; // groups of 32 bits, 32nd bit is never used to prevent -ve ints in storage
-                for (int n = 0; n < BITFIELD_GROUPS; n++)
+                _visible_bits = new int[OtherButtonIdHelpers.MAX_BITFIELD_GROUP]; // groups of 32 bits, 32nd bit is never used to prevent -ve ints in storage
+                for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                 {
                     _visible_bits[n] = 0;
                 }
@@ -7441,7 +7495,37 @@ namespace Thetis
                     SetText(1, bit, sText);
                 }
             }
-            
+            public override bool CWXShown 
+            { 
+                get => base.CWXShown;
+                set
+                {
+                    for(OtherButtonId id = OtherButtonId.CWX_KEY; id <= OtherButtonId.CWX_F9; id++)
+                    {
+                        (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(id);
+                        bit = (bit_group * 32) + bit;
+                        SetEnabled(1, bit, value);
+
+                        System.Drawing.Color text_colour = GetFontColour(0, bit);
+                        System.Drawing.Color on_colour = GetOnColour(0, bit);
+                        System.Drawing.Color off_colour = GetOffColour(0, bit);
+
+                        if (value)
+                        {
+                            SetFontColour(1, bit, text_colour);
+                            SetOnColour(1, bit, on_colour);
+                            SetOffColour(1, bit, off_colour);
+                        }
+                        else
+                        {
+                            SetFontColour(1, bit, System.Drawing.Color.FromArgb(255, (int)(text_colour.R * 0.3f), (int)(text_colour.G * 0.3f), (int)(text_colour.B * 0.3f)));
+                            SetOnColour(1, bit, System.Drawing.Color.FromArgb(255, (int)(on_colour.R * 0.3f), (int)(on_colour.G * 0.3f), (int)(on_colour.B * 0.3f)));
+                            SetOffColour(1, bit, System.Drawing.Color.FromArgb(255, (int)(off_colour.R * 0.3f), (int)(off_colour.G * 0.3f), (int)(off_colour.B * 0.3f)));
+                        }
+                    }
+                }
+            }
+
             private void updateOn(OtherButtonId id, bool val)
             {
                 (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(id);
@@ -7450,7 +7534,7 @@ namespace Thetis
             }
             public override void Initialise()
             {
-                setupButtons();
+                setupButtons(true);
             }
             //private void onOtherButtonsSettingChanged(object sender, EventArgs e)
             //{
@@ -7458,25 +7542,25 @@ namespace Thetis
             //}
             public override int GetVisibleBits(int bit_group)
             {
-                if(bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return 0;
+                if(bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return 0;
                 return _visible_bits[bit_group];
             }
             public override void SetVisibleBits(int bit_group, int bit_field)
             {
-                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return;
+                if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return;
                 _visible_bits[bit_group] = bit_field;
 
                 setupButtons();
             }
             private bool isVisible(int bit_group, int bit)
             {
-                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return false;
+                if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return false;
                 if (bit < 0 || bit > 30) return false; // bit 32 is skipped
                 return (_visible_bits[bit_group] & (1 << bit)) != 0;
             }
             private void setVisible(int bit_group, int bit, bool visible)
             {
-                if (bit_group < 0 || bit_group > BITFIELD_GROUPS - 1) return;
+                if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return;
                 if (bit < 0 || bit > 30) return;
                 if (visible)
                     _visible_bits[bit_group] = _visible_bits[bit_group] | (1 << bit);
@@ -7501,7 +7585,7 @@ namespace Thetis
             //}
             private bool try_index_from_group_bit(int bit_group, int bit, out int index)
             {
-                if (bit_group < 0 || bit_group > BITFIELD_GROUPS -1 || bit < 0 || bit > 30)
+                if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1 || bit < 0 || bit > 30)
                 {
                     index = -1;
                     return false;
@@ -7509,7 +7593,7 @@ namespace Thetis
                 index = bit_group * 32 + bit;
                 return true;
             }
-            private void setupButtons()
+            private void setupButtons(bool init = false)
             {
                 if (!RebuildButtons) return;
 
@@ -7519,16 +7603,10 @@ namespace Thetis
                     if (i == 106) { int a; a = 1; }
                     int bit = i % 32;
                     int bit_group = i / 32;
-
-                    // skip 32nd bit in any group
-                    if (bit == 31)
-                    {
-                        SetVisible(1, i, false);
-                        continue;
-                    }
-
+                   
+                    // skip 32nd bit in any group and any that are not defined
                     OtherButtonId id = OtherButtonIdHelpers.BitToID(bit_group, bit);
-                    if (id == OtherButtonId.UNKNOWN)
+                    if (bit == 32 || id == OtherButtonId.UNKNOWN)
                     {
                         SetVisible(1, i, false);
                         continue;
@@ -7537,6 +7615,7 @@ namespace Thetis
                     //special states
                     string sText;
                     bool skip_set_visible = false;
+                    bool button_enabled = true;
 
                     switch(id)
                     {
@@ -7560,27 +7639,6 @@ namespace Thetis
                                     sText = "SPLT";
                             }
                             break;
-                        //case OtherButtonId.POWER:
-                        //    SetTextIsIconName(1, i, UseIcons);
-                        //    if (UseIcons)
-                        //        sText = "power";
-                        //    else
-                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
-                        //    break;
-                        //case OtherButtonId.REC:
-                        //    SetTextIsIconName(1, i, UseIcons);
-                        //    if (UseIcons)
-                        //        sText = "record";
-                        //    else
-                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
-                        //    break;
-                        //case OtherButtonId.PLAY:
-                        //    SetTextIsIconName(1, i, UseIcons);
-                        //    if (UseIcons)
-                        //        sText = "play";
-                        //    else
-                        //        sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
-                        //    break;
                         case OtherButtonId.XPA:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             (bool in_use, bool enabled) = _console.GetXPAStatus();
@@ -7597,6 +7655,20 @@ namespace Thetis
                                     sText = "SQL";
                                     break;
                             }
+                            break;
+                        case OtherButtonId.CWX_KEY:
+                        case OtherButtonId.CWX_STOP:
+                        case OtherButtonId.CWX_F1:
+                        case OtherButtonId.CWX_F2:
+                        case OtherButtonId.CWX_F3:
+                        case OtherButtonId.CWX_F4:
+                        case OtherButtonId.CWX_F5:
+                        case OtherButtonId.CWX_F6:
+                        case OtherButtonId.CWX_F7:
+                        case OtherButtonId.CWX_F8:
+                        case OtherButtonId.CWX_F9:
+                            button_enabled = _owningmeter.CWXShown;
+                            sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             break;
                         default:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
@@ -7624,21 +7696,36 @@ namespace Thetis
 
                     SetText(1, i, sText);
 
-                    SetFontColour(1, i, GetFontColour(0, i));
+                    System.Drawing.Color text_colour = GetFontColour(0, i);
+                    System.Drawing.Color on_colour = GetOnColour(0, i);
+                    System.Drawing.Color off_colour = GetOffColour(0, i);
+
+                    if (button_enabled)
+                    {
+                        SetFontColour(1, i, text_colour);
+                        SetOnColour(1, i, on_colour);
+                        SetOffColour(1, i, off_colour);
+                    }
+                    else
+                    {
+                        SetFontColour(1, i, System.Drawing.Color.FromArgb(255, (int)(text_colour.R * 0.3f), (int)(text_colour.G * 0.3f), (int)(text_colour.B * 0.3f)));
+                        SetOnColour(1, i, System.Drawing.Color.FromArgb(255, (int)(on_colour.R * 0.3f), (int)(on_colour.G * 0.3f), (int)(on_colour.B * 0.3f)));
+                        SetOffColour(1, i, System.Drawing.Color.FromArgb(255, (int)(off_colour.R * 0.3f), (int)(off_colour.G * 0.3f), (int)(off_colour.B * 0.3f)));
+                    }      
+                    
                     SetFontFamily(1, i, GetFontFamily(0, i));
                     SetFontSize(1, i, GetFontSize(0, i));
                     SetFontStyle(1, i, GetFontStyle(0, i));
                     SetUseIndicator(1, i, GetUseIndicator(0, i));
-                    SetOnColour(1, i, GetOnColour(0, i));
-                    SetOffColour(1, i, GetOffColour(0, i));
                     SetIndicatorWidth(1, i, GetIndicatorWidth(0, i));
-                    SetEnabled(1, i, true);
+                    SetEnabled(1, i, button_enabled);
 
                     if(!skip_set_visible) SetVisible(1, i, isVisible(bit_group, bit));//GetVisible(0, i));
 
                     //get the state from the console
-                    bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
-                    SetOn(1, i, on);
+                    //bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
+                    if (init) SetOn(1, i, _console.GetOtherButtonState(id, _owningmeter.RX));
+                    SetOn(1, i, GetOn(1, i));
 
                     SetFillColour(1, i, GetFillColour(0, i));
                     SetHoverColour(1, i, GetHoverColour(0, i));
@@ -7807,7 +7894,7 @@ namespace Thetis
 
                 _console.BeginInvoke(new MethodInvoker(() =>
                 {
-                    _console.DoOtherButtonAction(_owningmeter.RX, id);
+                    _console.DoOtherButtonAction(_owningmeter.RX, id, e.Button);
                 }));
             }
         }
@@ -18023,6 +18110,7 @@ namespace Thetis
             private bool _agc_auto_mode;
             GeneralOtherButtonSettings _general_settings;
             private SquelchState _sql_mode;
+            private bool _cwx_shown;
 
             private bool _split;
             private double _vfoA;
@@ -18152,6 +18240,7 @@ namespace Thetis
                 _agc_auto_mode = false;
                 _general_settings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = null };
                 _sql_mode = SquelchState.OFF;
+                _cwx_shown = false;
 
                 _bandVfoA = Band.FIRST;
                 _bandVfoB = Band.FIRST;
@@ -22358,7 +22447,7 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                for (int n = 0; n < clsOtherButtons.BITFIELD_GROUPS; n++)
+                                                for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
                                                     bb.SetVisibleBits(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
                                                 }
@@ -23660,7 +23749,7 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                for (int n = 0; n < clsOtherButtons.BITFIELD_GROUPS; n++)
+                                                for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
                                                     igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), bb.GetVisibleBits(n));
                                                 }
@@ -25649,6 +25738,26 @@ namespace Thetis
                     }
                 }
             }
+            public bool CWXShown
+            {
+                get
+                {
+                    return _cwx_shown;
+                }
+                set
+                {
+                    _cwx_shown = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.CWXShown = _cwx_shown;
+                        }
+                    }
+                }
+            }
             public bool PanSwap
             {
                 get
@@ -26286,6 +26395,7 @@ namespace Thetis
             private SwapChain _swapChain;
             private SwapChain1 _swapChain1;
             private RenderTarget _renderTarget;
+            private int _dx_fail_retry;
             private SharpDX.Direct2D1.Factory _factory;
             private bool _bAntiAlias;
             private Vector2 _pixelShift;
@@ -26355,6 +26465,7 @@ namespace Thetis
                 _adaptor = adaptor;
 
                 _delta_time_ms = 0;
+                _dx_fail_retry = 0;
                 //_dElapsedFrameStart = 0;
                 //_objFrameStartTimer.Start();
 
@@ -27064,7 +27175,19 @@ namespace Thetis
                                 // undo the translate
                                 _renderTarget.Transform = Matrix3x2.Identity;
 
-                                _renderTarget.EndDraw();
+                                try
+                                {
+                                    _renderTarget.EndDraw();
+                                }
+                                catch (SharpDXException ex) when (ex.ResultCode == SharpDX.Direct2D1.ResultCode.RecreateTarget)
+                                {
+                                    if (_dx_fail_retry < 10)
+                                    {
+                                        resizeDX();
+                                        _dx_fail_retry++;
+                                        continue;
+                                    }
+                                }
 
                                 // render
                                 // note: the only way to have Present non block when using vsync number of blanks 0 , is to use DoNotWait
@@ -27081,8 +27204,15 @@ namespace Thetis
                                 }
                                 //
 
-                                if (r != Result.Ok && r != 0x887A000A)
+                                if (r != Result.Ok && r != SharpDX.DXGI.ResultCode.WasStillDrawing) //0x887A000A)
                                 {
+                                    if ((r == SharpDX.DXGI.ResultCode.DeviceRemoved || r == SharpDX.DXGI.ResultCode.DeviceReset) && _dx_fail_retry < 10)
+                                    {
+                                        resizeDX();
+                                        _dx_fail_retry++;
+                                        return;
+                                    }
+
                                     string sMsg = "";
                                     if (r == 0x887A0001) sMsg = "Present Device Invalid Call" + Environment.NewLine + "" + Environment.NewLine + "[ " + r.ToString() + " ]";    //DXGI_ERROR_INVALID_CALL
                                     if (r == 0x887A0007) sMsg = "Present Device Reset" + Environment.NewLine + "" + Environment.NewLine + "[ " + r.ToString() + " ]";           //DXGI_ERROR_DEVICE_RESET
@@ -27101,6 +27231,8 @@ namespace Thetis
                             Thread.Sleep(nSleepTime);
 
                             _delta_time_ms = objStopWatch.ElapsedMsec;
+
+                            _dx_fail_retry = 0;
                         }
                         else
                         {
@@ -27261,6 +27393,7 @@ namespace Thetis
                 if (!_bDXSetup) return null;
 
                 float roundedSize = (float)Math.Round(emSize, 1);
+                if (roundedSize == 0) roundedSize = float.Epsilon; // prevents 0 from being used by .TextFormat which would cause a crash
 
                 SharpDX.DirectWrite.TextFormat tf;
                 (string, float, FontStyle) key = (sFontFamily, roundedSize, style);
@@ -32678,6 +32811,9 @@ namespace Thetis
                 float left = bAlignRight ? x - sz.Width : bAlignCentre ? x - sz.Width * 0.5f : x;
                 float top = bAlignCentre ? y - sz.Height * 0.5f : y;
                 SharpDX.RectangleF rect = new SharpDX.RectangleF(left, top, sz.Width, sz.Height);
+
+                if (fontSizeEm <= 0 || rect.Width <= 0 || rect.Height <= 0) return (0f, 0f);
+
                 Matrix3x2 oldTransform = _renderTarget.Transform;
                 
                 if (rotateDeg != 0f)
