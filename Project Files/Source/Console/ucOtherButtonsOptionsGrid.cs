@@ -216,6 +216,9 @@ namespace Thetis
     {
         public const int MAX_BITFIELD_GROUP = 11; // the last betfield group + 1 in CheckBoxData
 
+        private static Dictionary<OtherButtonId, int> _id_to_index_map = new Dictionary<OtherButtonId, int>();
+        private static Dictionary<(int, int), int> _bit_group_bit_to_index_map = new Dictionary<(int, int), int>();
+
         public static readonly (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off)[] CheckBoxData =
         new (OtherButtonId, int, int, string, string, string)[]
         {
@@ -397,52 +400,48 @@ namespace Thetis
             (OtherButtonId.CWX_F9,         10, 10, "F9", "", ""),
         };
 
-        public static string OtherButtonIDToText(OtherButtonId id)
+        static OtherButtonIdHelpers()
         {
+            _id_to_index_map = new Dictionary<OtherButtonId, int>(CheckBoxData.Length);
+            _bit_group_bit_to_index_map = new Dictionary<(int, int), int>(CheckBoxData.Length);
+
             for (int i = 0; i < CheckBoxData.Length; i++)
             {
-                if (CheckBoxData[i].id != id) continue;
-                if (!string.IsNullOrEmpty(CheckBoxData[i].caption)) return CheckBoxData[i].caption;
+                (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off) = CheckBoxData[i];
+
+                if (!_id_to_index_map.ContainsKey(id)) _id_to_index_map[id] = i;
+
+                (int, int) key = (bit_group, bit_number);
+                if (!_bit_group_bit_to_index_map.ContainsKey(key)) _bit_group_bit_to_index_map[key] = i;
             }
+        }
+
+        public static string OtherButtonIDToText(OtherButtonId id)
+        {
+            if (_id_to_index_map.ContainsKey(id)) return CheckBoxData[_id_to_index_map[id]].caption;
             return id.ToString();
         }
         public static string OtherButtonIDToIconOn(OtherButtonId id)
         {
-            for (int i = 0; i < CheckBoxData.Length; i++)
-            {
-                if (CheckBoxData[i].id != id) continue;
-                if (!string.IsNullOrEmpty(CheckBoxData[i].icon_on)) return CheckBoxData[i].icon_on;
-            }
+            if (_id_to_index_map.ContainsKey(id)) return CheckBoxData[_id_to_index_map[id]].icon_on;
             return string.Empty;
         }
         public static string OtherButtonIDToIconOff(OtherButtonId id)
         {
-            for (int i = 0; i < CheckBoxData.Length; i++)
-            {
-                if (CheckBoxData[i].id != id) continue;
-                if (!string.IsNullOrEmpty(CheckBoxData[i].icon_off)) return CheckBoxData[i].icon_off;
-            }
+            if (_id_to_index_map.ContainsKey(id)) return CheckBoxData[_id_to_index_map[id]].icon_off;
             return string.Empty;
         }
 
 
         public static OtherButtonId BitToID(int bit_group, int bit_number)
         {
-            for (int i = 0; i < CheckBoxData.Length; i++)
-            {
-                if (CheckBoxData[i].bit_group != bit_group) continue;
-                if (CheckBoxData[i].bit_number != bit_number) continue;
-                return CheckBoxData[i].id;
-            }
+            if (_bit_group_bit_to_index_map.TryGetValue((bit_group, bit_number), out int idx)) return CheckBoxData[idx].id;
             return OtherButtonId.UNKNOWN;
         }
 
         public static (int bit_group, int bit) BitFromID(OtherButtonId id)
         {
-            for (int i = 0; i < CheckBoxData.Length; i++)
-            {
-                if (CheckBoxData[i].id == id) return (CheckBoxData[i].bit_group, CheckBoxData[i].bit_number);
-            }
+            if (_id_to_index_map.ContainsKey(id)) return (CheckBoxData[_id_to_index_map[id]].bit_group, CheckBoxData[_id_to_index_map[id]].bit_number);
             return (-1, -1);
         }
 
@@ -453,7 +452,6 @@ namespace Thetis
         }
         public static (string, string) BitToIcon(int bit_group, int bit_number)
         {
-            // on, off
             OtherButtonId id = BitToID(bit_group, bit_number);
             return (OtherButtonIDToIconOn(id), OtherButtonIDToIconOff(id));
         }
@@ -465,6 +463,8 @@ namespace Thetis
         private bool _init;
         public event EventHandler CheckboxChanged;
 
+        private Dictionary<OtherButtonId, CheckBox> _checkbox_by_id;
+        private Dictionary<int, List<(int bit, CheckBox cb)>> _by_group;
         private TableLayoutPanel _table;
 
         public ucOtherButtonsOptionsGrid()
@@ -477,35 +477,50 @@ namespace Thetis
             this.scrollableControl1.Size = new Size(170, 178);
             this.scrollableControl1.AutoScroll = true;
 
+            _check_boxes = new List<CheckBox>();
+            _checkbox_by_id = new Dictionary<OtherButtonId, CheckBox>();
+            _by_group = new Dictionary<int, List<(int bit, CheckBox cb)>>();
+
             initialise_checkboxes();
         }
 
         private void initialise_checkboxes()
         {
-            if (_check_boxes == null)
+            _init = false;
+
+            for (int i = 0; i < _check_boxes.Count; i++)
+                _check_boxes[i].CheckedChanged -= checkbox_checked_changed;
+            _check_boxes.Clear();
+            _checkbox_by_id.Clear();
+            _by_group.Clear();
+
+            if (_table == null)
             {
-                _check_boxes = new List<CheckBox>();
+                _table = new TableLayoutPanel();
+                _table.Name = "tbl_other_buttons";
+                _table.AutoSize = true;
+                _table.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+                _table.Dock = DockStyle.Top;
+                _table.ColumnCount = 2;
+                _table.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                scrollableControl1.Controls.Add(_table);
             }
             else
             {
-                for (int i = 0; i < _check_boxes.Count; i++)
-                    _check_boxes[i].CheckedChanged -= checkbox_checked_changed;
-
-                _check_boxes.Clear();
+                _table.SuspendLayout();
+                _table.Controls.Clear();
+                _table.RowStyles.Clear();
+                _table.RowCount = 0;
+                _table.ResumeLayout(false);
             }
 
-            scrollableControl1.Controls.Clear();
-
-            TableLayoutPanel table = new TableLayoutPanel();
-            table.Name = "tbl_other_buttons";
-            table.AutoSize = true;
-            table.AutoSizeMode = AutoSizeMode.GrowAndShrink;
-            table.Dock = DockStyle.Top;
-            table.ColumnCount = 2;
-            table.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
-            table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
-            scrollableControl1.Controls.Add(table);
+            this.SuspendLayout();
+            scrollableControl1.SuspendLayout();
+            _table.SuspendLayout();
+            bool was_visible = scrollableControl1.Visible;
+            scrollableControl1.Visible = false;
 
             int row = 0;
             int col = 0;
@@ -527,9 +542,9 @@ namespace Thetis
                     lbl.Margin = new Padding(0, 2, 0, 0);
                     lbl.Font = new Font(Font, FontStyle.Bold);
                     lbl.Text = data[i].caption;
-                    table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                    table.Controls.Add(lbl, 0, row);
-                    table.SetColumnSpan(lbl, 2);
+                    _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    _table.Controls.Add(lbl, 0, row);
+                    _table.SetColumnSpan(lbl, 2);
                     row++;
                     continue;
                 }
@@ -548,9 +563,9 @@ namespace Thetis
                     sep.Dock = DockStyle.Fill;
                     sep.Margin = new Padding(0, 2, 0, 4);
                     sep.BackColor = SystemColors.ControlDark;
-                    table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                    table.Controls.Add(sep, 0, row);
-                    table.SetColumnSpan(sep, 2);
+                    _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    _table.Controls.Add(sep, 0, row);
+                    _table.SetColumnSpan(sep, 2);
                     row++;
                     continue;
                 }
@@ -565,12 +580,24 @@ namespace Thetis
 
                 if (col == 0)
                 {
-                    table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
-                    table.RowCount = row + 1;
+                    _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+                    _table.RowCount = row + 1;
                 }
 
-                table.Controls.Add(chk, col, row);
+                _table.Controls.Add(chk, col, row);
                 _check_boxes.Add(chk);
+                _checkbox_by_id[data[i].id] = chk;
+
+                if (data[i].bit_group >= 0 && data[i].bit_number >= 0)
+                {
+                    List<(int bit, CheckBox cb)> list;
+                    if (!_by_group.TryGetValue(data[i].bit_group, out list))
+                    {
+                        list = new List<(int bit, CheckBox cb)>();
+                        _by_group[data[i].bit_group] = list;
+                    }
+                    list.Add((data[i].bit_number, chk));
+                }
 
                 col++;
                 if (col > 1)
@@ -580,8 +607,14 @@ namespace Thetis
                 }
             }
 
+            scrollableControl1.Visible = was_visible;
+            _table.ResumeLayout(true);
+            scrollableControl1.ResumeLayout(true);
+            this.ResumeLayout(true);
+
             _init = true;
         }
+
 
         private void checkbox_checked_changed(object sender, EventArgs e)
         {
@@ -592,16 +625,12 @@ namespace Thetis
         public int GetBitfield(int bit_group)
         {
             int bitfield_value = 0;
-
-            for (int i = 0; i < _check_boxes.Count; i++)
+            List<(int bit, CheckBox cb)> list;
+            if (!_by_group.TryGetValue(bit_group, out list)) return 0;
+            for (int i = 0; i < list.Count; i++)
             {
-                CheckBox checkbox = _check_boxes[i];
-                ValueTuple<OtherButtonId, int, int> meta = (ValueTuple<OtherButtonId, int, int>)checkbox.Tag;
-                if (meta.Item2 != bit_group) continue;
-                if (meta.Item3 < 0) continue;
-                if (checkbox.Checked) bitfield_value |= (1 << meta.Item3);
+                if (list[i].cb.Checked) bitfield_value |= (1 << list[i].bit);
             }
-
             return bitfield_value;
         }
 
@@ -609,41 +638,26 @@ namespace Thetis
         {
             bool old_init = _init;
             _init = false;
-
-            for (int i = 0; i < _check_boxes.Count; i++)
+            List<(int bit, CheckBox cb)> list;
+            if (_by_group.TryGetValue(bit_group, out list))
             {
-                CheckBox checkbox = _check_boxes[i];
-                ValueTuple<OtherButtonId, int, int> meta = (ValueTuple<OtherButtonId, int, int>)checkbox.Tag;
-                if (meta.Item2 != bit_group) continue;
-                if (meta.Item3 < 0) continue;
-                bool is_checked = (value & (1 << meta.Item3)) != 0;
-                checkbox.Checked = is_checked;
+                for (int i = 0; i < list.Count; i++)
+                {
+                    bool is_checked = (value & (1 << list[i].bit)) != 0;
+                    list[i].cb.Checked = is_checked;
+                }
             }
-
             _init = old_init;
-        }
-
-        public int GetCheckedCount()
-        {
-            int count = 0;
-            for (int i = 0; i < _check_boxes.Count; i++)
-            {
-                CheckBox checkbox = _check_boxes[i];
-                if (checkbox.Checked) count++;
-            }
-            return count;
         }
 
         public int GetCheckedCount(int bit_group)
         {
             int count = 0;
-            for (int i = 0; i < _check_boxes.Count; i++)
+            List<(int bit, CheckBox cb)> list;
+            if (!_by_group.TryGetValue(bit_group, out list)) return 0;
+            for (int i = 0; i < list.Count; i++)
             {
-                CheckBox checkbox = _check_boxes[i];
-                ValueTuple<OtherButtonId, int, int> meta = (ValueTuple<OtherButtonId, int, int>)checkbox.Tag;
-                if (meta.Item2 != bit_group) continue;
-                if (meta.Item3 < 0) continue;
-                if (checkbox.Checked) count++;
+                if (list[i].cb.Checked) count++;
             }
             return count;
         }
