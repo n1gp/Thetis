@@ -1178,7 +1178,7 @@ namespace Thetis
                 {
                     //1 for version 1
                     string tmp = Common.SerializeToBase64<ConcurrentDictionary<string, object>>(_settings); // 1| signifies version 1 of the serialize for future proofing
-                    tmp = tmp.Replace("/", "[backslash]");
+                    tmp = tmp.Replace("/", "[backslash]");                    
                     return "1|" + tmp;
                 }
                 catch
@@ -2088,6 +2088,8 @@ namespace Thetis
             // otherbuttons icons
             resource_bitmaps.Add("stop", Properties.Resources.ob_square);
             resource_bitmaps.Add("play", Properties.Resources.ob_play);
+            resource_bitmaps.Add("disp_pause", Properties.Resources.ob_disp_pause);
+            resource_bitmaps.Add("disp_play", Properties.Resources.ob_disp_play);
             resource_bitmaps.Add("power", Properties.Resources.ob_power);
             resource_bitmaps.Add("record", Properties.Resources.ob_circle);
             resource_bitmaps.Add("mute_on", Properties.Resources.ob_mute_on);
@@ -7205,14 +7207,20 @@ namespace Thetis
             private clsItemGroup _ig;
             private bool _click_highlight;
             private System.Timers.Timer _click_timer;
-
+            private int _dragging_index;
             private int[] _visible_bits;
+            private int _last_draged_to;
+
+            private short[] _map;
+            private readonly object _map_lock = new object();
 
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
                 _owningmeter = owningmeter;
                 _click_highlight = false;
                 _ig = ig;
+                _dragging_index = -1;
+                _last_draged_to = -1;
 
                 ItemType = MeterItemType.OTHER_BUTTONS;
 
@@ -7224,6 +7232,11 @@ namespace Thetis
                     _visible_bits[n] = 0;
                 }
 
+                _map = new short[base.Buttons];
+                for(short n=0; n < _map.Length; n++)
+                {
+                    _map[n] = n;
+                }
                 Initialise();
             }
             // these map to the OtherButtonId enum
@@ -7595,6 +7608,36 @@ namespace Thetis
                 index = bit_group * 32 + bit;
                 return true;
             }
+            public override short[] ButtonMap
+            {
+                get
+                {
+                    lock (_map_lock)
+                    {
+                        return _map;
+                    }
+                }
+                set
+                {
+                    lock(_map_lock)
+                    {
+                        if (value == null)
+                        {
+                            _map = new short[base.Buttons];
+                            for (short n = 0; n < _map.Length; n++)
+                            {
+                                _map[n] = n;
+                            }
+                        }
+                        else
+                        {
+                            int len = Math.Min(value.Length, _map.Length);
+                            Array.Copy(value, _map, len);
+                        }
+                    }
+                    setupButtons();
+                }
+            }
             private void setupButtons(bool init = false)
             {
                 if (!RebuildButtons) return;
@@ -7602,9 +7645,10 @@ namespace Thetis
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
                 {
-                    if (i == 106) { int a; a = 1; }
                     int bit = i % 32;
                     int bit_group = i / 32;
+
+                    //i = ii; //swap back after the bit calcs
                    
                     // skip 32nd bit in any group and any that are not defined
                     OtherButtonId id = OtherButtonIdHelpers.BitToID(bit_group, bit);
@@ -7869,10 +7913,22 @@ namespace Thetis
                 int index = base.ButtonIndex;
                 if (index == -1) return;
 
+                _last_draged_to = -1;
+                if (Common.AltlKeyDown)
+                {
+                    _dragging_index = index;
+                    return;
+                }
+                else
+                {
+                    _dragging_index = -1;
+                }
+
                 if (!GetEnabled(1, index)) return;
 
                 setupClick(false);
             }
+
             public override void MouseUp(MouseEventArgs e)
             {
                 if (FadeOnRx && !_owningmeter.MOX) return;
@@ -7880,10 +7936,55 @@ namespace Thetis
 
                 if (_console == null) return;
 
+                if(_dragging_index != -1)
+                {
+                    if (_last_draged_to != -1 && _dragging_index != _last_draged_to)
+                    {
+                        lock (_map_lock)
+                        {
+                            if (Common.ShiftKeyDown)
+                            {
+                                short tmp = _map[_last_draged_to];
+                                _map[_last_draged_to] = _map[_dragging_index];
+                                _map[_dragging_index] = tmp;
+                            }
+                            else
+                            { 
+                                short moving = _map[_dragging_index];
+
+                                if (_dragging_index < _last_draged_to)
+                                {
+                                    Array.Copy(_map, _dragging_index + 1, _map, _dragging_index, _last_draged_to - _dragging_index);
+                                    _map[_last_draged_to] = moving;
+                                }
+                                else
+                                {
+                                    Array.Copy(_map, _last_draged_to, _map, _last_draged_to + 1, _dragging_index - _last_draged_to);
+                                    _map[_last_draged_to] = moving;
+                                }
+                            }
+
+                            //Debug.Print($"{_dragging_index} to {_last_draged_to}");
+                        }
+                        setupButtons();
+                    }
+
+                    _dragging_index = -1;
+                    _last_draged_to = -1;
+
+                    return;
+                }
+
                 setupClick(true);
 
                 int index = base.ButtonIndex;
                 if (index == -1) return;
+
+                //use map to convert index
+                lock (_map_lock) 
+                {
+                    index = _map[index];
+                }
 
                 int bit = index % 32;
                 int bit_group = index / 32;
@@ -7898,6 +7999,22 @@ namespace Thetis
                 {
                     _console.DoOtherButtonAction(_owningmeter.RX, id, e.Button);
                 }));
+            }
+            public override int DraggingIndex
+            {
+                get 
+                {
+                    return _dragging_index;
+                }
+                set
+                {
+                    _dragging_index = value;
+                }
+            }
+            public void MoveButton(int button_index)
+            {
+                if (button_index == _last_draged_to) return;
+                _last_draged_to = button_index;
             }
         }
         //
@@ -9697,6 +9814,11 @@ namespace Thetis
             }
             public virtual int GetVisibleBits(int bit_group) { return int.MaxValue; }
             public virtual void SetVisibleBits(int bit_group, int bit_field) { }
+            public virtual short[] ButtonMap
+            {
+                get { return null; }
+                set { }
+            }
             public virtual int Columns
             {
                 get { return _columns; }
@@ -9942,6 +10064,11 @@ namespace Thetis
             {
                 if (button < 0 || button >= _number_of_buttons) return IndicatorType.RING;
                 return _indicator_type[bank][button];
+            }
+            public virtual int DraggingIndex
+            {
+                get { return 0; }
+                set { }
             }
         }
 
@@ -22453,6 +22580,7 @@ namespace Thetis
                                                 {
                                                     bb.SetVisibleBits(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
                                                 }
+                                                bb.ButtonMap = igs.GetSetting<short[]>("buttonbox_button_map", false, null, null, null);
                                             }
                                             else if(mt == MeterType.TUNESTEP_BUTTONS)
                                             {                                                
@@ -23755,6 +23883,7 @@ namespace Thetis
                                                 {
                                                     igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), bb.GetVisibleBits(n));
                                                 }
+                                                igs.SetSetting<short[]>("buttonbox_button_map", bb.ButtonMap);
                                             }
                                             else if (mt == MeterType.TUNESTEP_BUTTONS)
                                             {
@@ -33502,6 +33631,7 @@ namespace Thetis
                     mouse.Y = bb.MouseMovePoint.Y / h;
                 }
 
+                RoundedRectangle dragging_rr = new RoundedRectangle();
                 RoundedRectangle rr = new RoundedRectangle();
                 SharpDX.RectangleF indicator_adjust = new SharpDX.RectangleF();
                 SharpDX.RectangleF rectBB = new SharpDX.RectangleF();
@@ -33509,12 +33639,24 @@ namespace Thetis
                 SharpDX.Vector2 start = new Vector2();
                 SharpDX.Vector2 end = new Vector2();
 
-                for (int row  = 0; row < rows; row++)
+                int[] map = null;
+                clsOtherButtons ob = bb as clsOtherButtons;
+                bool is_other_button = ob != null;
+
+                if (is_other_button)
+                {
+                    map = new int[ob.Buttons];
+                    Array.Copy(ob.ButtonMap, map, map.Length);
+                }
+
+                for (int row  = 0; row < rows; row++)                
                 {
                     int col = 0;
                     while(col < buttons_per_row)
                     {
-                        if (!bb.GetVisible(1, button_index))
+                        int button = is_other_button ? map[button_index] : button_index;
+
+                        if (!bb.GetVisible(1, button))
                         {
                             button_index++;
                             if (button_index >= bb.Buttons) break;
@@ -33524,7 +33666,7 @@ namespace Thetis
                         bool text_icon_is_indicator = false;
                         System.Drawing.Color text_icon_indicator_colour = System.Drawing.Color.Empty;
 
-                        bool indicator = bb.GetUseIndicator(1, button_index);
+                        bool indicator = bb.GetUseIndicator(1, button);
                         float xP = x + half_border + (button_width * col);
                         float yP = y + half_border + (button_height * row);
 
@@ -33537,15 +33679,23 @@ namespace Thetis
                         rr.RadiusX = radius;
                         rr.RadiusY = radius;
 
-                        // luminance
-                        System.Drawing.Color bg_colour = bb.GetFillColour(1, button_index);
-                        System.Drawing.Color text_colour = bb.GetFontColour(1, button_index);
-                        System.Drawing.Color hover_colour = bb.GetHoverColour(1, button_index);
-                        System.Drawing.Color on_colour = bb.GetOnColour(1, button_index);
-                        System.Drawing.Color off_colour = bb.GetOffColour(1, button_index);
-                        System.Drawing.Color click_colour = bb.GetClickColour(1, button_index);
+                        //copy rect for dragging
+                        if(is_other_button && button_index == bb.DraggingIndex)
+                        {
+                            dragging_rr.Rect = new RawRectangleF(rr.Rect.Left, rr.Rect.Top, rr.Rect.Right, rr.Rect.Bottom);
+                            dragging_rr.RadiusX = rr.RadiusX;
+                            dragging_rr.RadiusY = rr.RadiusY;
+                        }
 
-                        bool on = bb.GetOn(1, button_index);
+                        // luminance
+                        System.Drawing.Color bg_colour = bb.GetFillColour(1, button);
+                        System.Drawing.Color text_colour = bb.GetFontColour(1, button);
+                        System.Drawing.Color hover_colour = bb.GetHoverColour(1, button);
+                        System.Drawing.Color on_colour = bb.GetOnColour(1, button);
+                        System.Drawing.Color off_colour = bb.GetOffColour(1, button);
+                        System.Drawing.Color click_colour = bb.GetClickColour(1, button);
+
+                        bool on = bb.GetOn(1, button);
 
                         System.Drawing.Color actual_bg;
                         if (!indicator)
@@ -33554,7 +33704,7 @@ namespace Thetis
                                 actual_bg = on_colour;
                             else
                             {
-                                if (bb.GetUseOffColour(1, button_index))
+                                if (bb.GetUseOffColour(1, button))
                                     actual_bg = off_colour;
                                 else
                                     actual_bg = bg_colour;
@@ -33575,7 +33725,7 @@ namespace Thetis
                                 fillRoundedRectangle(rr, getDXBrushForColour(on_colour, 255));
                             else
                             {
-                                if(bb.GetUseOffColour(1, button_index))
+                                if(bb.GetUseOffColour(1, button))
                                     fillRoundedRectangle(rr, getDXBrushForColour(off_colour, 255));
                             }
                         }
@@ -33594,7 +33744,7 @@ namespace Thetis
                         }
 
                         //border
-                        drawRoundedRectangle(rr, getDXBrushForColour(bb.GetBorderColour(1, button_index)), bb.Border * w);
+                        drawRoundedRectangle(rr, getDXBrushForColour(bb.GetBorderColour(1, button)), bb.Border * w);
 
                         //indicator
                         indicator_adjust.Left = 0;
@@ -33615,7 +33765,7 @@ namespace Thetis
                             }
                             else
                             {
-                                if (bb.GetUseOffColour(1, button_index))
+                                if (bb.GetUseOffColour(1, button))
                                 {
                                     indicator_colour = off_colour;
                                     indicator_draw = true;
@@ -33629,9 +33779,9 @@ namespace Thetis
 
                             if (indicator_draw)
                             {
-                                float indicator_width = bb.GetIndicatorWidth(1, button_index) * wh;
+                                float indicator_width = bb.GetIndicatorWidth(1, button) * wh;
                                 float indicator_shrink;
-                                switch (bb.GetIndicatorType(1, button_index))
+                                switch (bb.GetIndicatorType(1, button))
                                 {
                                     case clsButtonBox.IndicatorType.BAR_LEFT:
                                         text_size_modifier = 0.9f;
@@ -33774,8 +33924,8 @@ namespace Thetis
                             }
                         }
 
-                        //text
-                        string text = bb.GetText(1, button_index);
+                        //text + icon
+                        string text = bb.GetText(1, button);
                         if (!string.IsNullOrEmpty(text))
                         {
                             rectBB.Top += indicator_adjust.Top;
@@ -33788,10 +33938,10 @@ namespace Thetis
                                 float cx = rectBB.Left + (rectBB.Width / 2f);
                                 float cy = rectBB.Top + (rectBB.Height / 2f);
 
-                                if (bb.GetUseIcon(1, button_index))
+                                if (bb.GetUseIcon(1, button))
                                 {
-                                    string icon_on = bb.GetIconOn(1, button_index);
-                                    string icon_off = bb.GetIconOff(1, button_index);
+                                    string icon_on = bb.GetIconOn(1, button);
+                                    string icon_off = bb.GetIconOff(1, button);
 
                                     convertImageToDX(icon_on, true);
                                     convertImageToDX(icon_off, true);
@@ -33824,7 +33974,7 @@ namespace Thetis
                                 {
                                     float text_box_width;
                                     float text_box_height;
-                                    float font_size = bb.GetFontSize(1, button_index);
+                                    float font_size = bb.GetFontSize(1, button);
 
                                     if (bb.FixTextSize)
                                     {
@@ -33839,8 +33989,8 @@ namespace Thetis
                                     }
 
                                     plotText(text, cx + (bb.FontShiftX * wh / (float)(buttons_per_row * 2f)), cy + (bb.FontShiftY * wh / (float)(buttons_per_row * 2f)),
-                                        rect.Width, font_size, text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255, bb.GetFontFamily(1, button_index),
-                                        bb.GetFontStyle(1, button_index), false, true, text_box_width, true, text_box_height);
+                                        rect.Width, font_size, text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255, bb.GetFontFamily(1, button),
+                                        bb.GetFontStyle(1, button), false, true, text_box_width, true, text_box_height);
                                 }
                             }
                         }
@@ -33860,6 +34010,30 @@ namespace Thetis
                 else if(bb.ButtonIndex != -1)
                 {
                     bb.ButtonIndex = -1;
+                }
+
+                //dragging
+                if (is_other_button && bb.DraggingIndex != -1)
+                {
+                    float rw = dragging_rr.Rect.Right - dragging_rr.Rect.Left;
+                    float rh = dragging_rr.Rect.Bottom - dragging_rr.Rect.Top;
+                    dragging_rr.Rect.Left = bb.MouseMovePoint.X - (rw / 2f);
+                    dragging_rr.Rect.Top = bb.MouseMovePoint.Y - (rh / 2f);
+                    dragging_rr.Rect.Right = dragging_rr.Rect.Left + rw;
+                    dragging_rr.Rect.Bottom = dragging_rr.Rect.Top + rh;
+
+                    System.Drawing.Color c;
+                    if (highlighted_index != -1)
+                    {
+                        c = System.Drawing.Color.LimeGreen;
+                    }
+                    else
+                    {
+                        c = System.Drawing.Color.DarkRed;
+                    }
+                    drawRoundedRectangle(dragging_rr, getDXBrushForColour(c, 255), 6f);
+
+                    ob.MoveButton(highlighted_index);
                 }
             }
             private System.Drawing.Color adjustTextColourForContrast(System.Drawing.Color textColor, System.Drawing.Color backgroundColor)

@@ -295,7 +295,7 @@ namespace Thetis
             (OtherButtonId.PANASCOPE,      3, 11, "Panascope", "panascope", "", "Panascope"),
             (OtherButtonId.SPECTRASCOPE,   3, 12, "Spectrascope", "spectrascope", "", "Spectrascope"),
             (OtherButtonId.DISPLAY_OFF,    3, 13, "Off", "display_off", "", "Display off"),
-            (OtherButtonId.PAUSE,          3, 14, "Pause", "", "", "Pause the display"),
+            (OtherButtonId.PAUSE,          3, 14, "Pause", "disp_pause", "disp_play", "Pause the display"),
             (OtherButtonId.PEAK_BLOBS,     3, 15, "Peak Blobs", "", "", "Peak blobs on/off"),
             (OtherButtonId.CURSOR_INFO,    3, 16, "Cur Info", "", "", "Show info on the cursor"),
             (OtherButtonId.SPOTS,          3, 17, "Spots", "", "", "Show TCI spots"),

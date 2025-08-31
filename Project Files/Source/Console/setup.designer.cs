@@ -3973,6 +3973,7 @@
             this.chkBandButtons_band_inactive_use = new System.Windows.Forms.CheckBoxTS();
             this.chkButtonBox_fix_text_size = new System.Windows.Forms.CheckBoxTS();
             this.chkButtonBox_use_icons = new System.Windows.Forms.CheckBoxTS();
+            this.btnOtherButtons_reset_layout = new System.Windows.Forms.ButtonTS();
             this.timer_VAC_Monitor = new System.Windows.Forms.Timer(this.components);
             this.timer_LED_Mirror = new System.Windows.Forms.Timer(this.components);
             this.timer_RawInputMouseWheel = new System.Windows.Forms.Timer(this.components);
@@ -64018,6 +64019,19 @@
             this.chkButtonBox_use_icons.UseVisualStyleBackColor = true;
             this.chkButtonBox_use_icons.CheckedChanged += new System.EventHandler(this.chkButtonBox_use_icons_CheckedChanged);
             // 
+            // btnOtherButtons_reset_layout
+            // 
+            this.btnOtherButtons_reset_layout.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.btnOtherButtons_reset_layout.Image = global::Thetis.Properties.Resources.grid;
+            this.btnOtherButtons_reset_layout.Location = new System.Drawing.Point(106, 338);
+            this.btnOtherButtons_reset_layout.Name = "btnOtherButtons_reset_layout";
+            this.btnOtherButtons_reset_layout.Selectable = true;
+            this.btnOtherButtons_reset_layout.Size = new System.Drawing.Size(32, 32);
+            this.btnOtherButtons_reset_layout.TabIndex = 113;
+            this.toolTip1.SetToolTip(this.btnOtherButtons_reset_layout, "Reset layout");
+            this.btnOtherButtons_reset_layout.UseVisualStyleBackColor = true;
+            this.btnOtherButtons_reset_layout.Click += new System.EventHandler(this.btnOtherButtons_reset_layout_Click);
+            // 
             // timer_VAC_Monitor
             // 
             this.timer_VAC_Monitor.Enabled = true;
@@ -65221,6 +65235,7 @@
             // 
             // grpBandButtons
             // 
+            this.grpBandButtons.Controls.Add(this.btnOtherButtons_reset_layout);
             this.grpBandButtons.Controls.Add(this.chkButtonBox_use_icons);
             this.grpBandButtons.Controls.Add(this.chkButtonBox_fix_text_size);
             this.grpBandButtons.Controls.Add(this.clrbtnButonBox_fontcolour);
@@ -74613,5 +74628,6 @@
         private CheckBoxTS chkLegacyItems_hide_mic_comp;
         private CheckBoxTS chkLegacyItems_hide_noise_mnf;
         private CheckBoxTS chkLegacyItems_hide_split_rit;
+        private ButtonTS btnOtherButtons_reset_layout;
     }
 }

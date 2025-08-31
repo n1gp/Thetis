@@ -852,6 +852,9 @@
     <None Include="Resources\ob_display_off.png" />
     <None Include="Resources\ob_mute_all_on.png" />
     <None Include="Resources\ob_mute_all_off.png" />
+    <None Include="Resources\grid.png" />
+    <None Include="Resources\ob_disp_pause.png" />
+    <None Include="Resources\ob_disp_play.png" />
     <Content Include="Resources\Thetis2_256.ico" />
     <Content Include="Resources\Thetis2_48.ico" />
     <None Include="Resources\resizegrab.png" />

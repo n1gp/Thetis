@@ -25729,6 +25729,8 @@ namespace Thetis
                         igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), ucOtherButtonsOptionsGrid_buttons.GetBitfield(n));
                         max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
                     }
+                    if(_reset_otherbutton_layout) igs.SetSetting<short[]>("buttonbox_button_map", null);
+
                     max_buttons = Math.Max(1, max_buttons);
                     if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
                     if (nudBandButtons_columns.Maximum != max_buttons) nudBandButtons_columns.Maximum = max_buttons;
@@ -35438,6 +35440,14 @@ namespace Thetis
         {
             if (initializing) return;
             LegacyItemController.HideDisplayControls = chkLegacyItems_hide_avg_peak.Checked;
+        }
+
+        private bool _reset_otherbutton_layout = false;
+        private void btnOtherButtons_reset_layout_Click(object sender, EventArgs e)
+        {
+            _reset_otherbutton_layout = true;
+            updateMeterType();
+            _reset_otherbutton_layout = false;
         }
     }
 
