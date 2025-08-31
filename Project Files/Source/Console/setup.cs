@@ -12419,7 +12419,14 @@ namespace Thetis
         {
             get { return txtGenCustomTitle.Text; }
         }
-
+        public string DiscordCallsign
+        {
+            get { return txtDiscordCallsign.Text; }
+        }
+        public string TCIOwnCallsign
+        {
+            get { return txtOwnCallsign.Text; }
+        }
         private void txtGenCustomTitle_TextChanged(object sender, System.EventArgs e)
         {
             console.CustomTitle = txtGenCustomTitle.Text;
@@ -26198,7 +26205,7 @@ namespace Thetis
             }
 
             Dictionary<string, string> fcm = null;
-            m.ApplySettingsForMeterGroup(mt, igs, mtci.Order);
+            m.ApplySettingsForMeterGroup(mt, igs, null, mtci.Order);
 
             updateLedValidControls();
             return igs;
@@ -27529,7 +27536,7 @@ namespace Thetis
                 //
 
                 Dictionary<string, string> fcm = null;
-                m.ApplySettingsForMeterGroup(mt, _itemGroupSettings, mtci.Order);
+                m.ApplySettingsForMeterGroup(mt, _itemGroupSettings, null, mtci.Order);
                 updateItemSettingsControlsForSelected();
             }
         }
@@ -31468,7 +31475,7 @@ namespace Thetis
                 igs.SetMMIOVariable(variable, f.Variable);
 
                 Dictionary<string, string> fcm = null;
-                m.ApplySettingsForMeterGroup(mt, igs, mtci.Order);
+                m.ApplySettingsForMeterGroup(mt, igs, null, mtci.Order);
 
                 switch(mt)
                 {
@@ -35498,7 +35505,9 @@ namespace Thetis
                     {
                         string txt = txt = File.ReadAllText(ofd.FileName, Encoding.UTF8);
 
-                        ucMeter ucm = MeterManager.ContainerFromString(txt);
+                        List<string> webimages = new List<string>();
+                        ucMeter ucm = MeterManager.ContainerFromString(txt, webimages);
+
                         if(ucm == null)
                         {
                             MessageBox.Show("This doesnt seem to be a valid container file.",                                
@@ -35507,6 +35516,34 @@ namespace Thetis
                                 MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
 
                             return;
+                        }
+                        if (webimages.Count > 0)
+                        {
+                            string msg = "This container file includes web image items(s).\nDo you want to load it?\n\nThe url(s) are as follows.\n\n\n";
+                            foreach(string s in webimages)
+                            {
+                                msg += s + "\n\n";
+                            }
+                            dr = MessageBox.Show(msg,
+                                "Container file contents warning",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2, Common.MB_TOPMOST);
+
+                            if (dr != DialogResult.Yes)
+                            {
+                                MeterManager.RemoveMeterContainer(ucm.ID);
+                                return;
+                            }
+                        }
+
+                        dr = MessageBox.Show("Do you want DBManager to take a backup of the database before loading this container?",
+                            "Database backup",
+                            MessageBoxButtons.YesNo,
+                            MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+
+                        if(dr == DialogResult.Yes)
+                        {
+                            DBMan.TakeBackup(Guid.Empty, "Before container import", false);
                         }
 
                         MeterManager.RunRendererDisplay(ucm.ID);

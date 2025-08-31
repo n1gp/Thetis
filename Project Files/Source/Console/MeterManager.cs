@@ -5371,7 +5371,7 @@ namespace Thetis
                                         {
                                             clsIGSettings igs = new clsIGSettings();
                                             bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
-                                            if (bIGSok) m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                            if (bIGSok) m.ApplySettingsForMeterGroup(ig.MeterType, igs, null, ig.Order);
                                         }
                                         else
                                         {
@@ -5380,7 +5380,7 @@ namespace Thetis
                                             {
                                                 clsIGSettings igs = new clsIGSettings();
                                                 bool bIGSok = igs.TryParse(meterIGSettings.First().Value);
-                                                if (bIGSok) m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                                if (bIGSok) m.ApplySettingsForMeterGroup(ig.MeterType, igs, null, ig.Order);
                                             }
                                         }
                                     }
@@ -5428,7 +5428,14 @@ namespace Thetis
                 {
                     lock (_metersLock)
                     {
-                        if(_lstUCMeters.TryGetValue(id, out ucMeter ucm)) //ucm is the 'container'
+                        data.Add("FileVersion", "1");
+                        data.Add("ThetisVersion", _console != null ? _console.BasicTitleBar : "unknown");
+                        data.Add("CustomTitle", _console != null && !_console.IsSetupFormNull ? _console.SetupForm.CustomTitle : "empty");
+                        data.Add("DiscordCallsign", _console != null && !_console.IsSetupFormNull ? _console.SetupForm.DiscordCallsign : "empty");
+                        data.Add("TCIOwnCallsign", _console != null && !_console.IsSetupFormNull ? _console.SetupForm.TCIOwnCallsign : "empty");
+                        data.Add("UTCTDateTime", DateTime.UtcNow.ToLongTimeString() + " " + DateTime.UtcNow.ToLongDateString());
+
+                        if (_lstUCMeters.TryGetValue(id, out ucMeter ucm)) //ucm is the 'container'
                         {
                             data.Add("ContainerData_" + ucm.ID, ucm.ToString());
 
@@ -5466,13 +5473,14 @@ namespace Thetis
                                         data.Add("ItemGroupSettings_2_" + ig.Value.ID, igs.ToString2());
                                     }
                                 }
-                            }
+                            }                            
                         }
                     }
                 }
             }
             catch(Exception e)
             {
+                data.Clear();
                 data.Add("err", e.Message);
             }
 
@@ -5480,16 +5488,23 @@ namespace Thetis
 
             return data64;
         }
-        public static ucMeter ContainerFromString(string data64, bool new_guids = true)
+        public static ucMeter ContainerFromString(string data64, List<string> web_images = null)
         {
+            string id = string.Empty;
             try
             {
                 Dictionary<string, string> data = Common.DeserializeFromBase64<Dictionary<string, string>> (data64);
+
+                if (!data.ContainsKey("FileVersion")) return null;
+                bool ok = int.TryParse(data["FileVersion"], out int version);
+                if (!ok) return null;
+                if (version < 1) return null;
 
                 foreach (KeyValuePair<string, string> cd_kvp in data.Where(o => o.Key.StartsWith("ContainerData_")))
                 {
                     ucMeter ucM = new ucMeter();
                     bool ucMeterOk = ucM.TryParse(cd_kvp.Value);
+                    id = ucM.ID;
 
                     Dictionary<string, string> fourCharMap = new Dictionary<string, string>();
 
@@ -5499,6 +5514,8 @@ namespace Thetis
                         string ucm_guid = Guid.NewGuid().ToString();
                         string old_ucm_id = ucM.ID;
                         ucM.ID = ucm_guid;
+
+                        id = ucM.ID;
 
                         if (!MeterExists(ucM.ID))
                         {
@@ -5557,7 +5574,7 @@ namespace Thetis
 
                                     // data for the item group
                                     clsItemGroup ig = new clsItemGroup();
-                                    bool ok = ig.TryParse(kvp.Value);
+                                    ok = ig.TryParse(kvp.Value);
                                     if (ok)
                                     {
                                         Debug.Print("DATA OK");
@@ -5573,9 +5590,10 @@ namespace Thetis
                                             bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
                                             if (bIGSok)
                                             {
-                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, null, ig.Order);
                                             }
 
+                                            // TODO: use this to do some mapping?
                                             m.Find4Chars(ref fourCharMap, igs);
 
                                             m.RemoveMeterType(ig.MeterType, ig.Order);
@@ -5588,7 +5606,7 @@ namespace Thetis
                                 {
                                     // data for the item group
                                     clsItemGroup ig = new clsItemGroup();
-                                    bool ok = ig.TryParse(kvp.Value);
+                                    ok = ig.TryParse(kvp.Value);
                                     if (ok)
                                     {
                                         //parent id to new ucm id
@@ -5605,7 +5623,7 @@ namespace Thetis
                                             bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
                                             if (bIGSok)
                                             {
-                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, web_images, ig.Order);
                                             }
                                         }
                                     }
@@ -5622,7 +5640,17 @@ namespace Thetis
             }
             catch
             {
-                return null;
+                if(!string.IsNullOrEmpty(id))
+                {
+                    try
+                    {
+                        RemoveMeterContainer(id);
+                    }
+                    catch
+                    {
+
+                    }
+                }
             }
             return null;
         }
@@ -5754,29 +5782,40 @@ namespace Thetis
         {
             lock (_metersLock)
             {
-                if (!_lstUCMeters.ContainsKey(sId)) return;
-                if (!_lstMeterDisplayForms.ContainsKey(sId)) return;
+                frmMeterDisplay f = null;
+                if (_lstMeterDisplayForms.ContainsKey(sId))
+                {
+                    f = _lstMeterDisplayForms[sId];
+                    f.Hide();
+                }
 
-                frmMeterDisplay f = _lstMeterDisplayForms[sId];
-                f.Hide();
-
-                ucMeter uc = _lstUCMeters[sId];
-                uc.Hide();
-                uc.Repaint();
-                // unreg delegates
-                uc.FloatingDockedClicked -= ucMeter_FloatingDockedClicked;
-                uc.DockedMoved -= ucMeter_FloatingDockedMoved;
-                uc.SettingsClicked -= ucMeter_SettingsClicked;
+                ucMeter uc = null;
+                if (_lstUCMeters.ContainsKey(sId))
+                {
+                    uc = _lstUCMeters[sId];
+                    uc.Hide();
+                    uc.Repaint();
+                    // unreg delegates
+                    uc.FloatingDockedClicked -= ucMeter_FloatingDockedClicked;
+                    uc.DockedMoved -= ucMeter_FloatingDockedMoved;
+                    uc.SettingsClicked -= ucMeter_SettingsClicked;
+                }
 
                 removeRenderer(sId);
 
-                f.Close();
-                f.Dispose();//[2.10.3.7]MW0LGE // we have to dispose it because close() prevent this being freed up
+                if (f != null)
+                {
+                    f.Close();
+                    f.Dispose();//[2.10.3.7]MW0LGE // we have to dispose it because close() prevent this being freed up
 
-                _lstMeterDisplayForms.Remove(sId);
+                    _lstMeterDisplayForms.Remove(sId);
+                }
 
-                _console.Controls.Remove(uc);
-                _lstUCMeters.Remove(sId);
+                if (uc != null)
+                {
+                    _console.Controls.Remove(uc);
+                    _lstUCMeters.Remove(sId);
+                }
 
                 if (_meters.ContainsKey(sId))
                 {
@@ -22662,7 +22701,7 @@ namespace Thetis
                     }
                 }
             }
-            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, int order = -1)
+            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, List<string> webimages = null, int order = -1)
             {
                 lock (_meterItemsLock)
                 {
@@ -22907,6 +22946,7 @@ namespace Thetis
                                             webimg.FadeOnRx = igs.FadeOnRx;
                                             webimg.FadeOnTx = igs.FadeOnTx;
                                             webimg.URL = igs.Text1;
+                                            if (webimages != null) webimages.Add(webimg.URL);
                                             webimg.SecondsInterval = igs.UpdateInterval;
                                             webimg.BypassCache = igs.DarkMode;
                                             webimg.WidthScale = igs.EyeScale;

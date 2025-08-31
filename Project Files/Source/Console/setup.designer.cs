@@ -3277,6 +3277,8 @@
             this.comboMeterType = new System.Windows.Forms.ComboBoxTS();
             this.tpAppearanceMeter2 = new System.Windows.Forms.TabPage();
             this.grpMultiMeterHolder = new System.Windows.Forms.GroupBoxTS();
+            this.btnContainer_dupe = new System.Windows.Forms.ButtonTS();
+            this.btnContainer_load = new System.Windows.Forms.ButtonTS();
             this.btnContainer_save = new System.Windows.Forms.ButtonTS();
             this.chkContainer_hidewhennotused = new System.Windows.Forms.CheckBoxTS();
             this.radContainer_rx2_data = new System.Windows.Forms.RadioButtonTS();
@@ -4331,8 +4333,6 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
-            this.btnContainer_load = new System.Windows.Forms.ButtonTS();
-            this.btnContainer_dupe = new System.Windows.Forms.ButtonTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -53604,9 +53604,33 @@
             this.grpMultiMeterHolder.TabIndex = 86;
             this.grpMultiMeterHolder.TabStop = false;
             // 
+            // btnContainer_dupe
+            // 
+            this.btnContainer_dupe.Image = global::Thetis.Properties.Resources.cont_copy;
+            this.btnContainer_dupe.Location = new System.Drawing.Point(153, 272);
+            this.btnContainer_dupe.Name = "btnContainer_dupe";
+            this.btnContainer_dupe.Selectable = true;
+            this.btnContainer_dupe.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_dupe.TabIndex = 117;
+            this.toolTip1.SetToolTip(this.btnContainer_dupe, "Duplicate the current container");
+            this.btnContainer_dupe.UseVisualStyleBackColor = true;
+            this.btnContainer_dupe.Click += new System.EventHandler(this.btnContainer_dupe_Click);
+            // 
+            // btnContainer_load
+            // 
+            this.btnContainer_load.Image = global::Thetis.Properties.Resources.cont_load;
+            this.btnContainer_load.Location = new System.Drawing.Point(153, 310);
+            this.btnContainer_load.Name = "btnContainer_load";
+            this.btnContainer_load.Selectable = true;
+            this.btnContainer_load.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_load.TabIndex = 116;
+            this.toolTip1.SetToolTip(this.btnContainer_load, "Load a container file");
+            this.btnContainer_load.UseVisualStyleBackColor = true;
+            this.btnContainer_load.Click += new System.EventHandler(this.btnContainer_load_Click);
+            // 
             // btnContainer_save
             // 
-            this.btnContainer_save.Image = null;
+            this.btnContainer_save.Image = global::Thetis.Properties.Resources.cont_save;
             this.btnContainer_save.Location = new System.Drawing.Point(153, 348);
             this.btnContainer_save.Name = "btnContainer_save";
             this.btnContainer_save.Selectable = true;
@@ -68957,32 +68981,6 @@
             this.radioButtonTS6.TabStop = true;
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
-            // 
-            // btnContainer_load
-            // 
-            this.btnContainer_load.Image = null;
-            this.btnContainer_load.Location = new System.Drawing.Point(153, 310);
-            this.btnContainer_load.Name = "btnContainer_load";
-            this.btnContainer_load.Selectable = true;
-            this.btnContainer_load.Size = new System.Drawing.Size(32, 32);
-            this.btnContainer_load.TabIndex = 116;
-            this.btnContainer_load.Text = "L";
-            this.toolTip1.SetToolTip(this.btnContainer_load, "Load a container file");
-            this.btnContainer_load.UseVisualStyleBackColor = true;
-            this.btnContainer_load.Click += new System.EventHandler(this.btnContainer_load_Click);
-            // 
-            // btnContainer_dupe
-            // 
-            this.btnContainer_dupe.Image = null;
-            this.btnContainer_dupe.Location = new System.Drawing.Point(153, 272);
-            this.btnContainer_dupe.Name = "btnContainer_dupe";
-            this.btnContainer_dupe.Selectable = true;
-            this.btnContainer_dupe.Size = new System.Drawing.Size(32, 32);
-            this.btnContainer_dupe.TabIndex = 117;
-            this.btnContainer_dupe.Text = "C";
-            this.toolTip1.SetToolTip(this.btnContainer_dupe, "Duplicate");
-            this.btnContainer_dupe.UseVisualStyleBackColor = true;
-            this.btnContainer_dupe.Click += new System.EventHandler(this.btnContainer_dupe_Click);
             // 
             // Setup
             // 

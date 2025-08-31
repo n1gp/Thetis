@@ -526,4 +526,13 @@
   <data name="ob_disp_play" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ob_disp_play.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
+  <data name="cont_copy" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\cont_copy.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cont_load" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\cont_load.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="cont_save" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\cont_save.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
 </root>

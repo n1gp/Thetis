@@ -855,6 +855,9 @@
     <None Include="Resources\grid.png" />
     <None Include="Resources\ob_disp_pause.png" />
     <None Include="Resources\ob_disp_play.png" />
+    <None Include="Resources\cont_copy.png" />
+    <None Include="Resources\cont_save.png" />
+    <None Include="Resources\cont_load.png" />
     <Content Include="Resources\Thetis2_256.ico" />
     <Content Include="Resources\Thetis2_48.ico" />
     <None Include="Resources\resizegrab.png" />
