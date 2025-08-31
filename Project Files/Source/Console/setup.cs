@@ -2965,6 +2965,7 @@ namespace Thetis
             chkLegacyItems_hide_avg_peak_CheckedChanged(this, e);
             //
             chkDiscordEnabled_CheckedChanged(this, e);
+            chkDiscordTimeStamp_CheckedChanged();
 
             // filter item config
             txtFilter_sideband_frequencies_TextChanged(this, e);
@@ -27275,6 +27276,8 @@ namespace Thetis
                 case MeterType.DISCORD_BUTTONS:
                     {
                         clrbtnButonBox_fontcolour.Visible = mt != MeterType.ANTENNA_BUTTONS;
+                        chkButtonBox_use_icons.Visible = mt == MeterType.OTHER_BUTTONS;
+
                         grpBandButtons.Parent = grpMultiMeterHolder;
                         grpBandButtons.Location = loc;
                         grpBandButtons.Visible = true;
@@ -27311,6 +27314,7 @@ namespace Thetis
                             default:
                                 pnlButtonBox_antenna_toggles.Visible = false;
                                 ucTunestepOptionsGrid_buttons.Visible = false;
+                                ucOtherButtonsOptionsGrid_buttons.Visible = false;
                                 break;
                         }
                     }
@@ -33282,7 +33286,34 @@ namespace Thetis
 
         private void chkDiscordTimeStamp_CheckedChanged(object sender, EventArgs e)
         {
-            ThetisBotDiscord.IncludeTimeStamp = chkDiscordTimeStamp.Checked;
+            if (initializing) return;
+            updateDiscordTimeStampVisibilty();
+        }
+        private void updateDiscordTimeStampVisibilty()
+        {
+            bool show = false;
+            string tmp;
+            string call = "mw0lge";
+
+            tmp = txtGenCustomTitle == null || string.IsNullOrEmpty(txtGenCustomTitle.Text) ? "" : txtGenCustomTitle.Text;
+            show |= tmp.Contains(call, StringComparison.OrdinalIgnoreCase);
+
+            tmp = txtOwnCallsign == null || string.IsNullOrEmpty(txtOwnCallsign.Text) ? "" : txtOwnCallsign.Text;
+            show |= tmp.Contains(call, StringComparison.OrdinalIgnoreCase);
+
+            tmp = txtDiscordCallsign == null || string.IsNullOrEmpty(txtDiscordCallsign.Text) ? "" : txtDiscordCallsign.Text;
+            show |= tmp.Contains(call, StringComparison.OrdinalIgnoreCase);
+
+            chkDiscordTimeStamp.Visible = show; // only let mw0lge see this for testing purposes
+
+            if (show)
+            {
+                ThetisBotDiscord.IncludeTimeStamp = chkDiscordTimeStamp.Checked;
+            }
+            else
+            {
+                ThetisBotDiscord.IncludeTimeStamp = true;
+            }
         }
 
         private void nudFilterItem_sidebands_scale_ValueChanged(object sender, EventArgs e)
