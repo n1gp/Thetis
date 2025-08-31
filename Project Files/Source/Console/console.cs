@@ -29657,7 +29657,30 @@ namespace Thetis
         }
         private void ptbRF_Scroll(object sender, System.EventArgs e)
         {
+            switch (RX1AGCMode)
+            {
+                case AGCMode.FIXD:
+                    lblRF.Text = "Fixed Gain:  " + ptbRF.Value.ToString();
+                    if (!IsSetupFormNull) SetupForm.AGCFixedGain = ptbRF.Value;
+                    break;
+                default:
+                    lblRF.Text = "AGC Gain:  " + ptbRF.Value.ToString();
+                    if (!IsSetupFormNull) SetupForm.AGCMaxGain = ptbRF.Value;
+                    break;
+            }
 
+            rx1_agct_by_band[(int)rx1_band] = ptbRF.Value;
+
+            if (sender.GetType() == typeof(PrettyTrackBar))
+            {
+                ptbRF.Focus();
+            }
+
+            //-W2PA Update LEDs on Behringer MIDI controller
+            double pct = Convert.ToDouble(ptbRF.Value - ptbRF.Minimum) / Convert.ToDouble(ptbRF.Maximum - ptbRF.Minimum);
+            Midi2Cat.SendUpdateToMidi(CatCmd.AGCLevel_inc, pct);
+            if (sliderForm != null)
+                sliderForm.RX1RFGainAGC = ptbRF.Value;
         }
         public bool MicMute
         {
