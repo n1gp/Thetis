@@ -205,6 +205,7 @@ namespace Thetis
         TUNE_STEP_D,
         STACK_U,
         STACK_D,
+        NF,
 
         INFO_TEXT = 998,
         SPLITTER = 999,
@@ -219,185 +220,187 @@ namespace Thetis
         private static Dictionary<OtherButtonId, int> _id_to_index_map = new Dictionary<OtherButtonId, int>();
         private static Dictionary<(int, int), int> _bit_group_bit_to_index_map = new Dictionary<(int, int), int>();
 
-        public static readonly (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off)[] CheckBoxData =
-        new (OtherButtonId, int, int, string, string, string)[]
+        public static readonly (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off, string tool_tip)[] CheckBoxData =
+        new (OtherButtonId, int, int, string, string, string, string)[]
         {
-            (OtherButtonId.INFO_TEXT, -1, -1, "General", "", ""),
-            (OtherButtonId.SPLITTER,  -1, -1, "", "", ""),
-            (OtherButtonId.POWER,     0,  0, "Power", "power", ""),
-            (OtherButtonId.RX_2,      0,  1, "RX 2", "", ""),
-            (OtherButtonId.MON,       0,  2, "MON", "", ""),
-            (OtherButtonId.TUN,       0,  3, "TUN", "", ""),
-            (OtherButtonId.MOX,       0,  4, "MOX", "", ""),
-            (OtherButtonId.TWOTON,    0,  5, "2TON", "", ""),
-            (OtherButtonId.DUP,       0,  6, "DUP", "", ""),
-            (OtherButtonId.PS_A,      0,  7, "PS-A", "", ""),
-            (OtherButtonId.XPA,       0,  8, "xPA", "", ""),
-            (OtherButtonId.REC,       0,  9, "Rec", "record", ""),
-            (OtherButtonId.PLAY,      0, 10, "Play", "play", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Noise / ATT", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.NR,        1, 0, "NR", "", ""),
-            (OtherButtonId.NR1,       1, 1, "NR1", "", ""),
-            (OtherButtonId.NR2,       1, 2, "NR2", "", ""),
-            (OtherButtonId.NR3,       1, 3, "NR3", "", ""),
-            (OtherButtonId.NR4,       1, 4, "NR4", "", ""),
-            (OtherButtonId.ANF,       1, 5, "ANF", "", ""),
-            (OtherButtonId.NB,        1, 6, "NB", "", ""),
-            (OtherButtonId.NB1,       1, 7, "NB1", "", ""),
-            (OtherButtonId.NB2,       1, 8, "NB2", "", ""),
-            (OtherButtonId.SNB,       1, 9, "SNB", "", ""),
-            (OtherButtonId.MNF,       1, 10, "MNF", "", ""),
-            (OtherButtonId.ATT_STEP,  1, 11, "S-ATT", "", ""),
-            (OtherButtonId.ATT_0,     1, 12, "ATT-0", "", ""),
-            (OtherButtonId.ATT_10,    1, 13, "ATT-10", "", ""),
-            (OtherButtonId.ATT_20,    1, 14, "ATT-20", "", ""),
-            (OtherButtonId.ATT_30,    1, 15, "ATT-30", "", ""),
-            (OtherButtonId.ATT_40,    1, 16, "ATT-40", "", ""),
-            (OtherButtonId.ATT_50,    1, 17, "ATT-50", "", ""),
-            (OtherButtonId.ATT_P1,    1, 18, "ATT+1", "", ""),
-            (OtherButtonId.ATT_M1,    1, 19, "ATT-1", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "VFOs", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.SPLT,      2, 0, "Split", "", ""),
-            (OtherButtonId.A_TO_B,    2, 1, "A > B", "", ""),
-            (OtherButtonId.ZERO_BEAT, 2, 2, "0 Beat", "", ""),
-            (OtherButtonId.B_TO_A,    2, 3, "A < B", "", ""),
-            (OtherButtonId.IF_TO_V,   2, 4, "IF > V", "", ""),
-            (OtherButtonId.SWAP_AB,   2, 5, "A <> B", "", ""),
-            (OtherButtonId.RIT,       2, 6, "RIT", "", ""),
-            (OtherButtonId.RIT0,      2, 7, "RIT0", "", ""),
-            (OtherButtonId.XIT,       2, 8, "XIT", "", ""),
-            (OtherButtonId.XIT0,      2, 9, "XIT0", "", ""),
-            (OtherButtonId.VFO_SYNC,     2, 10, "SYNC", "", ""),
-            (OtherButtonId.LOCK_A,       2, 11, "LockA", "", ""),
-            (OtherButtonId.LOCK_B,       2, 12, "LockB", "", ""),
-            (OtherButtonId.TUNE_STEP_U,  2, 13, "TS+", "", ""),
-            (OtherButtonId.TUNE_STEP_D,  2, 14, "TS-", "", ""),
-            (OtherButtonId.STACK_U,      2, 15, "STACK+", "", ""),
-            (OtherButtonId.STACK_D,      2, 16, "STATCK-", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Display", "", ""),
-            (OtherButtonId.SPLITTER,  -1, -1, "", "", ""),
-            (OtherButtonId.AVG,           3, 0, "Avg", "", ""),
-            (OtherButtonId.PEAK,          3, 1, "Peak", "", ""),
-            (OtherButtonId.CTUN,          3, 2, "CTUN", "", ""),
-            (OtherButtonId.SPECTRUM,      3, 3, "Spectrum", "spectrum", ""),
-            (OtherButtonId.PANADAPTER,    3, 4, "Panadapter", "panadapter", ""),
-            (OtherButtonId.SCOPE,         3, 5, "Scope", "scope", ""),
-            (OtherButtonId.SCOPE2,        3, 6, "Scope2", "scope2", ""),
-            (OtherButtonId.PHASE,         3, 7, "Phase", "phase", ""),
-            (OtherButtonId.WATERFALL,     3, 8, "Waterfall", "waterfall", ""),
-            (OtherButtonId.HISTOGRAM,     3, 9, "Histogram", "histogram", ""),
-            (OtherButtonId.PANAFALL,      3, 10, "Panafall", "panafall", ""),
-            (OtherButtonId.PANASCOPE,     3, 11, "Panascope", "panascope", ""),
-            (OtherButtonId.SPECTRASCOPE,  3, 12, "Spectrascope", "spectrascope", ""),
-            (OtherButtonId.DISPLAY_OFF,   3, 13, "Off", "display_off", ""),
-            (OtherButtonId.PAUSE,         3, 14, "Pause", "", ""),
-            (OtherButtonId.PEAK_BLOBS,    3, 15, "Peak Blobs", "", ""),
-            (OtherButtonId.CURSOR_INFO,   3, 16, "Cur Info", "", ""),
-            (OtherButtonId.SPOTS,         3, 17, "Spots", "", ""),
-            (OtherButtonId.FILL_SPECTRUM, 3, 18, "Fill", "", ""),
-            (OtherButtonId.PAN_P5,        3, 19, "PAN+", "", ""),
-            (OtherButtonId.PAN_M5,        3, 20, "PAN-", "", ""),
-            (OtherButtonId.PAN_CENTRE,    3, 21, "Centre", "", ""),
-            (OtherButtonId.ZTB,           3, 22, "ZTB", "", ""),
-            (OtherButtonId.ZOOM_0P5,      3, 23, "0.5x", "", ""),
-            (OtherButtonId.ZOOM_1,        3, 24, "1x", "", ""),
-            (OtherButtonId.ZOOM_2,        3, 25, "2x", "", ""),
-            (OtherButtonId.ZOOM_4,        3, 26, "4x", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Audio / DSP", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.VAC1,      4, 0, "Vac1", "", ""),
-            (OtherButtonId.VAC2,      4, 1, "Vac2", "", ""),
-            (OtherButtonId.MUTE,      4, 2, "Mute", "mute_on", "mute_off"),
-            (OtherButtonId.MUTE_ALL,  4, 3, "Mute All", "mute_all_on", "mute_all_off"),
-            (OtherButtonId.BIN,       4, 4, "Bin", "", ""),
-            (OtherButtonId.SUBRX,     4, 5, "SubRX", "", ""),
-            (OtherButtonId.PAN_SWAP,  4, 6, "SwapLR", "", ""),
-            (OtherButtonId.SQL,       4, 7, "SQL", "", ""),
-            (OtherButtonId.SQL_SQL,   4, 8, "Reg SQL", "", ""),
-            (OtherButtonId.SQL_VSQL,  4, 9, "Voice SQL", "", ""),
-            (OtherButtonId.MIC,       4, 10, "MIC", "mic_on", "mic_off"),
-            (OtherButtonId.COMP,      4, 11, "COMP", "", ""),
-            (OtherButtonId.VOX,       4, 12, "VOX", "", ""),
-            (OtherButtonId.DEXP,      4, 13, "DEXP", "", ""),
-            (OtherButtonId.RX_EQ,     4, 14, "RX EQ", "", ""),
-            (OtherButtonId.TX_EQ,     4, 15, "TX EQ", "", ""),
-            (OtherButtonId.TX_FILTER, 4, 16, "TX Filter", "", ""),
-            (OtherButtonId.CFC,       4, 17, "CFC", "", ""),
-            (OtherButtonId.CFC_EQ,    4, 18, "CFC EQ", "", ""),
-            (OtherButtonId.MAF_P5,    4, 19, "MAF+", "", ""),
-            (OtherButtonId.MAF_M5,    4, 20, "MAF-", "", ""),
-            (OtherButtonId.AF_P5,     4, 21, "AF+", "", ""),
-            (OtherButtonId.AF_M5,     4, 22, "AF-", "", ""),
-            (OtherButtonId.BAL_P5,    4, 23, "BAL+", "", ""),
-            (OtherButtonId.BAL_M5,    4, 24, "BAL-", "", ""),
-            (OtherButtonId.SAF_P5,    4, 25, "SAF+", "", ""),
-            (OtherButtonId.SAF_M5,    4, 26, "SAF-", "", ""),
-            (OtherButtonId.SBAL_P5,   4, 27, "SBAL+", "", ""),
-            (OtherButtonId.SBAL_M5,   4, 28, "SBAL-", "", ""),
-            (OtherButtonId.SQL_P5,    4, 29, "SQL+", "", ""),
-            (OtherButtonId.SQL_M5,    4, 30, "SQL-", "", ""),
-            (OtherButtonId.MIC_P1,    5, 0, "MIC+", "", ""),
-            (OtherButtonId.MIC_M1,    5, 1, "MIC-", "", ""),
-            (OtherButtonId.COMP_P1,   5, 3, "COMP+", "", ""),
-            (OtherButtonId.COMP_M1,   5, 4, "COMP-", "", ""),
-            (OtherButtonId.VOX_P1,    5, 5, "VOX+", "", ""),
-            (OtherButtonId.VOX_M1,    5, 6, "VOX-", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "AGC", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.AGC_FIXED,  6, 0, "FIX", "", ""),
-            (OtherButtonId.AGC_LONG,   6, 1, "LONG", "", ""),
-            (OtherButtonId.AGC_SLOW,   6, 2, "SLOW", "", ""),
-            (OtherButtonId.AGC_MEDIUM, 6, 3, "MED", "", ""),
-            (OtherButtonId.AGC_FAST,   6, 4, "FAST", "", ""),
-            (OtherButtonId.AGC_CUSTOM, 6, 5, "CUST", "", ""),
-            (OtherButtonId.AGC_AUTO,   6, 6, "AUTO", "", ""),
-            (OtherButtonId.AGC_P5,     6, 7, "AGC+", "", ""),
-            (OtherButtonId.AGC_M5,     6, 8, "AGC-", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Hardware", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.DITHER,     7, 0, "Dither", "", ""),
-            (OtherButtonId.RANDOM,     7, 1, "Random", "", ""),
-            (OtherButtonId.SR_48000,   7, 2, "48k", "", ""),
-            (OtherButtonId.SR_96000,   7, 3, "96k", "", ""),
-            (OtherButtonId.SR_192000,  7, 4, "192k", "", ""),
-            (OtherButtonId.SR_384000,  7, 5, "384k", "", ""),
-            (OtherButtonId.SR_768000,  7, 6, "768k", "", ""),
-            (OtherButtonId.SR_1536000, 7, 7, "1536k", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Power", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.DRIVE_P5,    8, 0, "DRI+", "", ""),
-            (OtherButtonId.DRIVE_M5,    8, 1, "DRI-", "", ""),
-            (OtherButtonId.TUNE_P5,     8, 2, "TUN+", "", ""),
-            (OtherButtonId.TUNE_M5,     8, 3, "TUN-", "", ""),
-            (OtherButtonId.DRIVE_0,     8, 4, "DRI-0", "", ""),
-            (OtherButtonId.TUN_0,       8, 5, "TUN-0", "", ""),
-            (OtherButtonId.INFO_TEXT, -1, -1, "Forms", "", ""),
-            (OtherButtonId.SPLITTER, -1, -1, "", "", ""),
-            (OtherButtonId.FORM_SETUP,     9, 0, "Setup", "", ""),
-            (OtherButtonId.FORM_DBMAN,     9, 1, "DB Man", "", ""),
-            (OtherButtonId.FORM_MEMORY,    9, 2, "Memory", "", ""),
-            (OtherButtonId.FORM_WAVE,      9, 3, "Wave", "", ""),
-            (OtherButtonId.FORM_EQ,        9, 4, "Equaliser", "", ""),
-            (OtherButtonId.FORM_XVTR,      9, 5, "XVTR", "", ""),
-            (OtherButtonId.FORM_CWX,       9, 6, "CWX", "", ""),
-            (OtherButtonId.FORM_DIVERSITY, 9, 8, "Diversity", "", ""),
-            (OtherButtonId.FORM_LINEARITY, 9, 9, "Linearity", "", ""),
-            (OtherButtonId.FORM_WB,        9, 10, "Wideband", "", ""),
-            (OtherButtonId.INFO_TEXT,     -1, -1, "CWX", "", ""),
-            (OtherButtonId.SPLITTER,      -1, -1, "", "", ""),
-            (OtherButtonId.CWX_KEY,        10, 0, "KEY", "", ""),
-            (OtherButtonId.CWX_STOP,       10, 1, "STOP", "", ""),
-            (OtherButtonId.CWX_F1,         10, 2, "F1", "", ""),
-            (OtherButtonId.CWX_F2,         10, 3, "F2", "", ""),
-            (OtherButtonId.CWX_F3,         10, 4, "F3", "", ""),
-            (OtherButtonId.CWX_F4,         10, 5, "F4", "", ""),
-            (OtherButtonId.CWX_F5,         10, 6, "F5", "", ""),
-            (OtherButtonId.CWX_F6,         10, 7, "F6", "", ""),
-            (OtherButtonId.CWX_F7,         10, 8, "F7", "", ""),
-            (OtherButtonId.CWX_F8,         10, 9, "F8", "", ""),
-            (OtherButtonId.CWX_F9,         10, 10, "F9", "", ""),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "General", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.POWER,          0,  0, "Power", "power", "", "Power on/off"),
+            (OtherButtonId.RX_2,           0,  1, "RX 2", "", "", "Enable RX2"),
+            (OtherButtonId.MON,            0,  2, "MON", "", "", "Monitor your tx audio"),
+            (OtherButtonId.TUN,            0,  3, "TUN", "", "", "Put radio into tune"),
+            (OtherButtonId.MOX,            0,  4, "MOX", "", "", "Put radio into tune"),
+            (OtherButtonId.TWOTON,         0,  5, "2TON", "", "", "Put out a two tone signal"),
+            (OtherButtonId.DUP,            0,  6, "DUP", "", "", "Duplex mode, view the tx rx"),
+            (OtherButtonId.PS_A,           0,  7, "PS-A", "", "", "Puresignal auto"),
+            (OtherButtonId.XPA,            0,  8, "xPA", "", "", "Override OC pins with this"),
+            (OtherButtonId.REC,            0,  9, "Rec", "record", "", "Wave quick record"),
+            (OtherButtonId.PLAY,           0, 10, "Play", "play", "", "Wave quick playback"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Noise / ATT", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.NR,             1, 0, "NR", "", "", "Cycle through NR's"),
+            (OtherButtonId.NR1,            1, 1, "NR1", "", "", "NR1 on/off"),
+            (OtherButtonId.NR2,            1, 2, "NR2", "", "", "NR2 on/off"),
+            (OtherButtonId.NR3,            1, 3, "NR3", "", "", "NR3 on/off"),
+            (OtherButtonId.NR4,            1, 4, "NR4", "", "", "NR4 on/off"),
+            (OtherButtonId.ANF,            1, 5, "ANF", "", "", "Auto notch filter"),
+            (OtherButtonId.NB,             1, 6, "NB", "", "", "Cycle through noise blankers"),
+            (OtherButtonId.NB1,            1, 7, "NB1", "", "", "NB1 on/off"),
+            (OtherButtonId.NB2,            1, 8, "NB2", "", "", "NB2 on/off"),
+            (OtherButtonId.SNB,            1, 9, "SNB", "", "", "Enabled / disable spectral noise blanker"),
+            (OtherButtonId.MNF,            1, 10, "MNF", "", "", "Manual not filters on/off"),
+            (OtherButtonId.MNF_PLUS,       1, 11, "MNF+", "", "", "Add a manual notch"),
+            (OtherButtonId.ATT_STEP,       1, 12, "S-ATT", "", "", "Step attenuator on/off"),
+            (OtherButtonId.ATT_0,          1, 13, "ATT-0", "", "", "0dB attenuation"),
+            (OtherButtonId.ATT_10,         1, 14, "ATT-10", "", "", "10dB attenuation"),
+            (OtherButtonId.ATT_20,         1, 15, "ATT-20", "", "", "20db attenuation"),
+            (OtherButtonId.ATT_30,         1, 16, "ATT-30", "", "", "30db attenuation"),
+            (OtherButtonId.ATT_40,         1, 17, "ATT-40", "", "", "40db attenuation"),
+            (OtherButtonId.ATT_50,         1, 18, "ATT-50", "", "", "50db attenuation"),
+            (OtherButtonId.ATT_P1,         1, 19, "ATT+", "", "", "Increaase attenuation"),
+            (OtherButtonId.ATT_M1,         1, 20, "ATT-", "", "", "Decrease attenuation"),
+            (OtherButtonId.NF,             1, 21, "NF", "", "", "Noise floor display on/off"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "VFOs", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.SPLT,           2, 0, "Split", "", "", "Split on/off"),
+            (OtherButtonId.A_TO_B,         2, 1, "A > B", "", "", "Copy VFOa frequency to VFOb"),
+            (OtherButtonId.ZERO_BEAT,      2, 2, "0 Beat", "", "", "0 beat to strongest signal"),
+            (OtherButtonId.B_TO_A,         2, 3, "A < B", "", "", "Copy VFOa frequency to VFOb"),
+            (OtherButtonId.IF_TO_V,        2, 4, "IF > V", "", "", ""),
+            (OtherButtonId.SWAP_AB,        2, 5, "A <> B", "", "", "Swap VFOa and VFOb frequencies"),
+            (OtherButtonId.RIT,            2, 6, "RIT", "", "", "RIT on/off"),
+            (OtherButtonId.RIT0,           2, 7, "RIT0", "", "", "0 rit"),
+            (OtherButtonId.XIT,            2, 8, "XIT", "", "", "XIT on/off"),
+            (OtherButtonId.XIT0,           2, 9, "XIT0", "", "", "0 rit"),
+            (OtherButtonId.VFO_SYNC,       2, 10, "SYNC", "", "", "Sync the vfos"),
+            (OtherButtonId.LOCK_A,         2, 11, "LockA", "", "", "Lock VFOa"),
+            (OtherButtonId.LOCK_B,         2, 12, "LockB", "", "", "Lock VFOb"),
+            (OtherButtonId.TUNE_STEP_U,    2, 13, "TS+", "", "", "Increase tunestep"),
+            (OtherButtonId.TUNE_STEP_D,    2, 14, "TS-", "", "", "Decrease tunestep"),
+            (OtherButtonId.STACK_U,        2, 15, "STACK+", "", "", "Move up one bandstack entry"),
+            (OtherButtonId.STACK_D,        2, 16, "STACK-", "", "", "Move down on bandstack entry"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Display", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.AVG,            3, 0, "Avg", "", "", "Display averaging on/off"),
+            (OtherButtonId.PEAK,           3, 1, "Peak", "", "", "Peak hold on/off"),
+            (OtherButtonId.CTUN,           3, 2, "CTUN", "", "", "ClickTune on/off"),
+            (OtherButtonId.SPECTRUM,       3, 3, "Spectrum", "spectrum", "", "Spectrum"),
+            (OtherButtonId.PANADAPTER,     3, 4, "Panadapter", "panadapter", "", "Panadaptor"),
+            (OtherButtonId.SCOPE,          3, 5, "Scope", "scope", "", "Scope"),
+            (OtherButtonId.SCOPE2,         3, 6, "Scope2", "scope2", "", "Scope2"),
+            (OtherButtonId.PHASE,          3, 7, "Phase", "phase", "", "Phase"),
+            (OtherButtonId.WATERFALL,      3, 8, "Waterfall", "waterfall", "", "Waterfall"),
+            (OtherButtonId.HISTOGRAM,      3, 9, "Histogram", "histogram", "", "Histogram"),
+            (OtherButtonId.PANAFALL,       3, 10, "Panafall", "panafall", "", "Panafall"),
+            (OtherButtonId.PANASCOPE,      3, 11, "Panascope", "panascope", "", "Panascope"),
+            (OtherButtonId.SPECTRASCOPE,   3, 12, "Spectrascope", "spectrascope", "", "Spectrascope"),
+            (OtherButtonId.DISPLAY_OFF,    3, 13, "Off", "display_off", "", "Display off"),
+            (OtherButtonId.PAUSE,          3, 14, "Pause", "", "", "Pause the display"),
+            (OtherButtonId.PEAK_BLOBS,     3, 15, "Peak Blobs", "", "", "Peak blobs on/off"),
+            (OtherButtonId.CURSOR_INFO,    3, 16, "Cur Info", "", "", "Show info on the cursor"),
+            (OtherButtonId.SPOTS,          3, 17, "Spots", "", "", "Show TCI spots"),
+            (OtherButtonId.FILL_SPECTRUM,  3, 18, "Fill", "", "", "Fill the panadaptor area"),
+            (OtherButtonId.PAN_P5,         3, 19, "PAN+", "", "", "Pan the display to the right"),
+            (OtherButtonId.PAN_M5,         3, 20, "PAN-", "", "", "Pan the display to the left"),
+            (OtherButtonId.PAN_CENTRE,     3, 21, "Centre", "", "", "Centre the display"),
+            (OtherButtonId.ZTB,            3, 22, "ZTB", "", "", "Zoom to band"),
+            (OtherButtonId.ZOOM_0P5,       3, 23, "0.5x", "", "", "0.5x zoom"),
+            (OtherButtonId.ZOOM_1,         3, 24, "1x", "", "", "1x zoom"),
+            (OtherButtonId.ZOOM_2,         3, 25, "2x", "", "", "2x zoom"),
+            (OtherButtonId.ZOOM_4,         3, 26, "4x", "", "", "4x zoom"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Audio / DSP", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.VAC1,           4, 0, "Vac1", "", "", "Vac1 on/off"),
+            (OtherButtonId.VAC2,           4, 1, "Vac2", "", "", "Vac2 on/off"),
+            (OtherButtonId.MUTE,           4, 2, "Mute", "mute_on", "mute_off", "Mute on/off"),
+            (OtherButtonId.MUTE_ALL,       4, 3, "Mute All", "mute_all_on", "mute_all_off", "Mute all receivers on/off"),
+            (OtherButtonId.BIN,            4, 4, "Bin", "", "", "Binaurial mode"),
+            (OtherButtonId.SUBRX,          4, 5, "SubRX", "", "", "Enable the sub receiver for rx1"),
+            (OtherButtonId.PAN_SWAP,       4, 6, "SwapLR", "", "", "Swap left and right speakers"),
+            (OtherButtonId.SQL,            4, 7, "SQL", "", "", "Enable squeltch"),
+            (OtherButtonId.SQL_SQL,        4, 8, "Reg SQL", "", "", "Normal squeltch"),
+            (OtherButtonId.SQL_VSQL,       4, 9, "Voice SQL", "", "", "Voice base squeltch"),
+            (OtherButtonId.SQL_P5,         4, 10, "SQL+", "", "", "Increase squelch sensitivity"),
+            (OtherButtonId.SQL_M5,         4, 11, "SQL-", "", "", "Decrease squelch sensitivity"),
+            (OtherButtonId.MIC,            4, 12, "MIC", "mic_on", "mic_off", "Mic on/off"),
+            (OtherButtonId.COMP,           4, 13, "COMP", "", "", "Compressor on/off"),
+            (OtherButtonId.VOX,            4, 14, "VOX", "", "", "Vox on/off"),
+            (OtherButtonId.DEXP,           4, 15, "DEXP", "", "", "Downward expander on/off"),
+            (OtherButtonId.RX_EQ,          4, 16, "RX EQ", "", "", "Receiver EQ on/off"),
+            (OtherButtonId.TX_EQ,          4, 17, "TX EQ", "", "", "Transmit EQ on/off"),
+            (OtherButtonId.TX_FILTER,      4, 18, "TX Filter", "", "", "Show transmit filter"),
+            (OtherButtonId.CFC,            4, 19, "CFC", "", "", "Coninuous frequency compression on/off"),
+            (OtherButtonId.CFC_EQ,         4, 20, "CFC EQ", "", "", "CFC eq on/off"),
+            (OtherButtonId.MAF_P5,         4, 21, "MAF+", "", "", "Increase Master AF"),
+            (OtherButtonId.MAF_M5,         4, 22, "MAF-", "", "", "Decrease Master AF"),
+            (OtherButtonId.AF_P5,          4, 23, "AF+", "", "", "Increase rx AF"),
+            (OtherButtonId.AF_M5,          4, 24, "AF-", "", "", "Decrease rx AF"),
+            (OtherButtonId.BAL_P5,         4, 25, "BAL+", "", "", "Pan audio right"),
+            (OtherButtonId.BAL_M5,         4, 26, "BAL-", "", "", "Pan audio left"),
+            (OtherButtonId.SAF_P5,         4, 27, "SAF+", "", "", "Increase subrx AF"),
+            (OtherButtonId.SAF_M5,         4, 28, "SAF-", "", "", "Decrease subrx AF"),
+            (OtherButtonId.SBAL_P5,        4, 29, "SBAL+", "", "", "Pan subrx audio right"),
+            (OtherButtonId.SBAL_M5,        4, 30, "SBAL-", "", "", "Pan subrx audio left"),
+            (OtherButtonId.MIC_P1,         5, 0, "MIC+", "", "", "Increase mic gain"),
+            (OtherButtonId.MIC_M1,         5, 1, "MIC-", "", "", "Decrease mic gain"),
+            (OtherButtonId.COMP_P1,        5, 3, "COMP+", "", "", "Increase compression"),
+            (OtherButtonId.COMP_M1,        5, 4, "COMP-", "", "", "Decrease compression"),
+            (OtherButtonId.VOX_P1,         5, 5, "VOX+", "", "", "Increase vox level"),
+            (OtherButtonId.VOX_M1,         5, 6, "VOX-", "", "", "Decrease vox level"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "AGC", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.AGC_FIXED,      6, 0, "FIX", "", "", "Fixed agc"),
+            (OtherButtonId.AGC_LONG,       6, 1, "LONG", "", "", "Long agc"),
+            (OtherButtonId.AGC_SLOW,       6, 2, "SLOW", "", "", "Slow agc"),
+            (OtherButtonId.AGC_MEDIUM,     6, 3, "MED", "", "", "Medium agc"),
+            (OtherButtonId.AGC_FAST,       6, 4, "FAST", "", "", "Fast agc"),
+            (OtherButtonId.AGC_CUSTOM,     6, 5, "CUST", "", "", "Custom agc"),
+            (OtherButtonId.AGC_AUTO,       6, 6, "AUTO", "", "", "Auto adjust agc based on noise floor"),
+            (OtherButtonId.AGC_P5,         6, 7, "AGC+", "", "", "Increase gain"),
+            (OtherButtonId.AGC_M5,         6, 8, "AGC-", "", "", "Decrease gain"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Hardware", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.DITHER,         7, 0, "Dither", "", "", "Enable fpga dither on/off"),
+            (OtherButtonId.RANDOM,         7, 1, "Random", "", "", "Enable fpga random on/off"),
+            (OtherButtonId.SR_48000,       7, 2, "48k", "", "", "48k hardware sample rate"),
+            (OtherButtonId.SR_96000,       7, 3, "96k", "", "", "96k hardware sample rate"),
+            (OtherButtonId.SR_192000,      7, 4, "192k", "", "", "192k hardware sample rate"),
+            (OtherButtonId.SR_384000,      7, 5, "384k", "", "", "384k hardware sample rate"),
+            (OtherButtonId.SR_768000,      7, 6, "768k", "", "", "768k hardware sample rate"),
+            (OtherButtonId.SR_1536000,     7, 7, "1536k", "", "", "1536k hardware sample rate"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "RF Power", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.DRIVE_P5,       8, 0, "DRI+", "", "", "Increase drive"),
+            (OtherButtonId.DRIVE_M5,       8, 1, "DRI-", "", "", "Decrease drive"),
+            (OtherButtonId.TUNE_P5,        8, 2, "TUN+", "", "", "Increase tune power"),
+            (OtherButtonId.TUNE_M5,        8, 3, "TUN-", "", "", "Decrease tune power"),
+            (OtherButtonId.DRIVE_0,        8, 4, "DRI-0", "", "", "Set drive power to 0"),
+            (OtherButtonId.TUN_0,          8, 5, "TUN-0", "", "", "Set tune power to 0"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Forms", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.FORM_SETUP,     9, 0, "Setup", "", "", "Show setup"),
+            (OtherButtonId.FORM_DBMAN,     9, 1, "DB Man", "", "", "Show database manager"),
+            (OtherButtonId.FORM_MEMORY,    9, 2, "Memory", "", "", "Show memory form"),
+            (OtherButtonId.FORM_WAVE,      9, 3, "Wave", "", "", "Show wave recorder"),
+            (OtherButtonId.FORM_EQ,        9, 4, "Equaliser", "", "", "Show equaliser form"),
+            (OtherButtonId.FORM_XVTR,      9, 5, "XVTR", "", "", "Show transverter form"),
+            (OtherButtonId.FORM_CWX,       9, 6, "CWX", "", "", "Show CWX form"),
+            (OtherButtonId.FORM_DIVERSITY, 9, 8, "Diversity", "", "", "Show diversity form"),
+            (OtherButtonId.FORM_LINEARITY, 9, 9, "Linearity", "", "", "Show linearity form"),
+            (OtherButtonId.FORM_WB,        9, 10, "Wideband", "", "", "Show wideband"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "CWX", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId.CWX_KEY,        10, 0, "KEY", "", "", "Key cwx"),
+            (OtherButtonId.CWX_STOP,       10, 1, "STOP", "", "", "Stop cwx"),
+            (OtherButtonId.CWX_F1,         10, 2, "F1", "", "", "Function key 1"),
+            (OtherButtonId.CWX_F2,         10, 3, "F2", "", "", "Function key 2"),
+            (OtherButtonId.CWX_F3,         10, 4, "F3", "", "", "Function key 3"),
+            (OtherButtonId.CWX_F4,         10, 5, "F4", "", "", "Function key 4"),
+            (OtherButtonId.CWX_F5,         10, 6, "F5", "", "", "Function key 5"),
+            (OtherButtonId.CWX_F6,         10, 7, "F6", "", "", "Function key 6"),
+            (OtherButtonId.CWX_F7,         10, 8, "F7", "", "", "Function key 7"),
+            (OtherButtonId.CWX_F8,         10, 9, "F8", "", "", "Function key 8"),
+            (OtherButtonId.CWX_F9,         10, 10, "F9", "", "", "Function key 9")
         };
 
         static OtherButtonIdHelpers()
@@ -407,7 +410,7 @@ namespace Thetis
 
             for (int i = 0; i < CheckBoxData.Length; i++)
             {
-                (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off) = CheckBoxData[i];
+                (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off, string tooltip) = CheckBoxData[i];
 
                 if (!_id_to_index_map.ContainsKey(id)) _id_to_index_map[id] = i;
 
@@ -455,6 +458,11 @@ namespace Thetis
             OtherButtonId id = BitToID(bit_group, bit_number);
             return (OtherButtonIDToIconOn(id), OtherButtonIDToIconOff(id));
         }
+        public static string OtherButtonIDToTooltip(OtherButtonId id)
+        {
+            if (_id_to_index_map.TryGetValue(id, out int idx)) return CheckBoxData[idx].tool_tip;
+            return string.Empty;
+        }
     }
 
     public partial class ucOtherButtonsOptionsGrid : UserControl
@@ -467,6 +475,8 @@ namespace Thetis
         private Dictionary<int, List<(int bit, CheckBox cb)>> _by_group;
         private TableLayoutPanel _table;
 
+        private ToolTip _tooltip;
+
         public ucOtherButtonsOptionsGrid()
         {
             _init = false;
@@ -476,6 +486,13 @@ namespace Thetis
             this.scrollableControl1.Location = new Point(0, 0);
             this.scrollableControl1.Size = new Size(170, 178);
             this.scrollableControl1.AutoScroll = true;
+
+            _tooltip = new ToolTip();
+            _tooltip.AutomaticDelay = 300;
+            _tooltip.AutoPopDelay = 8000;
+            _tooltip.InitialDelay = 500;
+            _tooltip.ReshowDelay = 100;
+            _tooltip.ShowAlways = true;
 
             _check_boxes = new List<CheckBox>();
             _checkbox_by_id = new Dictionary<OtherButtonId, CheckBox>();
@@ -524,7 +541,7 @@ namespace Thetis
 
             int row = 0;
             int col = 0;
-            (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off)[] data = OtherButtonIdHelpers.CheckBoxData;
+            (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off, string tooltip)[] data = OtherButtonIdHelpers.CheckBoxData;
 
             for (int i = 0; i < data.Length; i++)
             {
@@ -557,7 +574,7 @@ namespace Thetis
                         row++;
                     }
 
-                    Panel sep = new Panel();
+                    PanelTS sep = new PanelTS();
                     sep.Name = "sep_" + i.ToString();
                     sep.Height = 1;
                     sep.Dock = DockStyle.Fill;
@@ -570,12 +587,13 @@ namespace Thetis
                     continue;
                 }
 
-                CheckBox chk = new CheckBox();
+                CheckBoxTS chk = new CheckBoxTS();
                 chk.Name = "chk_" + ((int)data[i].id).ToString();
                 chk.AutoSize = true;
                 chk.Margin = new Padding(0, 0, 0, 0);
                 chk.Text = OtherButtonIdHelpers.OtherButtonIDToText(data[i].id);
                 chk.Tag = new ValueTuple<OtherButtonId, int, int>(data[i].id, data[i].bit_group, data[i].bit_number);
+                _tooltip.SetToolTip(chk, data[i].tooltip);
                 chk.CheckedChanged += checkbox_checked_changed;
 
                 if (col == 0)
@@ -614,7 +632,6 @@ namespace Thetis
 
             _init = true;
         }
-
 
         private void checkbox_checked_changed(object sender, EventArgs e)
         {

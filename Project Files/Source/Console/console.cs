@@ -29657,30 +29657,7 @@ namespace Thetis
         }
         private void ptbRF_Scroll(object sender, System.EventArgs e)
         {
-            switch (RX1AGCMode)
-            {
-                case AGCMode.FIXD:
-                    lblRF.Text = "Fixed Gain:  " + ptbRF.Value.ToString();
-                    if (!IsSetupFormNull) SetupForm.AGCFixedGain = ptbRF.Value;
-                    break;
-                default:
-                    lblRF.Text = "AGC Gain:  " + ptbRF.Value.ToString();
-                    if (!IsSetupFormNull) SetupForm.AGCMaxGain = ptbRF.Value;
-                    break;
-            }
 
-            rx1_agct_by_band[(int)rx1_band] = ptbRF.Value;
-
-            if (sender.GetType() == typeof(PrettyTrackBar))
-            {
-                ptbRF.Focus();
-            }
-
-            //-W2PA Update LEDs on Behringer MIDI controller
-            double pct = Convert.ToDouble(ptbRF.Value - ptbRF.Minimum) / Convert.ToDouble(ptbRF.Maximum - ptbRF.Minimum);
-            Midi2Cat.SendUpdateToMidi(CatCmd.AGCLevel_inc, pct);
-            if (sliderForm != null)
-                sliderForm.RX1RFGainAGC = ptbRF.Value;
         }
         public bool MicMute
         {
@@ -52891,7 +52868,39 @@ namespace Thetis
                 case OtherButtonId.TUNE_STEP_D: TuneStepIndex -= 1; break;
                 case OtherButtonId.STACK_U: SetBandStack(rx, 1); break;
                 case OtherButtonId.STACK_D: SetBandStack(rx, -1); break;
+
+                case OtherButtonId.NF: SetNFEnabled(rx, !GetNFEnabled(rx)); break;
+
             }
+        }
+        public void SetNFEnabled(int rx, bool state)
+        {
+            if (rx < 1 || rx > 2) return;
+            if (IsSetupFormNull) return;
+
+            switch (rx)
+            {
+                case 1:
+                    SetupForm.RX1ShowNF = state;
+                    break;
+                case 2:
+                    SetupForm.RX2ShowNF = state;
+                    break;
+            }
+        }
+        public bool GetNFEnabled(int rx)
+        {
+            if (rx < 1 || rx > 2) return false;
+            if (IsSetupFormNull) return false;
+
+            switch (rx)
+            {
+                case 1:
+                    return SetupForm.RX1ShowNF;
+                case 2:
+                    return SetupForm.RX2ShowNF;
+            }
+            return false;
         }
         public void SetBandStack(int rx, int dir)
         {
@@ -53212,6 +53221,8 @@ namespace Thetis
                 case OtherButtonId.VFO_SYNC: return GetGeneralSetting(rx, OtherButtonId.VFO_SYNC);
                 case OtherButtonId.LOCK_A: return GetGeneralSetting(rx, OtherButtonId.LOCK_A);
                 case OtherButtonId.LOCK_B: return GetGeneralSetting(rx, OtherButtonId.LOCK_B);
+
+                case OtherButtonId.NF: return GetGeneralSetting(rx, OtherButtonId.NF);
 
                 default: 
                     return false;
@@ -53851,6 +53862,8 @@ namespace Thetis
                 case OtherButtonId.VFO_SYNC: return VFOSync;
                 case OtherButtonId.LOCK_A: return VFOALock;
                 case OtherButtonId.LOCK_B: return VFOBLock;
+
+                case OtherButtonId.NF: return GetNFEnabled(rx);
             }
             return false;
         }
@@ -53894,7 +53907,8 @@ namespace Thetis
                 SetGeneralSetting(n, OtherButtonId.SR_768000, GetGeneralSetting(n, OtherButtonId.SR_768000));                
                 SetGeneralSetting(n, OtherButtonId.SR_1536000, GetGeneralSetting(n, OtherButtonId.SR_1536000));
 
-                setATTGeneralSetting(n);                
+                setATTGeneralSetting(n);
+                SetGeneralSetting(n, OtherButtonId.NF, GetGeneralSetting(n, OtherButtonId.NF));
             }
 
             // last

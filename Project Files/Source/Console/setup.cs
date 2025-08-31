@@ -2965,7 +2965,7 @@ namespace Thetis
             chkLegacyItems_hide_avg_peak_CheckedChanged(this, e);
             //
             chkDiscordEnabled_CheckedChanged(this, e);
-            chkDiscordTimeStamp_CheckedChanged();
+            chkDiscordTimeStamp_CheckedChanged(this, e);
 
             // filter item config
             txtFilter_sideband_frequencies_TextChanged(this, e);
@@ -22347,17 +22347,30 @@ namespace Thetis
                     if (cb.Name.Length >= 9 && cb.Name.Substring(0, 9) == "chkOCxmit") cb.Enabled = enable;
             }
         }
-
+        public bool RX1ShowNF
+        {
+            get { return chkShowRX1NoiseFloor == null ? false : chkShowRX1NoiseFloor.Checked; }
+            set { if (chkShowRX1NoiseFloor != null) chkShowRX1NoiseFloor.Checked = value; }
+        }
+        public bool RX2ShowNF
+        {
+            get { return chkShowRX2NoiseFloor == null ? false : chkShowRX2NoiseFloor.Checked; }
+            set { if (chkShowRX2NoiseFloor != null) chkShowRX2NoiseFloor.Checked = value; }
+        }
         private void chkShowRX1NoiseFloor_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
             Display.ShowRX1NoiseFloor = chkShowRX1NoiseFloor.Checked;
+
+            if (console != null) console.SetGeneralSetting(1, OtherButtonId.NF, chkShowRX1NoiseFloor.Checked);
         }
 
         private void chkShowRX2NoiseFloor_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
             Display.ShowRX2NoiseFloor = chkShowRX2NoiseFloor.Checked;
+
+            if (console != null) console.SetGeneralSetting(2, OtherButtonId.NF, chkShowRX2NoiseFloor.Checked);
         }
 
         private void chkAutoAGCRX1_CheckedChanged(object sender, EventArgs e)
