@@ -25198,6 +25198,9 @@ namespace Thetis
 
             bool locked = chkLockContainer.Checked;
 
+            btnContainer_save.Enabled = MeterManager.TotalMeterContainers > 0 && comboContainerSelect.SelectedIndex > -1;
+            btnContainer_load.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
+            btnContainer_dupe.Enabled = bEnableControls && comboContainerSelect.SelectedIndex > -1;
             btnContainerDelete.Enabled = bEnableControls && !locked;
             chkContainerHighlight.Enabled = bEnableControls;
             comboContainerSelect.Enabled = bEnableControls;
@@ -25364,7 +25367,7 @@ namespace Thetis
         private void comboContainerSelect_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (initializing) return;
-
+                
             clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
             if (cci == null) return;
 
@@ -26194,6 +26197,7 @@ namespace Thetis
                 if (mt == MeterType.ANANMM || mt == MeterType.CROSS) igs.DarkMode = chkMeterItemDarkMode.Checked;
             }
 
+            Dictionary<string, string> fcm = null;
             m.ApplySettingsForMeterGroup(mt, igs, mtci.Order);
 
             updateLedValidControls();
@@ -27524,6 +27528,7 @@ namespace Thetis
                 }
                 //
 
+                Dictionary<string, string> fcm = null;
                 m.ApplySettingsForMeterGroup(mt, _itemGroupSettings, mtci.Order);
                 updateItemSettingsControlsForSelected();
             }
@@ -31462,6 +31467,7 @@ namespace Thetis
                 igs.SetMMIOGuid(variable, f.Guid);
                 igs.SetMMIOVariable(variable, f.Variable);
 
+                Dictionary<string, string> fcm = null;
                 m.ApplySettingsForMeterGroup(mt, igs, mtci.Order);
 
                 switch(mt)
@@ -35448,6 +35454,98 @@ namespace Thetis
             _reset_otherbutton_layout = true;
             updateMeterType();
             _reset_otherbutton_layout = false;
+        }
+
+        private void btnContainer_save_Click(object sender, EventArgs e)
+        {
+            clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
+
+            if (cci != null)
+            {             
+                using (SaveFileDialog sfd = new SaveFileDialog())
+                {
+                    sfd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                    sfd.Filter = "Container Files|*.dat";
+                    sfd.Title = "Save Container";
+                    sfd.FilterIndex = 1;
+                    sfd.RestoreDirectory = true;
+                    DialogResult dr = sfd.ShowDialog();
+
+                    if (sfd.FileName != "" && dr == DialogResult.OK)
+                    {
+                        string data64 = MeterManager.ContainerToString(cci.ID);
+
+                        File.WriteAllText(sfd.FileName, data64, Encoding.UTF8);
+                    }
+                }
+            }
+        }
+
+        private void btnContainer_load_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+                ofd.Filter = "Container Files|*.dat";
+                ofd.Title = "Load Container";
+                ofd.FilterIndex = 1;
+                ofd.RestoreDirectory = true;
+                DialogResult dr = ofd.ShowDialog();
+
+                if (ofd.FileName != "" && dr == DialogResult.OK)
+                {
+                    if (File.Exists(ofd.FileName))
+                    {
+                        string txt = txt = File.ReadAllText(ofd.FileName, Encoding.UTF8);
+
+                        ucMeter ucm = MeterManager.ContainerFromString(txt);
+                        if(ucm == null)
+                        {
+                            MessageBox.Show("This doesnt seem to be a valid container file.",                                
+                                "Container file not recognised",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+
+                            return;
+                        }
+
+                        MeterManager.RunRendererDisplay(ucm.ID);
+                        MeterManager.FinishSetupAndDisplay(ucm.ID);
+
+                        updateMeter2Controls(ucm.ID);
+
+                        btnContainer_save.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
+                    }
+                }
+            }
+        }
+
+        private void btnContainer_dupe_Click(object sender, EventArgs e)
+        {
+            if (MeterManager.TotalMeterContainers >= MAX_CONTAINERS) return;
+
+            clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
+            if (cci == null) return;
+
+            DialogResult dr = MessageBox.Show("Are you sure you want to duplicate the current container?",
+                "Container Duplicate",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question, MessageBoxDefaultButton.Button2, Common.MB_TOPMOST);
+
+            if (dr != DialogResult.Yes) return;
+
+            if (MeterManager.TotalMeterContainers < MAX_CONTAINERS)
+            {
+                string data64 = MeterManager.ContainerToString(cci.ID);
+
+                ucMeter ucm = MeterManager.ContainerFromString(data64);
+                MeterManager.RunRendererDisplay(ucm.ID);
+                MeterManager.FinishSetupAndDisplay(ucm.ID);
+
+                updateMeter2Controls(ucm.ID);
+
+                btnContainer_save.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
+            }
         }
     }
 

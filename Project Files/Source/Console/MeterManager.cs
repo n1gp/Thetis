@@ -5418,6 +5418,215 @@ namespace Thetis
 
             return sGuidList;
         }
+        public static string ContainerToString(string id)
+        {
+            Dictionary<string, string> data = new Dictionary<string, string>();
+
+            try
+            {
+                lock (_metersLock)
+                {
+                    lock (_metersLock)
+                    {
+                        if(_lstUCMeters.TryGetValue(id, out ucMeter ucm)) //ucm is the 'container'
+                        {
+                            data.Add("ContainerData_" + ucm.ID, ucm.ToString());
+
+                            clsMeter m = MeterFromId(ucm.ID);
+                            if (m != null)
+                            {
+                                data.Add("MeterData_" + ucm.ID, m.ToString());
+
+                                if (_lstMeterDisplayForms.ContainsKey(ucm.ID))
+                                {
+                                    frmMeterDisplay f = _lstMeterDisplayForms[ucm.ID];
+                                    data.Add("FormData_" + ucm.ID, $"{f.Left}|{f.Top}|{f.Width}|{f.Height}");
+                                }
+
+                                Dictionary<string, clsItemGroup> groupItems = m.getMeterGroups();
+
+                                foreach (KeyValuePair<string, clsItemGroup> ig in groupItems)
+                                {
+                                    Dictionary<string, clsMeterItem> mis = m.itemsFromID(ig.Value.ID);
+                                    if (mis != null)
+                                    {
+                                        foreach (KeyValuePair<string, clsMeterItem> kvp2 in mis.Where(o => o.Value.StoreSettings == true))
+                                        {
+                                            clsMeterItem mi = kvp2.Value;
+                                            if (mi != null && mi.ItemType == clsMeterItem.MeterItemType.ITEM_GROUP)
+                                            {
+                                                data.Add("ItemGroupData_" + kvp2.Value.ID, mi.ToString());
+                                            }
+                                        }
+                                    }
+
+                                    clsIGSettings igs = m.GetSettingsForMeterGroup(ig.Value.MeterType, ig.Value.Order);
+                                    if (igs != null)
+                                    {
+                                        data.Add("ItemGroupSettings_2_" + ig.Value.ID, igs.ToString2());
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                data.Add("err", e.Message);
+            }
+
+            string data64 = Common.SerializeToBase64(data);
+
+            return data64;
+        }
+        public static ucMeter ContainerFromString(string data64, bool new_guids = true)
+        {
+            try
+            {
+                Dictionary<string, string> data = Common.DeserializeFromBase64<Dictionary<string, string>> (data64);
+
+                foreach (KeyValuePair<string, string> cd_kvp in data.Where(o => o.Key.StartsWith("ContainerData_")))
+                {
+                    ucMeter ucM = new ucMeter();
+                    bool ucMeterOk = ucM.TryParse(cd_kvp.Value);
+
+                    Dictionary<string, string> fourCharMap = new Dictionary<string, string>();
+
+                    if (ucMeterOk)
+                    {
+                        // need new guids
+                        string ucm_guid = Guid.NewGuid().ToString();
+                        string old_ucm_id = ucM.ID;
+                        ucM.ID = ucm_guid;
+
+                        if (!MeterExists(ucM.ID))
+                        {
+                            AddMeterContainer(ucM, true);
+
+                            clsMeter m = MeterFromId(ucM.ID);
+
+                            if (m != null)
+                            {
+                                IEnumerable<KeyValuePair<string, string>> meterData = data.Where(o => o.Key.StartsWith("MeterData_" + old_ucm_id/*m.ID*/, StringComparison.OrdinalIgnoreCase));
+                                if (meterData != null && meterData.Count() == 1)
+                                {
+                                    KeyValuePair<string, string> md = meterData.First();
+
+                                    clsMeter tmpMeter = new clsMeter(1, ucM.Name); // dummy init data, will get replaced by tryparse below
+                                    tmpMeter.TryParse(md.Value);
+
+                                    //update the idm prob not needed
+                                    tmpMeter.ID = ucm_guid;
+
+                                    // copy to actual meter
+                                    // id will be the same
+                                    m.Name = tmpMeter.Name;
+                                    m.RX = tmpMeter.RX;
+                                    m.XRatio = tmpMeter.XRatio;
+                                    m.YRatio = tmpMeter.YRatio;
+                                    m.DisplayGroup = tmpMeter.DisplayGroup;
+                                    m.PadX = tmpMeter.PadX;
+                                    m.PadY = tmpMeter.PadY;
+                                    m.Height = tmpMeter.Height;
+                                }
+
+                                IEnumerable<KeyValuePair<string, string>> formData = data.Where(o => o.Key.StartsWith("FormData_" + old_ucm_id/*m.ID*/, StringComparison.OrdinalIgnoreCase));
+                                if(formData != null && formData.Count() == 1)
+                                {
+                                    KeyValuePair<string, string> fd = formData.First();
+                                    string[] parts = fd.Value.Split('|');
+                                    if (parts.Length >= 4)
+                                    {
+                                        if (_lstMeterDisplayForms.ContainsKey(ucm_guid))
+                                        {
+                                            frmMeterDisplay fdisp = _lstMeterDisplayForms[ucm_guid];
+                                            fdisp.Left = int.TryParse(parts[0], out int x) ? x : 200;
+                                            fdisp.Top = int.TryParse(parts[1], out int y) ? y : 200;
+                                            fdisp.Width = int.TryParse(parts[2], out int w) ? w : 200;
+                                            fdisp.Height = int.TryParse(parts[3], out int h) ? h : 200;
+                                            Common.ForceFormOnScreen(fdisp, true);
+                                        }
+                                    }
+                                }
+
+                                IEnumerable<KeyValuePair<string, string>> meterIGData = data.Where(o => o.Key.StartsWith("ItemGroupData_", StringComparison.OrdinalIgnoreCase) && o.Value.Contains(old_ucm_id/*m.ID*/));
+                                foreach (KeyValuePair<string, string> kvp in meterIGData)
+                                {
+                                    Debug.Print($"key={kvp.Key} | value={kvp.Value}");                                    
+
+                                    // data for the item group
+                                    clsItemGroup ig = new clsItemGroup();
+                                    bool ok = ig.TryParse(kvp.Value);
+                                    if (ok)
+                                    {
+                                        Debug.Print("DATA OK");
+                                        //parent id to new ucm id
+                                        ig.ParentID = ucm_guid;
+
+                                        m.AddMeter(ig.MeterType, ig);                                        
+
+                                        IEnumerable<KeyValuePair<string, string>> meterIGSettings = data.Where(o => o.Key.StartsWith("ItemGroupSettings_2_" + ig.ID, StringComparison.OrdinalIgnoreCase));
+                                        if (meterIGSettings != null && meterIGSettings.Count() == 1)
+                                        {
+                                            clsIGSettings igs = new clsIGSettings();
+                                            bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
+                                            if (bIGSok)
+                                            {
+                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                            }
+
+                                            m.Find4Chars(ref fourCharMap, igs);
+
+                                            m.RemoveMeterType(ig.MeterType, ig.Order);
+                                        }
+                                    }
+                                }
+
+                                //now do again, with new ig id, and reworking all the 4chars
+                                foreach (KeyValuePair<string, string> kvp in meterIGData)
+                                {
+                                    // data for the item group
+                                    clsItemGroup ig = new clsItemGroup();
+                                    bool ok = ig.TryParse(kvp.Value);
+                                    if (ok)
+                                    {
+                                        //parent id to new ucm id
+                                        ig.ParentID = ucm_guid;
+
+                                        string original_ig_id = ig.ID;
+                                        ig.ID = Guid.NewGuid().ToString();
+                                        m.AddMeter(ig.MeterType, ig);
+
+                                        IEnumerable<KeyValuePair<string, string>> meterIGSettings = data.Where(o => o.Key.StartsWith("ItemGroupSettings_2_" + original_ig_id/*ig.ID*/, StringComparison.OrdinalIgnoreCase));
+                                        if (meterIGSettings != null && meterIGSettings.Count() == 1)
+                                        {
+                                            clsIGSettings igs = new clsIGSettings();
+                                            bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
+                                            if (bIGSok)
+                                            {
+                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, ig.Order);
+                                            }
+                                        }
+                                    }
+                                }
+
+                                m.ZeroOut(true, true);
+                                m.Rebuild();
+                            }
+                        }
+                    }
+
+                    return ucM;
+                }
+            }
+            catch
+            {
+                return null;
+            }
+            return null;
+        }
+
         public static bool StoreSettings2(ref Dictionary<string, string> a)
         {
             if (a == null) return false;
@@ -22399,6 +22608,59 @@ namespace Thetis
 
                 //    return "";
                 //}
+            }
+            public void Find4Chars(ref Dictionary<string, string>  fourchars, clsIGSettings igs)
+            {
+                lock (_meterItemsLock)
+                {
+                    if (_meterItems == null) return;
+
+                    Dictionary<string, clsMeterItem> itemGroups = _meterItems.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.ITEM_GROUP).ToDictionary(x => x.Key, x => x.Value);
+                    foreach (KeyValuePair<string, clsMeterItem> kvp in itemGroups)
+                    {
+                        clsItemGroup ig = kvp.Value as clsItemGroup;
+                        if (ig != null && ig.MeterType == MeterType.LED)
+                        {
+
+                            Dictionary<string, clsMeterItem> items = itemsFromID(ig.ID, false);
+                            foreach (KeyValuePair<string, clsMeterItem> me in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.LED))
+                            {
+                                clsLed led = me.Value as clsLed;
+                                if (led == null) continue;
+
+                                fourchars[led.ID] = led.FourChar; // this guid (led.id) creates this 4char
+                            }
+                        }
+                        else if (ig != null && ig.MeterType == MeterType.TEXT_OVERLAY)
+                        {
+
+                            Dictionary<string, clsMeterItem> items = itemsFromID(ig.ID, false);
+                            foreach (KeyValuePair<string, clsMeterItem> me in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.TEXT_OVERLAY))
+                            {
+                                clsTextOverlay to = me.Value as clsTextOverlay;
+                                if (to == null) continue;
+
+                                string fourc = igs.GetSetting<string>("textoverlay_rx_4char", false, "", "", "");
+                                fourchars[fourc] = "-"; // these are users
+                                fourc = igs.GetSetting<string>("textoverlay_tx_4char", false, "", "", "");
+                                fourchars[fourc] = "-"; // these are users
+                            }
+                        }
+                        else if (ig != null && ig.MeterType == MeterType.WEB_IMAGE)
+                        {
+                            Dictionary<string, clsMeterItem> items = itemsFromID(ig.ID, false);
+                            foreach (KeyValuePair<string, clsMeterItem> me in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.WEB_IMAGE))
+                            {
+                                clsWebImage we = me.Value as clsWebImage;
+                                if (we == null) continue;
+
+                                string fourc = igs.GetSetting<string>("webimage_background_4char", false, "", "", "");
+                                fourchars[fourc] = "-"; // these are users
+                                fourchars[we.FourChar] = we.ID; // this guid (web.id) creates this 4char
+                            }
+                        }
+                    }
+                }
             }
             public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, int order = -1)
             {

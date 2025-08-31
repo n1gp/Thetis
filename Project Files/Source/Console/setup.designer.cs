@@ -3277,6 +3277,7 @@
             this.comboMeterType = new System.Windows.Forms.ComboBoxTS();
             this.tpAppearanceMeter2 = new System.Windows.Forms.TabPage();
             this.grpMultiMeterHolder = new System.Windows.Forms.GroupBoxTS();
+            this.btnContainer_save = new System.Windows.Forms.ButtonTS();
             this.chkContainer_hidewhennotused = new System.Windows.Forms.CheckBoxTS();
             this.radContainer_rx2_data = new System.Windows.Forms.RadioButtonTS();
             this.radContainer_rx1_data = new System.Windows.Forms.RadioButtonTS();
@@ -4330,6 +4331,8 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
+            this.btnContainer_load = new System.Windows.Forms.ButtonTS();
+            this.btnContainer_dupe = new System.Windows.Forms.ButtonTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -53565,6 +53568,9 @@
             // 
             // grpMultiMeterHolder
             // 
+            this.grpMultiMeterHolder.Controls.Add(this.btnContainer_dupe);
+            this.grpMultiMeterHolder.Controls.Add(this.btnContainer_load);
+            this.grpMultiMeterHolder.Controls.Add(this.btnContainer_save);
             this.grpMultiMeterHolder.Controls.Add(this.chkContainer_hidewhennotused);
             this.grpMultiMeterHolder.Controls.Add(this.radContainer_rx2_data);
             this.grpMultiMeterHolder.Controls.Add(this.radContainer_rx1_data);
@@ -53597,6 +53603,19 @@
             this.grpMultiMeterHolder.Size = new System.Drawing.Size(710, 395);
             this.grpMultiMeterHolder.TabIndex = 86;
             this.grpMultiMeterHolder.TabStop = false;
+            // 
+            // btnContainer_save
+            // 
+            this.btnContainer_save.Image = null;
+            this.btnContainer_save.Location = new System.Drawing.Point(153, 348);
+            this.btnContainer_save.Name = "btnContainer_save";
+            this.btnContainer_save.Selectable = true;
+            this.btnContainer_save.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_save.TabIndex = 115;
+            this.btnContainer_save.Text = "S";
+            this.toolTip1.SetToolTip(this.btnContainer_save, "Save a container file");
+            this.btnContainer_save.UseVisualStyleBackColor = true;
+            this.btnContainer_save.Click += new System.EventHandler(this.btnContainer_save_Click);
             // 
             // chkContainer_hidewhennotused
             // 
@@ -68939,6 +68958,32 @@
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
             // 
+            // btnContainer_load
+            // 
+            this.btnContainer_load.Image = null;
+            this.btnContainer_load.Location = new System.Drawing.Point(153, 310);
+            this.btnContainer_load.Name = "btnContainer_load";
+            this.btnContainer_load.Selectable = true;
+            this.btnContainer_load.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_load.TabIndex = 116;
+            this.btnContainer_load.Text = "L";
+            this.toolTip1.SetToolTip(this.btnContainer_load, "Load a container file");
+            this.btnContainer_load.UseVisualStyleBackColor = true;
+            this.btnContainer_load.Click += new System.EventHandler(this.btnContainer_load_Click);
+            // 
+            // btnContainer_dupe
+            // 
+            this.btnContainer_dupe.Image = null;
+            this.btnContainer_dupe.Location = new System.Drawing.Point(153, 272);
+            this.btnContainer_dupe.Name = "btnContainer_dupe";
+            this.btnContainer_dupe.Selectable = true;
+            this.btnContainer_dupe.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_dupe.TabIndex = 117;
+            this.btnContainer_dupe.Text = "C";
+            this.toolTip1.SetToolTip(this.btnContainer_dupe, "Duplicate");
+            this.btnContainer_dupe.UseVisualStyleBackColor = true;
+            this.btnContainer_dupe.Click += new System.EventHandler(this.btnContainer_dupe_Click);
+            // 
             // Setup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -74629,5 +74674,8 @@
         private CheckBoxTS chkLegacyItems_hide_noise_mnf;
         private CheckBoxTS chkLegacyItems_hide_split_rit;
         private ButtonTS btnOtherButtons_reset_layout;
+        private ButtonTS btnContainer_save;
+        private ButtonTS btnContainer_dupe;
+        private ButtonTS btnContainer_load;
     }
 }
