@@ -47229,11 +47229,13 @@ namespace Thetis
         }
         private bool _xpa_enabled = false;
         private void chkExternalPA_CheckedChanged(object sender, EventArgs e)
-        {           
+        {
             //MW0LGE_21j
-            if (!chkPower.Checked) return;
+            //if (!chkPower.Checked) return;//[2.10.3.12]MW0LGE commented this out, so that we actualy call the delegates if this is on at start up
+            //who cares if it makes no sense that we have not radi etc ocnnection. This code is duplicated everywhere,
+            //incuding VOFAfrequency change and HWMOX state change
 
-            bool old_enabled = _xpa_enabled;            
+            bool old_enabled = _xpa_enabled;
 
             Band lo_band = BandByFreq(XVTRForm.TranslateFreq(VFOAFreq), rx1_xvtr_index, current_region);
             Band lo_bandb = BandByFreq(XVTRForm.TranslateFreq(VFOBFreq), rx2_xvtr_index, current_region);
@@ -47247,8 +47249,8 @@ namespace Thetis
             _xpa_enabled = chkExternalPA.Checked;
 
             if (_xpa_enabled != old_enabled)
-            {                
-                XPAChangedHandlers?.Invoke(_xpa_in_use, old_enabled, chkExternalPA.Checked);
+            {
+                XPAChangedHandlers?.Invoke(_xpa_in_use, old_enabled, _xpa_enabled);
             }
         }
         public bool CATxPA
