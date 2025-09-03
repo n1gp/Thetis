@@ -4333,6 +4333,7 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
+            this.chkLed_process_when_hidden = new System.Windows.Forms.CheckBoxTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -61040,7 +61041,7 @@
             this.clrbtnHistory_time.Selectable = true;
             this.clrbtnHistory_time.Size = new System.Drawing.Size(40, 23);
             this.clrbtnHistory_time.TabIndex = 146;
-            this.toolTip1.SetToolTip(this.clrbtnHistory_time, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnHistory_time, "Time colour");
             this.clrbtnHistory_time.Changed += new System.EventHandler(this.clrbtnHistory_time_Changed);
             // 
             // clrbtnHistory_lines
@@ -61055,7 +61056,7 @@
             this.clrbtnHistory_lines.Selectable = true;
             this.clrbtnHistory_lines.Size = new System.Drawing.Size(40, 23);
             this.clrbtnHistory_lines.TabIndex = 145;
-            this.toolTip1.SetToolTip(this.clrbtnHistory_lines, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnHistory_lines, "Lines colour");
             this.clrbtnHistory_lines.Changed += new System.EventHandler(this.clrbtnHistory_lines_Changed);
             // 
             // clrbtnHistory_colour_1
@@ -61070,7 +61071,7 @@
             this.clrbtnHistory_colour_1.Selectable = true;
             this.clrbtnHistory_colour_1.Size = new System.Drawing.Size(40, 23);
             this.clrbtnHistory_colour_1.TabIndex = 147;
-            this.toolTip1.SetToolTip(this.clrbtnHistory_colour_1, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnHistory_colour_1, "Reading colour");
             this.clrbtnHistory_colour_1.Changed += new System.EventHandler(this.clrbtnHistory_colour_1_Changed);
             // 
             // nudHistory_axis1_max
@@ -61096,7 +61097,7 @@
             this.nudHistory_axis1_max.Size = new System.Drawing.Size(56, 20);
             this.nudHistory_axis1_max.TabIndex = 143;
             this.nudHistory_axis1_max.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudHistory_axis1_max, "Reading update and is related to screen update");
+            this.toolTip1.SetToolTip(this.nudHistory_axis1_max, "Max scale");
             this.nudHistory_axis1_max.Value = new decimal(new int[] {
             0,
             0,
@@ -61127,7 +61128,7 @@
             this.nudHistory_axis1_min.Size = new System.Drawing.Size(56, 20);
             this.nudHistory_axis1_min.TabIndex = 141;
             this.nudHistory_axis1_min.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudHistory_axis1_min, "Reading update and is related to screen update");
+            this.toolTip1.SetToolTip(this.nudHistory_axis1_min, "Min scale");
             this.nudHistory_axis1_min.Value = new decimal(new int[] {
             150,
             0,
@@ -61147,7 +61148,7 @@
             this.clrbtnHistory_colour_0.Selectable = true;
             this.clrbtnHistory_colour_0.Size = new System.Drawing.Size(40, 23);
             this.clrbtnHistory_colour_0.TabIndex = 130;
-            this.toolTip1.SetToolTip(this.clrbtnHistory_colour_0, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnHistory_colour_0, "Reading colour");
             this.clrbtnHistory_colour_0.Changed += new System.EventHandler(this.clrbtnHistory_colour_0_Changed);
             // 
             // nudHistory_axis0_max
@@ -61173,7 +61174,7 @@
             this.nudHistory_axis0_max.Size = new System.Drawing.Size(56, 20);
             this.nudHistory_axis0_max.TabIndex = 143;
             this.nudHistory_axis0_max.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudHistory_axis0_max, "Reading update and is related to screen update");
+            this.toolTip1.SetToolTip(this.nudHistory_axis0_max, "Max scale");
             this.nudHistory_axis0_max.Value = new decimal(new int[] {
             0,
             0,
@@ -61204,7 +61205,7 @@
             this.nudHistory_axis0_min.Size = new System.Drawing.Size(56, 20);
             this.nudHistory_axis0_min.TabIndex = 141;
             this.nudHistory_axis0_min.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudHistory_axis0_min, "Reading update and is related to screen update");
+            this.toolTip1.SetToolTip(this.nudHistory_axis0_min, "Min scale");
             this.nudHistory_axis0_min.Value = new decimal(new int[] {
             150,
             0,
@@ -61658,7 +61659,7 @@
             this.clrbtnTextOverlay_TextColour2.Selectable = true;
             this.clrbtnTextOverlay_TextColour2.Size = new System.Drawing.Size(40, 23);
             this.clrbtnTextOverlay_TextColour2.TabIndex = 142;
-            this.toolTip1.SetToolTip(this.clrbtnTextOverlay_TextColour2, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnTextOverlay_TextColour2, "Font colour");
             this.clrbtnTextOverlay_TextColour2.Changed += new System.EventHandler(this.clrbtnTextOverlay_TextColour2_Changed);
             // 
             // clrbtnTextOverlay_TextColour1
@@ -61673,7 +61674,7 @@
             this.clrbtnTextOverlay_TextColour1.Selectable = true;
             this.clrbtnTextOverlay_TextColour1.Size = new System.Drawing.Size(40, 23);
             this.clrbtnTextOverlay_TextColour1.TabIndex = 133;
-            this.toolTip1.SetToolTip(this.clrbtnTextOverlay_TextColour1, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnTextOverlay_TextColour1, "Font colour");
             this.clrbtnTextOverlay_TextColour1.Changed += new System.EventHandler(this.clrbtnTextOverlay_TextColour1_Changed);
             // 
             // nudTextOverlay_PanelPadding
@@ -61896,7 +61897,7 @@
             this.clrbtnButonBox_fontcolour.Selectable = true;
             this.clrbtnButonBox_fontcolour.Size = new System.Drawing.Size(40, 23);
             this.clrbtnButonBox_fontcolour.TabIndex = 168;
-            this.toolTip1.SetToolTip(this.clrbtnButonBox_fontcolour, "Active colour");
+            this.toolTip1.SetToolTip(this.clrbtnButonBox_fontcolour, "Font colour");
             this.clrbtnButonBox_fontcolour.Changed += new System.EventHandler(this.clrbtnButonBox_fontcolour_Changed);
             // 
             // clrbtnButonBox_click
@@ -61911,7 +61912,7 @@
             this.clrbtnButonBox_click.Selectable = true;
             this.clrbtnButonBox_click.Size = new System.Drawing.Size(40, 23);
             this.clrbtnButonBox_click.TabIndex = 166;
-            this.toolTip1.SetToolTip(this.clrbtnButonBox_click, "Active colour");
+            this.toolTip1.SetToolTip(this.clrbtnButonBox_click, "Click colour");
             this.clrbtnButonBox_click.Changed += new System.EventHandler(this.clrbtnButonBox_click_Changed);
             // 
             // nudButtonBox_font_y_shift
@@ -61937,7 +61938,7 @@
             this.nudButtonBox_font_y_shift.Size = new System.Drawing.Size(56, 20);
             this.nudButtonBox_font_y_shift.TabIndex = 165;
             this.nudButtonBox_font_y_shift.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudButtonBox_font_y_shift, "Ratio of height to width");
+            this.toolTip1.SetToolTip(this.nudButtonBox_font_y_shift, "Font y shift");
             this.nudButtonBox_font_y_shift.Value = new decimal(new int[] {
             0,
             0,
@@ -62029,7 +62030,7 @@
             this.nudBandButtons_indicator_style.Size = new System.Drawing.Size(37, 20);
             this.nudBandButtons_indicator_style.TabIndex = 158;
             this.nudBandButtons_indicator_style.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudBandButtons_indicator_style, "Border size of indicator ring");
+            this.toolTip1.SetToolTip(this.nudBandButtons_indicator_style, "Indicator style");
             this.nudBandButtons_indicator_style.Value = new decimal(new int[] {
             1,
             0,
@@ -62049,7 +62050,7 @@
             this.clrbtnBandButtons_hover.Selectable = true;
             this.clrbtnBandButtons_hover.Size = new System.Drawing.Size(40, 23);
             this.clrbtnBandButtons_hover.TabIndex = 155;
-            this.toolTip1.SetToolTip(this.clrbtnBandButtons_hover, "Active colour");
+            this.toolTip1.SetToolTip(this.clrbtnBandButtons_hover, "Hover colour");
             this.clrbtnBandButtons_hover.Changed += new System.EventHandler(this.clrbtnBandButtons_hover_Changed);
             // 
             // clrbtnBandButtons_fill
@@ -62064,7 +62065,7 @@
             this.clrbtnBandButtons_fill.Selectable = true;
             this.clrbtnBandButtons_fill.Size = new System.Drawing.Size(40, 23);
             this.clrbtnBandButtons_fill.TabIndex = 153;
-            this.toolTip1.SetToolTip(this.clrbtnBandButtons_fill, "Active colour");
+            this.toolTip1.SetToolTip(this.clrbtnBandButtons_fill, "Fill colour");
             this.clrbtnBandButtons_fill.Changed += new System.EventHandler(this.clrbtnBandButtons_fill_Changed);
             // 
             // clrbtnBandButtons_border
@@ -62079,7 +62080,7 @@
             this.clrbtnBandButtons_border.Selectable = true;
             this.clrbtnBandButtons_border.Size = new System.Drawing.Size(40, 23);
             this.clrbtnBandButtons_border.TabIndex = 151;
-            this.toolTip1.SetToolTip(this.clrbtnBandButtons_border, "Active colour");
+            this.toolTip1.SetToolTip(this.clrbtnBandButtons_border, "Border colour");
             this.clrbtnBandButtons_border.Changed += new System.EventHandler(this.clrbtnBandButtons_border_Changed);
             // 
             // clrbtnBandButtons_indicator_off
@@ -62418,7 +62419,7 @@
             this.clrbtnLedIndicator_false.Selectable = true;
             this.clrbtnLedIndicator_false.Size = new System.Drawing.Size(40, 23);
             this.clrbtnLedIndicator_false.TabIndex = 157;
-            this.toolTip1.SetToolTip(this.clrbtnLedIndicator_false, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnLedIndicator_false, "False colour");
             this.clrbtnLedIndicator_false.Changed += new System.EventHandler(this.clrbtnLedIndicator_false_Changed);
             // 
             // clrbtnLedIndicator_true
@@ -62433,7 +62434,7 @@
             this.clrbtnLedIndicator_true.Selectable = true;
             this.clrbtnLedIndicator_true.Size = new System.Drawing.Size(40, 23);
             this.clrbtnLedIndicator_true.TabIndex = 156;
-            this.toolTip1.SetToolTip(this.clrbtnLedIndicator_true, "Background colour");
+            this.toolTip1.SetToolTip(this.clrbtnLedIndicator_true, "True colour");
             this.clrbtnLedIndicator_true.Changed += new System.EventHandler(this.clrbtnLedIndicator_true_Changed);
             // 
             // btnLedIndicator_copy_sizex_to_y
@@ -62472,7 +62473,7 @@
             this.nudLedIndicator_ySize.Size = new System.Drawing.Size(56, 20);
             this.nudLedIndicator_ySize.TabIndex = 152;
             this.nudLedIndicator_ySize.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudLedIndicator_ySize, "Size of the spacer. The number is a ratio with reference to the width.");
+            this.toolTip1.SetToolTip(this.nudLedIndicator_ySize, "Led size Y");
             this.nudLedIndicator_ySize.Value = new decimal(new int[] {
             1,
             0,
@@ -62503,7 +62504,7 @@
             this.nudLedIndicator_xSize.Size = new System.Drawing.Size(56, 20);
             this.nudLedIndicator_xSize.TabIndex = 150;
             this.nudLedIndicator_xSize.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudLedIndicator_xSize, "Size of the spacer. The number is a ratio with reference to the width.");
+            this.toolTip1.SetToolTip(this.nudLedIndicator_xSize, "Led size X");
             this.nudLedIndicator_xSize.Value = new decimal(new int[] {
             1,
             0,
@@ -62534,7 +62535,7 @@
             this.nudLedIndicator_yOffset.Size = new System.Drawing.Size(56, 20);
             this.nudLedIndicator_yOffset.TabIndex = 147;
             this.nudLedIndicator_yOffset.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudLedIndicator_yOffset, "Size of the spacer. The number is a ratio with reference to the width.");
+            this.toolTip1.SetToolTip(this.nudLedIndicator_yOffset, "Y offset");
             this.nudLedIndicator_yOffset.Value = new decimal(new int[] {
             1,
             0,
@@ -62565,7 +62566,7 @@
             this.nudLedIndicator_xOffset.Size = new System.Drawing.Size(56, 20);
             this.nudLedIndicator_xOffset.TabIndex = 143;
             this.nudLedIndicator_xOffset.TinyStep = false;
-            this.toolTip1.SetToolTip(this.nudLedIndicator_xOffset, "Size of the spacer. The number is a ratio with reference to the width.");
+            this.toolTip1.SetToolTip(this.nudLedIndicator_xOffset, "X offset");
             this.nudLedIndicator_xOffset.Value = new decimal(new int[] {
             1,
             0,
@@ -62673,7 +62674,7 @@
             this.clrbtnMultiMeter_vfo_sync.Selectable = true;
             this.clrbtnMultiMeter_vfo_sync.Size = new System.Drawing.Size(40, 23);
             this.clrbtnMultiMeter_vfo_sync.TabIndex = 142;
-            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_sync, "Filter colour");
+            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_sync, "Sync colour");
             this.clrbtnMultiMeter_vfo_sync.Changed += new System.EventHandler(this.clrbtnMultiMeter_vfo_sync_Changed);
             // 
             // clrbtnMultiMeter_vfo_lock
@@ -62688,7 +62689,7 @@
             this.clrbtnMultiMeter_vfo_lock.Selectable = true;
             this.clrbtnMultiMeter_vfo_lock.Size = new System.Drawing.Size(40, 23);
             this.clrbtnMultiMeter_vfo_lock.TabIndex = 140;
-            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_lock, "TX box colour");
+            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_lock, "Lock colour");
             this.clrbtnMultiMeter_vfo_lock.Changed += new System.EventHandler(this.clrbtnMultiMeter_vfo_lock_Changed);
             // 
             // btnVFOCopyColourFromMainNumbers
@@ -62731,7 +62732,7 @@
             this.clrbtnMultiMeter_vfo_show_bandtext.Selectable = true;
             this.clrbtnMultiMeter_vfo_show_bandtext.Size = new System.Drawing.Size(40, 23);
             this.clrbtnMultiMeter_vfo_show_bandtext.TabIndex = 136;
-            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_show_bandtext, "Split colour");
+            this.toolTip1.SetToolTip(this.clrbtnMultiMeter_vfo_show_bandtext, "Band text colour");
             this.clrbtnMultiMeter_vfo_show_bandtext.Changed += new System.EventHandler(this.clrbtnMultiMeter_vfo_show_bandtext_Changed);
             // 
             // clrbtnMMVfoDigitHighlight
@@ -65266,6 +65267,7 @@
             this.ucOtherButtonsOptionsGrid_buttons.Size = new System.Drawing.Size(170, 178);
             this.ucOtherButtonsOptionsGrid_buttons.TabIndex = 112;
             this.ucOtherButtonsOptionsGrid_buttons.CheckboxChanged += new System.EventHandler(this.ucOtherButtonsOptionsGrid_buttons_CheckboxChanged);
+            this.ucOtherButtonsOptionsGrid_buttons.MacroSetupClicked += new System.EventHandler<Thetis.ucOtherButtonsOptionsGrid.MacroButtonEventArgs>(this.ucOtherButtonsOptionsGrid_buttons_MacroSetupClicked);
             // 
             // ucTunestepOptionsGrid_buttons
             // 
@@ -65691,6 +65693,7 @@
             // 
             // grpLedIndicator
             // 
+            this.grpLedIndicator.Controls.Add(this.chkLed_process_when_hidden);
             this.grpLedIndicator.Controls.Add(this.btnLedIndicator_4char_copy);
             this.grpLedIndicator.Controls.Add(this.labelTS482);
             this.grpLedIndicator.Controls.Add(this.txtLedIndicator_4char);
@@ -68981,6 +68984,20 @@
             this.radioButtonTS6.TabStop = true;
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
+            // 
+            // chkLed_process_when_hidden
+            // 
+            this.chkLed_process_when_hidden.AutoSize = true;
+            this.chkLed_process_when_hidden.Image = null;
+            this.chkLed_process_when_hidden.Location = new System.Drawing.Point(189, 353);
+            this.chkLed_process_when_hidden.Name = "chkLed_process_when_hidden";
+            this.chkLed_process_when_hidden.Size = new System.Drawing.Size(128, 17);
+            this.chkLed_process_when_hidden.TabIndex = 180;
+            this.chkLed_process_when_hidden.Text = "Process when hidden";
+            this.toolTip1.SetToolTip(this.chkLed_process_when_hidden, "Will cause this led to continue to process the condition even when the parent con" +
+        "tainer is hidden");
+            this.chkLed_process_when_hidden.UseVisualStyleBackColor = true;
+            this.chkLed_process_when_hidden.CheckedChanged += new System.EventHandler(this.chkLed_process_when_hidden_CheckedChanged);
             // 
             // Setup
             // 
@@ -74675,5 +74692,6 @@
         private ButtonTS btnContainer_save;
         private ButtonTS btnContainer_dupe;
         private ButtonTS btnContainer_load;
+        private CheckBoxTS chkLed_process_when_hidden;
     }
 }

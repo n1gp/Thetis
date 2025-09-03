@@ -60,6 +60,8 @@ using System.ComponentModel;
 using System.IO.Ports;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using CatAtonic;
+using CATQueueBatching;
 
 //directX
 using SharpDX;
@@ -68,6 +70,7 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
+using System.Linq.Expressions;
 
 namespace Thetis
 {
@@ -302,9 +305,31 @@ namespace Thetis
 
         private static Display.AdaptorInfo _adaptor;
 
+        private delegate void ContainerEnabled(string id, bool enabled);
+        private static ContainerEnabled ContainerEnabledHandlers;
+
+        private delegate void ContainerHiddenByMacro(string id, bool hidden);
+        private static ContainerHiddenByMacro ContainerHiddenByMacroHandlers;
+
+        private static MessageQueueSystem _cat_queue_system;
+
+        private delegate void CatState(int queue_id, Guid id, ScriptCommand sc, string cat_result);
+        private static CatState CatStateHandlers;
+
+        private static ConcurrentDictionary<string, string> _cat_variables;
+        private static ConcurrentDictionary<string, bool> _led_results;
+
         static MeterManager()
         {
             _adaptor = null;
+
+            //
+            _cat_queue_system = new MessageQueueSystem(6); //cat1,2,3,4 + tcpipcat + direct to thetis
+            _cat_queue_system.message += OnCatQmessage;
+            _cat_queue_system.queueState += OnCatQstate;
+            _cat_variables = new ConcurrentDictionary<string, string>();
+            _led_results = new ConcurrentDictionary<string, bool>();
+            //
 
             _uc_sequence = 0; // to order the uc's when returned to setup
 
@@ -358,7 +383,7 @@ namespace Thetis
             _led_readings[0] = new ConcurrentDictionary<string, object>();
             _led_readings[1] = new ConcurrentDictionary<string, object>();
 
-            MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's
+            MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's            
         }
 
         // led variables and script engine callback
@@ -397,6 +422,38 @@ namespace Thetis
             }
 
             return snap;
+        }
+        //
+
+        //cat queue
+        private static void OnCatQmessage(int queue_index, Guid id, ScriptCommand sc)
+        {
+            Debug.Print("Q" + queue_index + " [" + id + "] " + sc.text + " (" + sc.type + ")");
+
+            if(queue_index == 0) // to thetis, only queue supported atm
+            {
+                string result = _console.ThreadSafeCatParse(sc.text);
+                switch (sc.type)
+                {
+                    case ScriptCommandType.CatMessage:
+                        break;
+                    case ScriptCommandType.CatMessageVar:
+                        string tmp = sc.variable_name;
+                        if (!sc.variable_name.StartsWith("%")) tmp = "%" + tmp;
+                        if (!sc.variable_name.StartsWith("%")) tmp = tmp + "%";
+                        _cat_variables.AddOrUpdate(sc.variable_name, result, (a, b) => result);
+                        break;
+                    case ScriptCommandType.CatState:
+                        CatStateHandlers?.Invoke(queue_index, id, sc, result);
+                        break;
+                    case ScriptCommandType.Wait:
+                        break;
+                }
+            }
+        }
+        private static void OnCatQstate(int queue_index, bool running)
+        {
+            Debug.Print("Q" + queue_index + " state " + running);
         }
         //
 
@@ -2353,7 +2410,7 @@ namespace Thetis
                 }
                 else
                 {
-                    if (uc.MeterEnabled && !uc.Visible)
+                    if (uc.MeterEnabled && !uc.Visible & !uc.HiddenByMacro)
                     {
                         if (uc.Floating)
                             setMeterFloating(uc, _lstMeterDisplayForms[uc.ID]);
@@ -2418,6 +2475,69 @@ namespace Thetis
             }
             return rx;
         }
+        private static ConcurrentDictionary<string, bool> _concurrent_hidden_by_macro = new ConcurrentDictionary<string, bool>();
+        private static void updateHiddenMacroInfo(ucMeter ucM)
+        {
+            //update the concurrent dict
+            int loop = 20;
+            bool hide = ucM.HiddenByMacro;
+            while (loop > 0)
+            {
+                bool ok = _concurrent_hidden_by_macro.AddOrUpdate(ucM.ID, hide, (key, val) => hide);
+                if (ok) break;
+                loop--;
+            }
+        }
+        public static void HiddenByMacro(string sId, bool hide, string sId_copy_size = null)
+        {
+            //overrides all show
+            lock (_metersLock)
+            {
+                if (_meters == null || !_meters.ContainsKey(sId)) return;
+                if (_lstUCMeters == null || !_lstUCMeters.ContainsKey(sId)) return;
+                if (!_lstMeterDisplayForms.ContainsKey(sId)) return;
+
+                clsMeter m = _meters[sId];
+                m.HiddenByMacro = hide;
+
+                ucMeter uc = _lstUCMeters[sId];
+                uc.HiddenByMacro = hide;
+
+                if (!hide && !string.IsNullOrEmpty(sId_copy_size))
+                {
+                    //set this loc/size to that of copy, which will be the one that is about to be closed
+                    bool ok = true;
+                    ok &= !(_meters == null || !_meters.ContainsKey(sId_copy_size));
+                    ok &= !(_lstUCMeters == null || !_lstUCMeters.ContainsKey(sId_copy_size));
+                    ok &= !(!_lstMeterDisplayForms.ContainsKey(sId_copy_size));
+
+                    if (ok)
+                    {
+                        frmMeterDisplay f = _lstMeterDisplayForms[sId];
+                        frmMeterDisplay f2 = _lstMeterDisplayForms[sId_copy_size];
+                        clsMeter m2 = _meters[sId_copy_size];
+                        ucMeter uc2 = _lstUCMeters[sId_copy_size];
+
+                        if (uc.Floating)
+                        {
+                            f.Location = f2.Location;
+                            f.Size = new Size(f2.Size.Width, f.Size.Height);
+                            //uc.Size = uc2.Size;
+                        }
+                        else
+                        {
+                            uc.Location = uc2.Location;
+                            f.Size = new Size(f2.Size.Width, f.Size.Height);
+                            //uc.Size = uc2.Size;
+                        }
+                    }
+                }
+
+                enableContainer(sId, !hide, !hide);
+
+                updateHiddenMacroInfo(uc);
+            }
+        }
         public static void ShowContainerOnRX(string sId, bool visible)
         {
             lock (_metersLock)
@@ -2456,18 +2576,38 @@ namespace Thetis
                 }
             }
         }
-        private static void enableContainer(string sId, bool enabled)
+        public static void enableContainer(string sId, bool enabled, bool undo_hidden_by_macro = false)
         {
+            //if loc_sze_id is provided, attempt to place at same loc, size, ontop of it
             lock (_metersLock)
             {
                 if (_lstUCMeters == null) return;
                 if (!_lstUCMeters.ContainsKey(sId)) return;
 
                 ucMeter uc = _lstUCMeters[sId];
-                bool bOldState = uc.MeterEnabled;
+
+                bool bOldState = false;
+                
+                bOldState = uc.MeterEnabled;
                 uc.MeterEnabled = enabled;
 
-                if (enabled != bOldState && _lstMeterDisplayForms.ContainsKey(uc.ID))
+                updateHiddenMacroInfo(uc);
+
+                if (uc.HiddenByMacro)
+                {
+                    frmMeterDisplay f = _lstMeterDisplayForms[uc.ID];
+                    if (uc.Floating)
+                    {
+                        f.Hide();
+                    }
+                    else
+                    {
+                        uc.Hide();
+                        uc.Repaint();
+                    }
+                    ContainerHiddenByMacroHandlers?.Invoke(sId, uc.HiddenByMacro);
+                }
+                else if ((undo_hidden_by_macro || (enabled != bOldState)) && _lstMeterDisplayForms.ContainsKey(uc.ID))
                 {
                     frmMeterDisplay f = _lstMeterDisplayForms[uc.ID];
                     f.FormEnabled = enabled;
@@ -2497,6 +2637,10 @@ namespace Thetis
                     // DXrenderer
                     if (_DXrenderers != null && _DXrenderers.ContainsKey(uc.ID))
                         _DXrenderers[sId].Enabled = enabled;
+
+                    // inform everyone
+                    ContainerHiddenByMacroHandlers?.Invoke(sId, uc.HiddenByMacro);
+                    ContainerEnabledHandlers?.Invoke(sId, enabled);
                 }
             }
         }
@@ -2554,6 +2698,30 @@ namespace Thetis
                 ucMeter uc = _lstUCMeters[sId];
                 return uc.ContainerHidesWhenRXNotUsed;
             }
+        }
+        public static bool ContainerIsHiddenByMacro(string sId)
+        {
+            //lock (_metersLock)
+            //{
+            //    if (_lstUCMeters == null) return false;
+            //    if (!_lstUCMeters.ContainsKey(sId)) return false;
+
+            //    ucMeter uc = _lstUCMeters[sId];
+            //    return uc.HiddenByMacro;
+            //}
+
+
+            // needed as container is hidden will get deadlocked but clsOtherButton when being updated from Apply settings
+            int loop = 20;
+            bool ret = false;
+            bool ok = false;
+            while (loop > 0)
+            {
+                ok = _concurrent_hidden_by_macro.TryGetValue(sId, out ret);
+                if (ok) break;
+                loop--;
+            }
+            return ok ? ret : false;
         }
         public static bool ContainerShowOnRX(string sId)
         {
@@ -2920,6 +3088,8 @@ namespace Thetis
         }
         public static void Shutdown()
         {
+            _cat_queue_system.stopAll(); // stop the cat queue
+
             MeterScriptEngine.stop();
 
             if (_image_fetcher != null)
@@ -3062,6 +3232,9 @@ namespace Thetis
             _console.SQLChangedHandlers += OnSqlChanged;
             _console.CWXShownHandlers += OnCWXShown;
 
+            ContainerEnabledHandlers += OnContainerEnabled;
+            ContainerHiddenByMacroHandlers += OnContainerHiddenByMacro;
+
             _delegatesAdded = true;
         }
         private static void removeDelegates()
@@ -3166,6 +3339,9 @@ namespace Thetis
             _console.SQLChangedHandlers -= OnSqlChanged;
             _console.CWXShownHandlers -= OnCWXShown;
 
+            ContainerEnabledHandlers -= OnContainerEnabled;
+            ContainerHiddenByMacroHandlers += OnContainerHiddenByMacro;
+
             foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
             {
                 kvp.Value.RemoveDelegates();
@@ -3173,7 +3349,30 @@ namespace Thetis
 
             _delegatesAdded = false;
         }
+        private static void OnContainerHiddenByMacro(string id, bool hidden)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)
+                {
+                    clsMeter m = ms.Value;
 
+                    m.ContainerHiddenByMacro(id, hidden);
+                }
+            }
+        }
+        private static void OnContainerEnabled(string id, bool enabled)
+        {
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)
+                {
+                    clsMeter m = ms.Value;
+
+                    m.ContainerEnabled(id, enabled);
+                }
+            }
+        }
         public static void OnCWXShown(bool shown)
         {
             lock (_metersLock)
@@ -4428,6 +4627,7 @@ namespace Thetis
             general_settings.Add(OtherButtonId.CFC, _console.GetGeneralSetting(m.RX, OtherButtonId.CFC));
             general_settings.Add(OtherButtonId.CFC_EQ, _console.GetGeneralSetting(m.RX, OtherButtonId.CFC_EQ));
             general_settings.Add(OtherButtonId.LEVELER, _console.GetGeneralSetting(m.RX, OtherButtonId.LEVELER));
+            general_settings.Add(OtherButtonId.PHASE_ROT, _console.GetGeneralSetting(m.RX, OtherButtonId.PHASE_ROT));
             general_settings.Add(OtherButtonId.PAUSE, _console.GetGeneralSetting(m.RX, OtherButtonId.PAUSE));
             general_settings.Add(OtherButtonId.PEAK_BLOBS, _console.GetGeneralSetting(m.RX, OtherButtonId.PEAK_BLOBS));
             general_settings.Add(OtherButtonId.CURSOR_INFO, _console.GetGeneralSetting(m.RX, OtherButtonId.CURSOR_INFO));
@@ -4619,15 +4819,22 @@ namespace Thetis
                     if (_lstUCMeters.ContainsKey(m.ID))
                     {
                         ucMeter uc = _lstUCMeters[m.ID];
-                        if (m.MOX && !previousMOX) // consider the RX unlike above
+                        if (uc.HiddenByMacro)
                         {
-                            if (!uc.MeterEnabled && uc.ShowOnTX) to_show.Add(m.ID);
-                            if (uc.MeterEnabled && !uc.ShowOnTX) to_hide.Add(m.ID);
+                            to_hide.Add(m.ID);
                         }
-                        if (!m.MOX && previousMOX)
+                        else
                         {
-                            if (!uc.MeterEnabled && uc.ShowOnRX) to_show.Add(m.ID);
-                            if (uc.MeterEnabled && !uc.ShowOnRX) to_hide.Add(m.ID);
+                            if (m.MOX && !previousMOX) // consider the RX unlike above
+                            {
+                                if (!uc.MeterEnabled && uc.ShowOnTX) to_show.Add(m.ID);
+                                if (uc.MeterEnabled && !uc.ShowOnTX) to_hide.Add(m.ID);
+                            }
+                            if (!m.MOX && previousMOX)
+                            {
+                                if (!uc.MeterEnabled && uc.ShowOnRX) to_show.Add(m.ID);
+                                if (uc.MeterEnabled && !uc.ShowOnRX) to_hide.Add(m.ID);
+                            }
                         }
                     }
                 }
@@ -4984,12 +5191,14 @@ namespace Thetis
                     _lstMeterDisplayForms.Add(f.ID, f);
                     _lstUCMeters.Add(ucM.ID, ucM);
                     _meters.Add(meter.ID, meter);
+
+                    updateHiddenMacroInfo(ucM);
                 }
 
                 // init all the meter info from console
                 initConsoleData(ucM.RX);
 
-                if (bEnabled && ucM.MeterEnabled && !bFromRestore) //ignore if we are restoring from db. Meters are shown by FinishSetupAndDisplay() from console in this case
+                if (bEnabled && ucM.MeterEnabled && !bFromRestore & !ucM.HiddenByMacro) //ignore if we are restoring from db. Meters are shown by FinishSetupAndDisplay() from console in this case
                 {
                     if (ucM.Floating)
                     {
@@ -5031,7 +5240,7 @@ namespace Thetis
                 foreach (KeyValuePair<string, ucMeter> ucms in _lstUCMeters)
                 {
                     ucMeter ucm = ucms.Value;
-                    if (_lstMeterDisplayForms.ContainsKey(ucm.ID) && ucm.MeterEnabled)
+                    if (_lstMeterDisplayForms.ContainsKey(ucm.ID) && ucm.MeterEnabled && !ucm.HiddenByMacro)
                     {
                         // setup
                         frmMeterDisplay f = _lstMeterDisplayForms[ucm.ID];
@@ -5062,13 +5271,16 @@ namespace Thetis
                 {
                     ucMeter ucm = _lstUCMeters[sID];
 
-                    frmMeterDisplay f = _lstMeterDisplayForms[ucm.ID];
-                    if (ucm.Floating)
+                    if (!ucm.HiddenByMacro)
                     {
-                        setMeterFloating(ucm, f);
+                        frmMeterDisplay f = _lstMeterDisplayForms[ucm.ID];
+                        if (ucm.Floating)
+                        {
+                            setMeterFloating(ucm, f);
+                        }
+                        else
+                            returnMeterFromFloating(ucm, f);
                     }
-                    else
-                        returnMeterFromFloating(ucm, f);
                 }
             }
         }
@@ -5121,10 +5333,13 @@ namespace Thetis
 
             if (!_lstMeterDisplayForms.ContainsKey(ucM.ID)) return;
 
-            if (ucM.Floating)
-                returnMeterFromFloating(ucM, _lstMeterDisplayForms[ucM.ID]);
-            else
-                setMeterFloating(ucM, _lstMeterDisplayForms[ucM.ID]);
+            if (!ucM.HiddenByMacro)
+            {
+                if (ucM.Floating)
+                    returnMeterFromFloating(ucM, _lstMeterDisplayForms[ucM.ID]);
+                else
+                    setMeterFloating(ucM, _lstMeterDisplayForms[ucM.ID]);
+            }
         }
         private static void ucMeter_FloatingDockedMoved(object sender, EventArgs e)
         {
@@ -5236,7 +5451,7 @@ namespace Thetis
                     {
                         ucMeter ucM = kvp.Value;
 
-                        if (_lstMeterDisplayForms.ContainsKey(ucM.ID) && ucM.MeterEnabled)
+                        if (_lstMeterDisplayForms.ContainsKey(ucM.ID) && ucM.MeterEnabled && !ucM.HiddenByMacro)
                         {
                             if (_meters.ContainsKey(ucM.ID))
                             {
@@ -5815,6 +6030,15 @@ namespace Thetis
                 {
                     _console.Controls.Remove(uc);
                     _lstUCMeters.Remove(sId);
+
+                    //remove from the concurrent dictionary
+                    int loop = 20;
+                    while(loop > 20)
+                    {
+                        bool ok = _concurrent_hidden_by_macro.TryRemove(sId, out _);
+                        if (ok) break;
+                        loop--;
+                    }
                 }
 
                 if (_meters.ContainsKey(sId))
@@ -5943,6 +6167,8 @@ namespace Thetis
             private string _custom_title;
             private bool _is_custom;
 
+            private bool _udpate_always;
+
             public clsMeterItem(clsMeter owningMeter = null)
             {
                 // constructor
@@ -5987,6 +6213,8 @@ namespace Thetis
                 _custom_units = "?";
                 _custom_title = "Title";
                 _is_custom = false;
+
+                _udpate_always = false;
 
                 //_mmio_guid = new Guid[10];
                 //_mmio_variable = new string[10];
@@ -6294,7 +6522,8 @@ namespace Thetis
             }
             public virtual bool UpdateAlways
             {
-                get { return false; }
+                get { return _udpate_always; }
+                set { _udpate_always = value; }
             }
             public virtual float MinHistory
             {
@@ -6546,6 +6775,15 @@ namespace Thetis
                 get { return new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = null }; }
                 set { }
             }
+            public virtual void ContainerEnabled(string id, bool enabled)
+            {
+
+            }
+            public virtual void ContainerHiddenByMacro(string id, bool hidden)
+            {
+
+            }
+
             public virtual bool CWXShown
             {
                 get { return false; }
@@ -7450,8 +7688,8 @@ namespace Thetis
         //
         internal class clsOtherButtons : clsButtonBox
         {
+            private clsTextOverlay _dummy_text_overlay; // use for parse text
             private clsMeter _owningmeter;
-            private int _button_bits;
             private clsItemGroup _ig;
             private bool _click_highlight;
             private System.Timers.Timer _click_timer;
@@ -7462,8 +7700,15 @@ namespace Thetis
             private short[] _map;
             private readonly object _map_lock = new object();
 
+            private OtherButtonMacroSettings[] _macro_settings;
+            private readonly object _macro_settings_lock = new object();
+
+            private CATScriptInterpreter _cat_inter;
+
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
+                _cat_inter = null;
+                _dummy_text_overlay = new clsTextOverlay(owningmeter);
                 _owningmeter = owningmeter;
                 _click_highlight = false;
                 _ig = ig;
@@ -7485,8 +7730,37 @@ namespace Thetis
                 {
                     _map[n] = n;
                 }
+
+                _macro_settings = new OtherButtonMacroSettings[OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP];
+                for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                {
+                    _macro_settings[n] = new OtherButtonMacroSettings();
+                    _macro_settings[n].Number = n;
+                }
+
+                MeterManager.CatStateHandlers += OnCatState;
+
                 Initialise();
             }
+            public override void Removing()
+            {
+                MeterManager.CatStateHandlers -= OnCatState;
+            }
+            private void OnCatState(int queue, Guid id, ScriptCommand sc, string cat_result)
+            {
+                if (sc.parent_uid != ID) return;
+                if (sc.macro < 0 || sc.macro > _macro_settings.Length - 1) return;
+                // ours
+                if (_macro_settings[sc.macro].ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.CAT)
+                {
+                    bool on = string.Compare(_macro_settings[sc.macro].ButtonStateCatReply, cat_result, true) == 0;
+
+                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId._MACRO_0 + sc.macro);
+                    bit = (bit_group * 32) + bit;
+                    SetOn(1, bit, on);
+                }
+            }
+
             // these map to the OtherButtonId enum
             public override bool Power { get => base.Power; set => updateOn(OtherButtonId.POWER, value); }
             public override bool RX2Enabled { get => base.RX2Enabled; set => updateOn(OtherButtonId.RX_2, value); }
@@ -7788,7 +8062,73 @@ namespace Thetis
                     }
                 }
             }
+            public override OtherButtonMacroSettings GetMacroSettings(int macro)
+            {
+                lock (_macro_settings_lock)
+                {
+                    if (macro < 0 || macro > _macro_settings.Length - 1) return null;
+                    return _macro_settings[macro];
+                }
+            }
+            public override void SetMacroSettings(int macro, OtherButtonMacroSettings settings)
+            {
+                lock (_macro_settings_lock)
+                {
+                    if (macro < 0 || macro > _macro_settings.Length - 1) return;
+                    _macro_settings[macro] = new OtherButtonMacroSettings(settings);
 
+                    // chcck if any macros have cat code enabled, and if so, get the variables, and add them
+                    for(int n = 0; n < _macro_settings.Length -1; n++)
+                    {
+                        if (_macro_settings[n].CatMacroSend[0] && !string.IsNullOrEmpty(_macro_settings[n].CatMacro))
+                        {
+                            if (_cat_inter == null) _cat_inter = new CATScriptInterpreter(eval);
+
+                            ScriptResult sr = _cat_inter.Run(n, _macro_settings[n].CatMacro);
+                            if(sr.is_valid)
+                            {
+                                foreach(ScriptCommand sc in sr.commands)
+                                {
+                                    if (sc.type == ScriptCommandType.CatMessageVar)
+                                    {
+                                        _cat_variables.AddOrUpdate(sc.variable_name, sc.text, (a, b) => sc.text);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            public override void ContainerHiddenByMacro(string id, bool hidden)
+            {
+                lock (_macro_settings_lock)
+                {
+                    bool enabled = !hidden;
+                    for (OtherButtonId obid = OtherButtonId._MACRO_0; obid <= OtherButtonId._MACRO_30; obid++)
+                    {
+                        (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(obid);
+                        bit = (bit_group * 32) + bit;
+                        int macro = (int)obid - (int)OtherButtonId._MACRO_0;
+
+                        if (_macro_settings[macro].ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.CONT_VIS && _macro_settings[macro].ContainerVisibleID == id)
+                        {
+                            SetOn(1, bit, enabled);
+
+                            string sText = GetText(1, bit);
+                            if (enabled && !string.IsNullOrEmpty(_macro_settings[macro].OnText))
+                            {
+                                sText = _macro_settings[macro].OnText;
+                            }
+                            else if (!enabled && !string.IsNullOrEmpty(_macro_settings[macro].OffText))
+                            {
+                                sText = _macro_settings[macro].OffText;
+                            }
+                            SetText(1, bit, sText);
+                        }
+                    }
+                }
+            }
+            //---------------------------
             private void updateOn(OtherButtonId id, bool val)
             {
                 (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(id);
@@ -7799,10 +8139,6 @@ namespace Thetis
             {
                 setupButtons(true);
             }
-            //private void onOtherButtonsSettingChanged(object sender, EventArgs e)
-            //{
-            //    setupButtons();
-            //}
             public override int GetVisibleBits(int bit_group)
             {
                 if(bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return 0;
@@ -7821,31 +8157,6 @@ namespace Thetis
                 if (bit < 0 || bit > 30) return false; // bit 32 is skipped
                 return (_visible_bits[bit_group] & (1 << bit)) != 0;
             }
-            private void setVisible(int bit_group, int bit, bool visible)
-            {
-                if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1) return;
-                if (bit < 0 || bit > 30) return;
-                if (visible)
-                    _visible_bits[bit_group] = _visible_bits[bit_group] | (1 << bit);
-                else
-                    _visible_bits[bit_group] = _visible_bits[bit_group] & ~(1 << bit);
-            }
-            //public override int VisibleBits
-            //{
-            //    get
-            //    {
-            //        return _button_bits;
-            //    }
-            //    set
-            //    {
-            //        _button_bits = value;
-            //        for (int n = 0; n < Buttons; n++)
-            //        {
-            //            SetVisible(0, n, (_button_bits & (1 << n)) != 0);
-            //        }
-            //        setupButtons();
-            //    }
-            //}
             private bool try_index_from_group_bit(int bit_group, int bit, out int index)
             {
                 if (bit_group < 0 || bit_group > OtherButtonIdHelpers.MAX_BITFIELD_GROUP - 1 || bit < 0 || bit > 30)
@@ -7910,8 +8221,10 @@ namespace Thetis
                     string sText;
                     bool skip_set_visible = false;
                     bool button_enabled = true;
+                    bool macro_button = id >= OtherButtonId._MACRO_0 && id <= OtherButtonId._MACRO_30;
+                    int macro = (int)id - (int)OtherButtonId._MACRO_0;
 
-                    switch(id)
+                    switch (id)
                     {
                         case OtherButtonId.NR:
                             int nr = _console.GetSelectedNR(_owningmeter.RX);
@@ -7969,7 +8282,52 @@ namespace Thetis
                             break;
                     }
 
-                    if(UseIcons)
+                    OtherButtonMacroSettings macro_settings = null;
+
+                    if (macro_button)
+                    {
+                        lock (_macro_settings_lock)
+                        {
+                            macro_settings = new OtherButtonMacroSettings(_macro_settings[macro]);
+                        }
+
+                        bool on = false;                        
+                        switch (macro_settings.ButtonStateType)
+                        {
+                            case OtherButtonMacroSettings.OB_ButtonState.OFF:
+                                on = false;
+                                break;
+                            case OtherButtonMacroSettings.OB_ButtonState.ON:
+                                on = true;
+                                break;
+                            case OtherButtonMacroSettings.OB_ButtonState.TOGGLE:
+                                on = macro_settings.OnState;
+                                break;
+                            case OtherButtonMacroSettings.OB_ButtonState.LED:
+                                on = false;
+                                break;
+                            case OtherButtonMacroSettings.OB_ButtonState.CONT_VIS:
+                                on = !MeterManager.ContainerIsHiddenByMacro(macro_settings.ContainerVisibleID);
+                                break;
+                            case OtherButtonMacroSettings.OB_ButtonState.CAT:
+                                on = false;
+                                break;
+                        }
+
+                        SetOn(1, i, on);
+                        macro_settings.OnState = on;
+
+                        if (on && !string.IsNullOrEmpty(macro_settings.OnText))
+                        {
+                            sText = macro_settings.OnText;
+                        }
+                        else if (!on && !string.IsNullOrEmpty(macro_settings.OffText))
+                        {
+                            sText = macro_settings.OffText;
+                        }
+                    }
+
+                    if (UseIcons)
                     {
                         (string icon_on, string icon_off) = OtherButtonIdHelpers.BitToIcon(bit_group, bit);
                         if(!string.IsNullOrEmpty(icon_on))
@@ -8018,7 +8376,10 @@ namespace Thetis
 
                     //get the state from the console
                     //bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
-                    if (init) SetOn(1, i, _console.GetOtherButtonState(id, _owningmeter.RX));
+                    if (init && !macro_button)
+                    {
+                        SetOn(1, i, _console.GetOtherButtonState(id, _owningmeter.RX));
+                    }
                     SetOn(1, i, GetOn(1, i));
 
                     SetFillColour(1, i, GetFillColour(0, i));
@@ -8030,6 +8391,14 @@ namespace Thetis
                     SetUseOffColour(1, i, GetUseOffColour(0, i));
 
                     SetIndicatorType(1, i, GetIndicatorType(0, i));
+
+                    if (macro_button)
+                    {
+                        lock (_macro_settings_lock)
+                        {
+                            _macro_settings[macro] = new OtherButtonMacroSettings(macro_settings);
+                        }
+                    }
                 }
 
                 //
@@ -8242,11 +8611,153 @@ namespace Thetis
                 if (id == OtherButtonId.UNKNOWN) return;
 
                 Debug.Print(id.ToString());
+                if(id >= OtherButtonId._MACRO_0 && id <= OtherButtonId._MACRO_30)
+                {
+                    int macro = (int)id - (int)OtherButtonId._MACRO_0;
+                    handleMacroButtonPress(macro, index);
+                    return;
+                }
 
                 _console.BeginInvoke(new MethodInvoker(() =>
                 {
                     _console.DoOtherButtonAction(_owningmeter.RX, id, e.Button);
                 }));
+            }
+            private bool eval(int macro, string name)
+            {
+                if (macro < 0 || macro > _macro_settings.Length - 1) return false;
+
+                if (string.Equals(name, "ON", StringComparison.OrdinalIgnoreCase)) return GetOn(1, macro);
+                if (string.Equals(name, "OFF", StringComparison.OrdinalIgnoreCase)) return !GetOn(1, macro);
+
+                if (name.StartsWith("%") && name.EndsWith("%"))
+                {
+                    // check mmio variable
+                    int end = name.LastIndexOf("%");
+                    string var = name.Substring(1, end - 1);
+                    foreach (KeyValuePair<Guid, MultiMeterIO.clsMMIO> mmios in MultiMeterIO.Data)
+                    {
+                        MultiMeterIO.clsMMIO mmio = mmios.Value;
+                        foreach (KeyValuePair<string, object> kvp in mmio.Variables())
+                        {
+                            if (var.Equals(kvp.Key, StringComparison.OrdinalIgnoreCase))
+                            {
+                                try
+                                {
+                                    if (kvp.Value.GetType() == typeof(bool)) return (bool)kvp.Value;
+                                }
+                                catch
+                                { }
+                            }
+                        }
+                    }
+                }
+
+                if (name.StartsWith("$") && name.EndsWith("$"))
+                {
+                    //check leds
+                    int end = name.LastIndexOf("$");
+                    string var = name.Substring(1, end - 1);
+                    bool ok = _led_results.TryGetValue(var, out bool val);
+                    if (ok) return val;
+                }
+
+                return false;
+            }
+            private void handleMacroButtonPress(int macro, int index)
+            {
+                if (macro < 0 || macro > _macro_settings.Length - 1) return;
+
+                OtherButtonMacroSettings settings;
+                lock (_macro_settings)
+                {
+                    settings = new OtherButtonMacroSettings(_macro_settings[macro]);
+                }
+
+                if (settings.ClosesParent)
+                {
+                    MeterManager.HiddenByMacro(_owningmeter.ID, true, null);
+                }
+
+                for(int n=0; n <= 3; n++)
+                {
+                    if (settings.ClosesContainer[n] && settings.OpensContainer[n] && settings.CloseContainerID[n] == settings.OpenContainerID[n])
+                    {
+                        //toggle same container
+                        bool hidden = MeterManager.ContainerIsHiddenByMacro(settings.CloseContainerID[n]);
+                        MeterManager.HiddenByMacro(settings.CloseContainerID[n], !hidden, null);
+                    }
+                    else
+                    {
+                        if (settings.OpensContainer[n])
+                        {
+                            string copy_size_id = settings.OpenUsesLocation[n] && !string.IsNullOrEmpty(settings.CloseContainerID[n]) ? settings.CloseContainerID[n] : null;
+                            MeterManager.HiddenByMacro(settings.OpenContainerID[n], false, copy_size_id);
+                        }
+
+                        if (settings.ClosesContainer[n])
+                        {
+                            MeterManager.HiddenByMacro(settings.CloseContainerID[n], true, null);
+                        }
+                    }
+
+                    if (settings.SendsViaMMIO[n])
+                    {
+                        if (!string.IsNullOrEmpty(settings.MMICFourChar[n])) 
+                        {
+                            Guid guid = MultiMeterIO.GuidfromFourChar(settings.MMICFourChar[n]);
+                            if(guid != Guid.Empty)
+                            {
+                                _dummy_text_overlay.Text1 = settings.MMIOMessage[n];
+                                MultiMeterIO.SendDataMMIO(guid, _dummy_text_overlay.ParsedText1);
+                            }
+                        }
+                    }
+                }
+
+                if(settings.ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.TOGGLE)
+                {
+                    bool state = !GetOn(1, index);
+                    SetOn(1, index, state);
+                    _macro_settings[macro].OnState = state;
+                }
+
+                if (!string.IsNullOrEmpty(settings.CatMacro)) // to thetis
+                {
+                    if (_cat_inter == null) _cat_inter = new CATScriptInterpreter(eval);
+                    ScriptResult result = _cat_inter.Run(macro, settings.CatMacro);
+
+                    //on state cmd
+                    if (result.is_valid)
+                    {
+                        //// run the cat state direct 
+                        //if(!string.IsNullOrEmpty(result.cat_state_command))
+                        //{
+                        //    string ans = _console.ThreadSafeCatParse(result.cat_state_command);
+                        //    bool on = string.Compare(ans, settings.ButtonStateCatReply, StringComparison.OrdinalIgnoreCase) == 0;
+                        //    SetOn(1, index, on);
+                        //}
+
+                        //add tokens to catQ
+                        if (result.commands.Count > 0)
+                        {
+                            for (int n = 0; n < settings.CatMacroSend.Length; n++)
+                            {
+                                if (settings.CatMacroSend[n]) // only using 0 (to thetis) right now, here for future
+                                {
+                                    MessageQueueSystem.MessageBatch batch = _cat_queue_system.createBatch();
+                                    foreach (ScriptCommand sc in result.commands)
+                                    {
+                                        sc.parent_uid = ID;
+                                        sc.macro = macro;
+                                        batch.add(sc);
+                                    }
+                                    _cat_queue_system.sendBatch(n, batch);
+                                }
+                            }
+                        }
+                    }
+                }
             }
             public override int DraggingIndex
             {
@@ -8263,6 +8774,43 @@ namespace Thetis
             {
                 if (button_index == _last_draged_to) return;
                 _last_draged_to = button_index;
+            }
+            public override void Update(int rx, ref List<Reading> readingsUsed, Dictionary<Reading, object> all_list_item_readings = null)
+            {
+                lock (_macro_settings_lock)
+                {
+                    for(int n = 0; n < _macro_settings.Length; n++)
+                    {
+                        OtherButtonMacroSettings settings = _macro_settings[n];
+                        if(settings.ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.LED)
+                        {
+                            if (!string.IsNullOrEmpty(settings.LedIndiciatorFourChar))
+                            {
+                                clsLed led = MeterManager.GetLedFrom4Char(settings.LedIndiciatorFourChar);
+                                if(led != null)
+                                {
+                                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID((OtherButtonId)(n + (int)OtherButtonId._MACRO_0));
+                                    bit = (bit_group * 32) + bit;
+
+                                    bool on = led.ConditionResult;
+                                    SetOn(1, bit, on);
+                                    settings.OnState = on;
+
+                                    string sText = GetText(1, bit);
+                                    if (on && !string.IsNullOrEmpty(settings.OnText))
+                                    {
+                                        sText = settings.OnText;
+                                    }
+                                    else if (!on && !string.IsNullOrEmpty(settings.OffText))
+                                    {
+                                        sText = settings.OffText;
+                                    }
+                                    SetText(1, bit, sText);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
         //
@@ -10062,6 +10610,8 @@ namespace Thetis
             }
             public virtual int GetVisibleBits(int bit_group) { return int.MaxValue; }
             public virtual void SetVisibleBits(int bit_group, int bit_field) { }
+            public virtual void SetMacroSettings(int macro, OtherButtonMacroSettings settings) { }
+            public virtual OtherButtonMacroSettings GetMacroSettings(int macro) { return null; }
             public virtual short[] ButtonMap
             {
                 get { return null; }
@@ -16235,20 +16785,20 @@ namespace Thetis
             private string _rx_four_char;
             private string _tx_four_char;
 
-            private clsLed _rxLed;
-            private clsLed _txLed;
+            //private clsLed _rxLed;
+            //private clsLed _txLed;
 
             private bool _show_rx;
             private bool _show_tx;
 
-            private readonly object _four_char_logic = new object();
+            //private readonly object _four_char_logic = new object();
 
             public clsTextOverlay(clsMeter owningMeter)
             {
-                MeterManager.LedIndicatorRemoved += onLedRemoved;
+                //MeterManager.LedIndicatorRemoved += onLedRemoved;
 
-                _rxLed = null;
-                _txLed = null;
+                //_rxLed = null;
+                //_txLed = null;
 
                 _show_rx = true;
                 _show_tx = true;
@@ -16305,133 +16855,133 @@ namespace Thetis
 
                 UpdateInterval = 100;
             }
-            public override void Removing()
-            {
-                MeterManager.LedIndicatorRemoved -= onLedRemoved;
-            }
-            private void onLedRemoved(object sender, EventArgs e)
-            {
-                // if a led is removed, we need to remove the four char if we were using it
-                clsLed led = sender as clsLed;
-                if (led == null) return;
+            //public override void Removing()
+            //{
+            //    MeterManager.LedIndicatorRemoved -= onLedRemoved;
+            //}
+            //private void onLedRemoved(object sender, EventArgs e)
+            //{
+            //    // if a led is removed, we need to remove the four char if we were using it
+            //    clsLed led = sender as clsLed;
+            //    if (led == null) return;
 
-                lock (_four_char_logic)
-                {
-                    if (_rx_four_char == led.FourChar)
-                    {
-                        _rx_four_char = "";
-                        _rx_led_logic = false;
-                        _rxLed = null;
-                        _show_rx = true;
-                    }
-                    if (_tx_four_char == led.FourChar)
-                    {
-                        _tx_four_char = "";
-                        _tx_led_logic = false;
-                        _txLed = null;
-                        _show_tx = true;
-                    }
-                }
-            }
+            //    lock (_four_char_logic)
+            //    {
+            //        if (_rx_four_char == led.FourChar)
+            //        {
+            //            _rx_four_char = "";
+            //            _rx_led_logic = false;
+            //            _rxLed = null;
+            //            _show_rx = true;
+            //        }
+            //        if (_tx_four_char == led.FourChar)
+            //        {
+            //            _tx_four_char = "";
+            //            _tx_led_logic = false;
+            //            _txLed = null;
+            //            _show_tx = true;
+            //        }
+            //    }
+            //}
             public bool ShowRX 
             { 
                 get 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _show_rx;
-                    }
+                    //}
                 } 
             }
             public bool ShowTX
             {
                 get
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _show_tx;
 
-                    }
+                    //}
                 }
             }
             public bool RXLedLogic
             {
                 get 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _rx_led_logic;
-                    }
+                    //}
                 }
                 set 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         _rx_led_logic = value;
-                        if (!_rx_led_logic)
-                        {
-                            _show_rx = true;
-                            _rxLed = null;
-                        }
-                    }
+                        //if (!_rx_led_logic)
+                        //{
+                        //    _show_rx = true;
+                        //    _rxLed = null;
+                        //}
+                    //}
                 }
             }
             public bool TXLedLogic
             {
                 get 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _tx_led_logic;
-                    }
+                    //}
                 }
                 set 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         _tx_led_logic = value;
                         if (!_tx_led_logic)
                         {
                             _show_tx = true;
-                            _txLed = null;
+                    //        _txLed = null;
                         }
-                    }
+                    //}
                 }
             }
             public string RXFourChar
             {
                 get 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _rx_four_char;
-                    }
+                    //}
                 }
                 set 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         _rx_four_char = value;
-                        _rxLed = null;
-                    }
+                     //   _rxLed = null;
+                    //}
                 }
             }
             public string TXFourChar
             {
                 get 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         return _tx_four_char;
-                    }
+                    //}
                 }
                 set 
                 {
-                    lock (_four_char_logic)
-                    {
+                    //lock (_four_char_logic)
+                    //{
                         _tx_four_char = value;
-                        _txLed = null;
-                    }
+                    //    _txLed = null;
+                    //}
                 }
             }
             public int ScrollXCount1
@@ -16672,30 +17222,39 @@ namespace Thetis
                     if (_parsed_text_2 != old) _x_scroll_count_2 = 0;
                 }
 
-                lock (_four_char_logic)
+                if(_rx_led_logic)
                 {
-                    if (_rx_led_logic)
-                    {
-                        if(_rxLed == null && !string.IsNullOrEmpty(_rx_four_char))
-                        {
-                            _rxLed = MeterManager.GetLedFrom4Char(_rx_four_char);
-                            if (_rxLed == null && !_show_rx) _show_rx = true;
-                        }
-
-                        if (_rxLed != null) _show_rx = _rxLed.ConditionResult;
-                    }
-
-                    if (_tx_led_logic)
-                    {
-                        if (_txLed == null && !string.IsNullOrEmpty(_tx_four_char))
-                        {
-                            _txLed = MeterManager.GetLedFrom4Char(_tx_four_char);
-                            if (_txLed == null && !_show_tx) _show_tx = true;
-                        }
-
-                        if (_txLed != null) _show_tx = _txLed.ConditionResult;
-                    }
+                    bool ok = _led_results.TryGetValue(_rx_four_char, out _show_rx);
                 }
+                if (_rx_led_logic)
+                {
+                    bool ok = _led_results.TryGetValue(_tx_four_char, out _show_tx);
+                }
+
+                //lock (_four_char_logic)
+                //{
+                //    if (_rx_led_logic)
+                //    {
+                //        if(_rxLed == null && !string.IsNullOrEmpty(_rx_four_char))
+                //        {
+                //            _rxLed = MeterManager.GetLedFrom4Char(_rx_four_char);
+                //            if (_rxLed == null && !_show_rx) _show_rx = true;
+                //        }
+
+                //        if (_rxLed != null) _show_rx = _rxLed.ConditionResult;
+                //    }
+
+                //    if (_tx_led_logic)
+                //    {
+                //        if (_txLed == null && !string.IsNullOrEmpty(_tx_four_char))
+                //        {
+                //            _txLed = MeterManager.GetLedFrom4Char(_tx_four_char);
+                //            if (_txLed == null && !_show_tx) _show_tx = true;
+                //        }
+
+                //        if (_txLed != null) _show_tx = _txLed.ConditionResult;
+                //    }
+                //}
             }
             //
             private string parseText(int rx, int text_line)
@@ -16813,8 +17372,19 @@ namespace Thetis
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
                             sTmp = sTmp.ReplaceIgnoreTokenCase(token, tmp);
+
+                            break;//[2.10.3.12]MW0LGE leave after we find a match, if more than one mmio with same variable, then nothing we can do about it
                         }
                     }
+                }
+
+                //replace cat variables
+                foreach(KeyValuePair<string, string> vars in _cat_variables)
+                {
+                    string variable = vars.Key;
+                    string value = vars.Value;
+
+                    sTmp = sTmp.ReplaceIgnoreTokenCase(variable, value);
                 }
 
                 return sTmp;
@@ -16927,6 +17497,7 @@ namespace Thetis
 
             private string _four_char;
 
+            private bool _process_when_hidden;
             public clsLed(clsMeter owningMeter, clsItemGroup ig)
             {
                 Guid guid;
@@ -16976,6 +17547,8 @@ namespace Thetis
 
                 _show_true = true;
                 _show_false = true;
+
+                _process_when_hidden = false;
 
                 _place_holders = new List<string>();
                 _place_holder_lock = new object();
@@ -17089,8 +17662,17 @@ namespace Thetis
                         }
                         else
                         {
-                            // assume mmio, do nothing, as provide_variables() handles this
-                            continue;
+                            // if variable in cat vars, then add it
+                            if (_cat_variables.TryGetValue("%" + tmp + "%", out string v))
+                            {
+                                SetLedVariable(rx, tmp, v);
+                                continue;
+                            }
+                            else
+                            {
+                                // assume mmio, do nothing, as provide_variables() handles this
+                                continue;
+                            }
                         }
 
                         if (update_custom) ReadingsCustom(rx).UpdateReadings("%" + tmp + "%"); // this variable is to be use by custom readings
@@ -17136,6 +17718,11 @@ namespace Thetis
                     {
                         // is a reading
                         key = r.ToString();
+                    }
+                    else if (_cat_variables.TryGetValue("%" + key + "%", out string v))
+                    {
+                        // if variable in cat vars, then add it
+                        key = key.ToLower();
                     }
                     else
                     {
@@ -17266,6 +17853,7 @@ namespace Thetis
 
                         _old_result = _result;
                         _result = MeterScriptEngine.read_result(_led_id);
+                        _led_results.AddOrUpdate(_four_char, _result, (a, b) => _result);
 
                         // mox
                         if (_result && _notxtrue && _console.MOX)
@@ -18444,6 +19032,7 @@ namespace Thetis
             private bool _enabled;
             private bool _show_on_rx;
             private bool _show_on_tx;
+            private bool _hidden_by_macro;
 
             private float _XRatio; // 0-1
             private float _YRatio; // 0-1
@@ -18579,6 +19168,7 @@ namespace Thetis
                 _enabled = true;
                 _show_on_rx = true;
                 _show_on_tx = true;
+                _hidden_by_macro = false;
                 _quickestRXUpdate = 250;
                 _quickestTXUpdate = 250;
                 _split = false;
@@ -22877,11 +23467,16 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
+                                                bb.ButtonMap = igs.GetSetting<short[]>("buttonbox_button_map", false, null, null, null);
+
                                                 for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
                                                     bb.SetVisibleBits(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
                                                 }
-                                                bb.ButtonMap = igs.GetSetting<short[]>("buttonbox_button_map", false, null, null, null);
+                                                for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                                                {
+                                                    bb.SetMacroSettings(n, igs.GetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), false, null, null, null));
+                                                }
                                             }
                                             else if(mt == MeterType.TUNESTEP_BUTTONS)
                                             {                                                
@@ -23179,6 +23774,7 @@ namespace Thetis
 
                                             led.NoTxTrue = igs.GetSetting<bool>("led_notx_true", false, false, false, false);
                                             led.NoTxFalse = igs.GetSetting<bool>("led_notx_false", false, false, false, false);
+                                            led.UpdateAlways = igs.GetSetting<bool>("led_process_when_hidden", false, false, false, false);
                                         }
                                         ig.Size = new SizeF(ig.Size.Width, padding == 0f ? 0 : padding + (_fPadY - (_fHeight * 0.75f)));
 
@@ -24181,11 +24777,16 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
+                                                igs.SetSetting<short[]>("buttonbox_button_map", bb.ButtonMap);
+
                                                 for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
                                                     igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), bb.GetVisibleBits(n));
                                                 }
-                                                igs.SetSetting<short[]>("buttonbox_button_map", bb.ButtonMap);
+                                                for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                                                {
+                                                    igs.SetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), bb.GetMacroSettings(n));
+                                                }
                                             }
                                             else if (mt == MeterType.TUNESTEP_BUTTONS)
                                             {
@@ -24322,6 +24923,7 @@ namespace Thetis
                                             igs.SetSetting<bool>("led_notx_true", led.NoTxTrue);
                                             igs.SetSetting<bool>("led_notx_false", led.NoTxFalse);
                                             igs.SetSetting<string>("led_4char", led.FourChar);
+                                            igs.SetSetting<bool>("led_process_when_hidden", led.UpdateAlways);
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
                                         {
@@ -25112,6 +25714,11 @@ namespace Thetis
                     }
                 }
                 return update_always;
+            }
+            public bool HiddenByMacro
+            {
+                get { return _hidden_by_macro; }
+                set { _hidden_by_macro = value; }
             }
             public bool ShowOnRX
             {
@@ -26168,6 +26775,28 @@ namespace Thetis
                             clsMeterItem mi = kvp.Value;
                             mi.GeneralSettings = _general_settings;
                         }
+                    }
+                }
+            }
+            public void ContainerEnabled(string id, bool enabled)
+            {
+                lock (_meterItemsLock)
+                {
+                    foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                    {
+                        clsMeterItem mi = kvp.Value;
+                        mi.ContainerEnabled(id, enabled);
+                    }
+                }
+            }
+            public void ContainerHiddenByMacro(string id, bool hidden)
+            {
+                lock (_meterItemsLock)
+                {
+                    foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                    {
+                        clsMeterItem mi = kvp.Value;
+                        mi.ContainerHiddenByMacro(id, hidden);
                     }
                 }
             }
@@ -33941,13 +34570,13 @@ namespace Thetis
                 SharpDX.Vector2 start = new Vector2();
                 SharpDX.Vector2 end = new Vector2();
 
-                int[] map = null;
-                clsOtherButtons ob = bb as clsOtherButtons;
-                bool is_other_button = ob != null;
+                short[] map = null;
+                bool is_other_button = bb.ItemType == clsMeterItem.MeterItemType.OTHER_BUTTONS;
 
                 if (is_other_button)
                 {
-                    map = new int[ob.Buttons];
+                    clsOtherButtons ob = bb as clsOtherButtons;
+                    map = new short[ob.Buttons];
                     Array.Copy(ob.ButtonMap, map, map.Length);
                 }
 
@@ -34335,7 +34964,7 @@ namespace Thetis
                     }
                     drawRoundedRectangle(dragging_rr, getDXBrushForColour(c, 255), 6f);
 
-                    ob.MoveButton(highlighted_index);
+                    ((clsOtherButtons)bb).MoveButton(highlighted_index);
                 }
             }
             private System.Drawing.Color adjustTextColourForContrast(System.Drawing.Color textColor, System.Drawing.Color backgroundColor)

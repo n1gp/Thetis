@@ -37149,6 +37149,8 @@ namespace Thetis
             //#endif
 
             updateVFOFreqs(_mox); //[2.10.1.0] MW0LGE we might need to update everything if tx'ing on sub, use std function
+
+            SetGeneralSetting(0, OtherButtonId.XIT, chkXIT.Checked);
         }
 
         private void chkRIT_CheckedChanged(object sender, System.EventArgs e)
@@ -52632,6 +52634,15 @@ namespace Thetis
 
         private void on_send_floodcontrol_message(string msg, string uid)
         {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new MethodInvoker(() =>
+                {
+                    on_send_floodcontrol_message(msg, uid);
+                }));
+                return;
+            }
+              
             bool send = false;
 
             switch (uid)
@@ -52779,6 +52790,7 @@ namespace Thetis
                 case OtherButtonId.CFC: DoGeneralSettingAction(rx, OtherButtonId.CFC, !GetGeneralSetting(rx, OtherButtonId.CFC)); break;
                 case OtherButtonId.CFC_EQ: DoGeneralSettingAction(rx, OtherButtonId.CFC_EQ, !GetGeneralSetting(rx, OtherButtonId.CFC_EQ)); break;
                 case OtherButtonId.LEVELER: DoGeneralSettingAction(rx, OtherButtonId.LEVELER, !GetGeneralSetting(rx, OtherButtonId.LEVELER)); break;
+                case OtherButtonId.PHASE_ROT: DoGeneralSettingAction(rx, OtherButtonId.PHASE_ROT, !GetGeneralSetting(rx, OtherButtonId.PHASE_ROT)); break;
 
                 case OtherButtonId.PAUSE: DoGeneralSettingAction(rx, OtherButtonId.PAUSE, !GetGeneralSetting(rx, OtherButtonId.PAUSE)); break;
                 case OtherButtonId.PEAK_BLOBS: DoGeneralSettingAction(rx, OtherButtonId.PEAK_BLOBS, !GetGeneralSetting(rx, OtherButtonId.PEAK_BLOBS)); break;
@@ -53207,6 +53219,7 @@ namespace Thetis
                 case OtherButtonId.CFC: return GetGeneralSetting(rx, OtherButtonId.CFC);
                 case OtherButtonId.CFC_EQ: return GetGeneralSetting(rx, OtherButtonId.CFC_EQ);
                 case OtherButtonId.LEVELER: return GetGeneralSetting(rx, OtherButtonId.LEVELER);
+                case OtherButtonId.PHASE_ROT: return GetGeneralSetting(rx, OtherButtonId.PHASE_ROT);
 
                 case OtherButtonId.PAUSE: return GetGeneralSetting(rx, OtherButtonId.PAUSE);
                 case OtherButtonId.PEAK_BLOBS: return GetGeneralSetting(rx, OtherButtonId.PEAK_BLOBS);
@@ -53828,6 +53841,9 @@ namespace Thetis
                 case OtherButtonId.LEVELER:
                     if (!IsSetupFormNull) return SetupForm.TXLevelerOn;
                     break;
+                case OtherButtonId.PHASE_ROT:
+                    if (!IsSetupFormNull) return SetupForm.PhaseRotEnabled;
+                    break;
                 case OtherButtonId.PAUSE:
                     return Display.PausedDisplay;
                 case OtherButtonId.PEAK_BLOBS:
@@ -53907,6 +53923,7 @@ namespace Thetis
             SetGeneralSetting(0, OtherButtonId.COMP, GetGeneralSetting(tmp_rx, OtherButtonId.COMP));
             SetGeneralSetting(0, OtherButtonId.PAUSE, GetGeneralSetting(tmp_rx, OtherButtonId.PAUSE));
             SetGeneralSetting(0, OtherButtonId.LEVELER, GetGeneralSetting(tmp_rx, OtherButtonId.LEVELER));
+            SetGeneralSetting(0, OtherButtonId.PHASE_ROT, GetGeneralSetting(tmp_rx, OtherButtonId.PHASE_ROT));
             SetGeneralSetting(0, OtherButtonId.FILL_SPECTRUM, GetGeneralSetting(tmp_rx, OtherButtonId.FILL_SPECTRUM));
             SetGeneralSetting(0, OtherButtonId.CFC, GetGeneralSetting(tmp_rx, OtherButtonId.CFC));
             SetGeneralSetting(0, OtherButtonId.CFC_EQ, GetGeneralSetting(tmp_rx, OtherButtonId.CFC_EQ));
@@ -53997,6 +54014,9 @@ namespace Thetis
                     return true;
                 case OtherButtonId.LEVELER:
                     if (!IsSetupFormNull) SetupForm.TXLevelerOn = state;
+                    return true;
+                case OtherButtonId.PHASE_ROT:
+                    if (!IsSetupFormNull) SetupForm.PhaseRotEnabled = state;
                     return true;
                 case OtherButtonId.PAUSE:
                     Display.PausedDisplay = state;
@@ -54544,21 +54564,30 @@ namespace Thetis
     #region FloodControl
     public static class MessageFloodControl
     {
+        private const int _max_interval = 200;
+
         public static event Action<string, string> SendMessage;
 
         static readonly object sync = new object();
         static readonly Dictionary<string, State> states = new Dictionary<string, State>();
-        static readonly TimeSpan interval = TimeSpan.FromMilliseconds(200);
+        static readonly TimeSpan interval = TimeSpan.FromMilliseconds(_max_interval);
         static volatile bool shutting_down = false;
 
-        public static void FloodControl(string message, string uid)
+        public static void FloodControl(string message, string uid, bool ignore_flood = false)
         {
             if (shutting_down) return;
             if (uid == null) throw new ArgumentNullException("uid");
-            if (message == null) message = string.Empty;
+            if (string.IsNullOrEmpty(message)) return;
 
             try
             {
+                if (ignore_flood)
+                {
+                    //totally ignore flood control
+                    raise_send_message(message, uid);
+                    return;
+                }
+
                 State state;
                 bool fire_now = false;
                 string to_send = null;

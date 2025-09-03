@@ -40,7 +40,9 @@ mw0lge@grange-lane.co.uk
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.Security.Policy;
 using System.Windows.Forms;
 
 namespace Thetis
@@ -118,6 +120,7 @@ namespace Thetis
         CFC,
         CFC_EQ,
         LEVELER,
+        PHASE_ROT,
         AGC_FIXED,
         AGC_LONG,
         AGC_SLOW,
@@ -207,15 +210,270 @@ namespace Thetis
         STACK_D,
         NF,
 
+        _MACRO_0,
+        _MACRO_1,
+        _MACRO_2,
+        _MACRO_3,
+        _MACRO_4,
+        _MACRO_5,
+        _MACRO_6,
+        _MACRO_7,
+        _MACRO_8,
+        _MACRO_9,
+        _MACRO_10,
+        _MACRO_11,
+        _MACRO_12,
+        _MACRO_13,
+        _MACRO_14,
+        _MACRO_15,
+        _MACRO_16,
+        _MACRO_17,
+        _MACRO_18,
+        _MACRO_19,
+        _MACRO_20,
+        _MACRO_21,
+        _MACRO_22,
+        _MACRO_23,
+        _MACRO_24,
+        _MACRO_25,
+        _MACRO_26,
+        _MACRO_27,
+        _MACRO_28,
+        _MACRO_29,
+        _MACRO_30,
+
         INFO_TEXT = 998,
         SPLITTER = 999,
 
         UNKNOWN = 1000
     }
-    
+
+    [Serializable]
+    public class OtherButtonMacroSettings
+    {
+        public enum OB_ButtonState
+        {
+            OFF = 0,
+            ON,
+            TOGGLE,
+            LED,
+            CONT_VIS,
+            CAT
+        }
+
+        private int _number;
+        private string _on_text;
+        private string _off_text;
+        private string _notes;
+        private bool _closes_parent;
+        private bool[] _closes_container = new bool[4];
+        private bool[] _opens_container = new bool[4];
+        private string[] _close_container_id = new string[4];
+        private string[] _open_container_id = new string[4];
+        private bool[] _open_uses_location = new bool[4];
+        private bool[] _send_via_mmio = new bool[4];
+        private string[] _mmio_4char = new string[4];
+        private string[] _mmio_message = new string[4];
+        private OB_ButtonState _buttonstate_type;
+        private string _led_indicator_four_char;
+        private string _buttonstate_container_visible_id;
+        private string _buttonstate_cat_on_reply;
+        private bool[] _cat_macro_send = new bool[1]; //0=to thetis, future proofing using array
+        private bool _on_state;
+        private string _cat_macro;
+
+        private static OtherButtonMacroSettings deep_clone(OtherButtonMacroSettings source)
+        {
+            if (source == null) return null;
+            System.IO.MemoryStream ms = new System.IO.MemoryStream();
+            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+            formatter.Serialize(ms, source);
+            ms.Position = 0;
+            object deserialized = formatter.Deserialize(ms);
+            return (OtherButtonMacroSettings)deserialized;
+        }
+
+        public OtherButtonMacroSettings(OtherButtonMacroSettings settings)
+        {
+            if (settings != null)
+            {
+                OtherButtonMacroSettings clone = deep_clone(settings);
+                _number = clone._number;
+                _on_text = clone._on_text;
+                _off_text = clone._off_text;
+                _notes = clone._notes;
+                _closes_parent = clone._closes_parent;
+                _closes_container = clone._closes_container;
+                _opens_container = clone._opens_container;
+                _close_container_id = clone._close_container_id;
+                _open_container_id = clone._open_container_id;
+                _open_uses_location = clone._open_uses_location;
+                _send_via_mmio = clone._send_via_mmio;
+                _mmio_4char = clone._mmio_4char;
+                _mmio_message = clone._mmio_message;
+                _buttonstate_type = clone._buttonstate_type;
+                _led_indicator_four_char = clone._led_indicator_four_char;
+                _buttonstate_container_visible_id = clone._buttonstate_container_visible_id;
+                _buttonstate_cat_on_reply = clone._buttonstate_cat_on_reply;
+                _cat_macro_send = clone._cat_macro_send;
+                _on_state = clone._on_state;
+                _cat_macro = clone._cat_macro;
+            }
+        }
+
+        public OtherButtonMacroSettings()
+        {
+            _buttonstate_type = OB_ButtonState.OFF;
+        }
+
+        public int Number
+        {
+            get { return _number; }
+            set { _number = value; }
+        }
+        public string OnText
+        {
+            get { return _on_text; }
+            set { _on_text = value; }
+        }
+        public string OffText
+        {
+            get { return _off_text; }
+            set { _off_text = value; }
+        }
+        public string Notes
+        {
+            get { return _notes; }
+            set { _notes = value; }
+        }
+        public bool ClosesParent
+        {
+            get { return _closes_parent; }
+            set { _closes_parent = value; }
+        }
+        public bool[] ClosesContainer
+        {
+            get { return _closes_container; }
+        }
+        public bool[] OpensContainer
+        {
+            get { return _opens_container; }
+        }
+        public string[] CloseContainerID
+        {
+            get
+            {
+                return _close_container_id;
+            }
+        }
+        public string[] OpenContainerID
+        {
+            get
+            {
+                return _open_container_id;
+            }
+        }
+        public bool[] OpenUsesLocation
+        {
+            get
+            {
+                return _open_uses_location;
+            }
+        }
+        public bool[] SendsViaMMIO
+        {
+            get
+            {
+                return _send_via_mmio;
+            }
+        }
+        public string[] MMICFourChar
+        {
+            get
+            {
+                return _mmio_4char;
+            }
+        }
+        public string[] MMIOMessage
+        {
+            get
+            {
+                return _mmio_message;
+            }
+        }
+        public OB_ButtonState ButtonStateType
+        {
+            get
+            {
+                return _buttonstate_type;
+            }
+            set
+            {
+                _buttonstate_type = value;
+            }
+        }
+        public string LedIndiciatorFourChar
+        {
+            get
+            {
+                return _led_indicator_four_char;
+            }
+            set
+            {
+                _led_indicator_four_char = value;
+            }
+        }
+        public string ContainerVisibleID
+        {
+            get
+            {
+                return _buttonstate_container_visible_id;
+            }
+            set
+            {
+                _buttonstate_container_visible_id = value;
+            }
+        }
+        public string ButtonStateCatReply
+        {
+            get
+            {
+                return _buttonstate_cat_on_reply;
+            }
+            set
+            {
+                _buttonstate_cat_on_reply = value;
+            }
+        }
+        public bool[] CatMacroSend
+        {
+            get
+            {
+                return _cat_macro_send;
+            }
+        }
+        public bool OnState
+        {
+            get
+            {
+                return _on_state;
+            }
+            set
+            {
+                _on_state = value;
+            }
+        }
+        public string CatMacro
+        {
+            get { return _cat_macro; }
+            set { _cat_macro = value; }
+        }
+    }
+
     public static class OtherButtonIdHelpers
     {
-        public const int MAX_BITFIELD_GROUP = 11; // the last betfield group + 1 in CheckBoxData
+        public const int MAX_BITFIELD_GROUP = 12; // the last bitfield group + 1 in CheckBoxData
+        public const int MACRO_BUTTONS_PERGROUP = 31;
 
         private static Dictionary<OtherButtonId, int> _id_to_index_map = new Dictionary<OtherButtonId, int>();
         private static Dictionary<(int, int), int> _bit_group_bit_to_index_map = new Dictionary<(int, int), int>();
@@ -347,6 +605,8 @@ namespace Thetis
             (OtherButtonId.COMP_M1,        5, 4, "COMP-", "", "", "Decrease compression"),
             (OtherButtonId.VOX_P1,         5, 5, "VOX+", "", "", "Increase vox level"),
             (OtherButtonId.VOX_M1,         5, 6, "VOX-", "", "", "Decrease vox level"),
+            (OtherButtonId.LEVELER,        5, 7, "Leveler", "", "", "Leveler on/off"),
+            (OtherButtonId.PHASE_ROT,      5, 8, "PhaRot", "", "", "Phase rotator on/off"),
             (OtherButtonId.INFO_TEXT,     -1, -1, "AGC", "", "", ""),
             (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
             (OtherButtonId.AGC_FIXED,      6, 0, "FIX", "", "", "Fixed agc"),
@@ -400,7 +660,40 @@ namespace Thetis
             (OtherButtonId.CWX_F6,         10, 7, "F6", "", "", "Function key 6"),
             (OtherButtonId.CWX_F7,         10, 8, "F7", "", "", "Function key 7"),
             (OtherButtonId.CWX_F8,         10, 9, "F8", "", "", "Function key 8"),
-            (OtherButtonId.CWX_F9,         10, 10, "F9", "", "", "Function key 9")
+            (OtherButtonId.CWX_F9,         10, 10, "F9", "", "", "Function key 9"),
+            (OtherButtonId.INFO_TEXT,     -1, -1, "Macros", "", "", ""),
+            (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
+            (OtherButtonId._MACRO_0,       11, 0, "M1", "", "", "Macro 1"),
+            (OtherButtonId._MACRO_1,       11, 1, "M2", "", "", "Macro 2"),
+            (OtherButtonId._MACRO_2,       11, 2, "M3", "", "", "Macro 3"),
+            (OtherButtonId._MACRO_3,       11, 3, "M4", "", "", "Macro 4"),
+            (OtherButtonId._MACRO_4,       11, 4, "M5", "", "", "Macro 5"),
+            (OtherButtonId._MACRO_5,       11, 5, "M6", "", "", "Macro 6"),
+            (OtherButtonId._MACRO_6,       11, 6, "M7", "", "", "Macro 7"),
+            (OtherButtonId._MACRO_7,       11, 7, "M8", "", "", "Macro 8"),
+            (OtherButtonId._MACRO_8,       11, 8, "M9", "", "", "Macro 9"),
+            (OtherButtonId._MACRO_9,       11, 9, "M10", "", "", "Macro 10"),
+            (OtherButtonId._MACRO_10,      11, 10, "M11", "", "", "Macro 11"),
+            (OtherButtonId._MACRO_11,      11, 11, "M12", "", "", "Macro 12"),
+            (OtherButtonId._MACRO_12,      11, 12, "M13", "", "", "Macro 13"),
+            (OtherButtonId._MACRO_13,      11, 13, "M14", "", "", "Macro 14"),
+            (OtherButtonId._MACRO_14,      11, 14, "M15", "", "", "Macro 15"),
+            (OtherButtonId._MACRO_15,      11, 15, "M16", "", "", "Macro 16"),
+            (OtherButtonId._MACRO_16,      11, 16, "M17", "", "", "Macro 17"),
+            (OtherButtonId._MACRO_17,      11, 17, "M18", "", "", "Macro 18"),
+            (OtherButtonId._MACRO_18,      11, 18, "M19", "", "", "Macro 19"),
+            (OtherButtonId._MACRO_19,      11, 19, "M20", "", "", "Macro 20"),
+            (OtherButtonId._MACRO_20,      11, 20, "M21", "", "", "Macro 21"),
+            (OtherButtonId._MACRO_21,      11, 21, "M22", "", "", "Macro 22"),
+            (OtherButtonId._MACRO_22,      11, 22, "M23", "", "", "Macro 23"),
+            (OtherButtonId._MACRO_23,      11, 23, "M24", "", "", "Macro 24"),
+            (OtherButtonId._MACRO_24,      11, 24, "M25", "", "", "Macro 25"),
+            (OtherButtonId._MACRO_25,      11, 25, "M26", "", "", "Macro 26"),
+            (OtherButtonId._MACRO_26,      11, 26, "M27", "", "", "Macro 27"),
+            (OtherButtonId._MACRO_27,      11, 27, "M28", "", "", "Macro 28"),
+            (OtherButtonId._MACRO_28,      11, 28, "M29", "", "", "Macro 29"),
+            (OtherButtonId._MACRO_29,      11, 29, "M30", "", "", "Macro 30"),
+            (OtherButtonId._MACRO_30,      11, 30, "M31", "", "", "Macro 31")
         };
 
         static OtherButtonIdHelpers()
@@ -417,6 +710,8 @@ namespace Thetis
                 (int, int) key = (bit_group, bit_number);
                 if (!_bit_group_bit_to_index_map.ContainsKey(key)) _bit_group_bit_to_index_map[key] = i;
             }
+
+            //checkImplemented();
         }
 
         public static string OtherButtonIDToText(OtherButtonId id)
@@ -463,22 +758,75 @@ namespace Thetis
             if (_id_to_index_map.TryGetValue(id, out int idx)) return CheckBoxData[idx].tool_tip;
             return string.Empty;
         }
+        private static void checkImplemented()
+        {
+            List<OtherButtonId> all = new List<OtherButtonId>();
+
+            for(OtherButtonId n = OtherButtonId.POWER; n <= OtherButtonId.UNKNOWN; n++)
+            {
+                all.Add(n);
+            }
+
+            for (int n = 0; n < CheckBoxData.Length; n++)
+            {
+                (OtherButtonId id, int bit_group, int bit_number, string caption, string icon_on, string icon_off, string tool_tip) d = CheckBoxData[n];
+                if (all.Contains(d.id)) all.Remove(d.id);
+            }
+            
+            foreach(OtherButtonId id in all)
+            {
+                Debug.Print($"MISSED FROM OTHERBUTTONS = {id.ToString()}");
+            }
+        }
     }
 
     public partial class ucOtherButtonsOptionsGrid : UserControl
     {
-        private List<CheckBox> _check_boxes;
+        public class MacroButtonEventArgs : EventArgs
+        {
+            public OtherButtonId Id { get; }
+            public int BitGroup { get; }
+            public int BitNumber { get; }
+            public bool IsChecked { get; }
+            public ButtonTS Button { get; }
+            public CheckBoxTS CheckBox { get; }
+
+            public MacroButtonEventArgs(OtherButtonId id, int bitGroup, int bitNumber, ButtonTS button, CheckBoxTS checkBox, bool isChecked)
+            {
+                Id = id;
+                BitGroup = bitGroup;
+                BitNumber = bitNumber;
+                Button = button;
+                CheckBox = checkBox;
+                IsChecked = isChecked;
+            }
+        }
+
+        private List<CheckBoxTS> _check_boxes;
+        private List<ButtonTS> _buttons;
+
         private bool _init;
         public event EventHandler CheckboxChanged;
+        public event EventHandler<MacroButtonEventArgs> MacroSetupClicked;
 
-        private Dictionary<OtherButtonId, CheckBox> _checkbox_by_id;
-        private Dictionary<int, List<(int bit, CheckBox cb)>> _by_group;
+        private Dictionary<OtherButtonId, CheckBoxTS> _checkbox_by_id;
+        private Dictionary<int, List<(int bit, CheckBoxTS cb)>> _checkbox_by_group;
+
         private TableLayoutPanel _table;
 
         private ToolTip _tooltip;
 
+        private OtherButtonMacroSettings[] _macro_settings;
+
         public ucOtherButtonsOptionsGrid()
         {
+            _macro_settings = new OtherButtonMacroSettings[OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP + 1];
+            for (int n = 0; n < _macro_settings.Length; n++)
+            {
+                _macro_settings[n] = new OtherButtonMacroSettings();
+                _macro_settings[n].Number = n;
+            }
+
             _init = false;
             InitializeComponent();
 
@@ -494,9 +842,11 @@ namespace Thetis
             _tooltip.ReshowDelay = 100;
             _tooltip.ShowAlways = true;
 
-            _check_boxes = new List<CheckBox>();
-            _checkbox_by_id = new Dictionary<OtherButtonId, CheckBox>();
-            _by_group = new Dictionary<int, List<(int bit, CheckBox cb)>>();
+            _check_boxes = new List<CheckBoxTS>();
+            _buttons = new List<ButtonTS>();
+
+            _checkbox_by_id = new Dictionary<OtherButtonId, CheckBoxTS>();
+            _checkbox_by_group = new Dictionary<int, List<(int bit, CheckBoxTS cb)>>();
 
             initialise_checkboxes();
         }
@@ -507,21 +857,33 @@ namespace Thetis
 
             for (int i = 0; i < _check_boxes.Count; i++)
                 _check_boxes[i].CheckedChanged -= checkbox_checked_changed;
+            for (int i = 0; i < _buttons.Count; i++)
+                _buttons[i].Click -= button_clicked;
+
             _check_boxes.Clear();
+            _buttons.Clear();
             _checkbox_by_id.Clear();
-            _by_group.Clear();
+            _checkbox_by_group.Clear();
+
+            int btn_w = 24;
+            int pad_l = 0;
+            int pad_r = 2;
+            int btn_col_w = btn_w + pad_l + pad_r;
 
             if (_table == null)
             {
                 _table = new TableLayoutPanel();
                 _table.Name = "tbl_other_buttons";
-                _table.AutoSize = true;
-                _table.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+                _table.AutoSize = false;
                 _table.Dock = DockStyle.Top;
-                _table.ColumnCount = 2;
+                _table.ColumnCount = 4;
                 _table.GrowStyle = TableLayoutPanelGrowStyle.AddRows;
+                _table.ColumnStyles.Clear();
                 _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, btn_col_w));
                 _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, btn_col_w));
+                _table.Padding = new Padding(0, 0, pad_r, 0);
                 scrollableControl1.Controls.Add(_table);
             }
             else
@@ -529,6 +891,13 @@ namespace Thetis
                 _table.SuspendLayout();
                 _table.Controls.Clear();
                 _table.RowStyles.Clear();
+                _table.ColumnStyles.Clear();
+                _table.ColumnCount = 4;
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, btn_col_w));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50f));
+                _table.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, btn_col_w));
+                _table.Padding = new Padding(0, 0, pad_r, 0);
                 _table.RowCount = 0;
                 _table.ResumeLayout(false);
             }
@@ -538,6 +907,7 @@ namespace Thetis
             _table.SuspendLayout();
             bool was_visible = scrollableControl1.Visible;
             scrollableControl1.Visible = false;
+            _table.Width = scrollableControl1.ClientSize.Width;
 
             int row = 0;
             int col = 0;
@@ -561,7 +931,8 @@ namespace Thetis
                     lbl.Text = data[i].caption;
                     _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
                     _table.Controls.Add(lbl, 0, row);
-                    _table.SetColumnSpan(lbl, 2);
+                    _table.SetColumnSpan(lbl, 4);
+                    _table.RowCount = row + 1;
                     row++;
                     continue;
                 }
@@ -582,19 +953,47 @@ namespace Thetis
                     sep.BackColor = SystemColors.ControlDark;
                     _table.RowStyles.Add(new RowStyle(SizeType.AutoSize));
                     _table.Controls.Add(sep, 0, row);
-                    _table.SetColumnSpan(sep, 2);
+                    _table.SetColumnSpan(sep, 4);
+                    _table.RowCount = row + 1;
                     row++;
                     continue;
                 }
 
                 CheckBoxTS chk = new CheckBoxTS();
                 chk.Name = "chk_" + ((int)data[i].id).ToString();
-                chk.AutoSize = true;
+                chk.AutoSize = false;
+                chk.TextAlign = ContentAlignment.MiddleLeft;
+                chk.AutoEllipsis = true;
                 chk.Margin = new Padding(0, 0, 0, 0);
                 chk.Text = OtherButtonIdHelpers.OtherButtonIDToText(data[i].id);
                 chk.Tag = new ValueTuple<OtherButtonId, int, int>(data[i].id, data[i].bit_group, data[i].bit_number);
                 _tooltip.SetToolTip(chk, data[i].tooltip);
+                Size sz = chk.GetPreferredSize(Size.Empty);
+                int chk_h = sz.Height;
+                chk.MinimumSize = new Size(0, chk_h);
+                chk.Height = chk_h;
+                chk.Dock = DockStyle.Fill;
                 chk.CheckedChanged += checkbox_checked_changed;
+
+                bool is_macro = data[i].id >= OtherButtonId._MACRO_0 && data[i].id <= OtherButtonId._MACRO_30;
+
+                ButtonTS but = null;
+                if (is_macro)
+                {
+                    but = new ButtonTS();
+                    but.Name = "but_" + ((int)data[i].id).ToString();
+                    but.AutoSize = false;
+                    but.Size = new Size(btn_w, chk_h);
+                    but.MinimumSize = new Size(btn_w, chk_h);
+                    but.MaximumSize = new Size(btn_w, chk_h);
+                    but.TextAlign = ContentAlignment.MiddleCenter;
+                    but.Margin = new Padding(pad_l, 0, pad_r, 0);
+                    but.Anchor = AnchorStyles.Left;
+                    but.Text = "...";
+                    but.Tag = new ValueTuple<OtherButtonId, int, int>(data[i].id, data[i].bit_group, data[i].bit_number);
+                    _tooltip.SetToolTip(but, data[i].tooltip);
+                    but.Click += button_clicked;
+                }
 
                 if (col == 0)
                 {
@@ -602,17 +1001,25 @@ namespace Thetis
                     _table.RowCount = row + 1;
                 }
 
-                _table.Controls.Add(chk, col, row);
+                int base_col = col == 0 ? 0 : 2;
+                _table.Controls.Add(chk, base_col, row);
+                if (!is_macro) _table.SetColumnSpan(chk, 2);
                 _check_boxes.Add(chk);
                 _checkbox_by_id[data[i].id] = chk;
 
+                if (is_macro)
+                {
+                    _table.Controls.Add(but, base_col + 1, row);
+                    _buttons.Add(but);
+                }
+
                 if (data[i].bit_group >= 0 && data[i].bit_number >= 0)
                 {
-                    List<(int bit, CheckBox cb)> list;
-                    if (!_by_group.TryGetValue(data[i].bit_group, out list))
+                    List<(int bit, CheckBoxTS cb)> list;
+                    if (!_checkbox_by_group.TryGetValue(data[i].bit_group, out list))
                     {
-                        list = new List<(int bit, CheckBox cb)>();
-                        _by_group[data[i].bit_group] = list;
+                        list = new List<(int bit, CheckBoxTS cb)>();
+                        _checkbox_by_group[data[i].bit_group] = list;
                     }
                     list.Add((data[i].bit_number, chk));
                 }
@@ -625,6 +1032,8 @@ namespace Thetis
                 }
             }
 
+            _table.Height = _table.PreferredSize.Height;
+
             scrollableControl1.Visible = was_visible;
             _table.ResumeLayout(true);
             scrollableControl1.ResumeLayout(true);
@@ -632,18 +1041,27 @@ namespace Thetis
 
             _init = true;
         }
-
         private void checkbox_checked_changed(object sender, EventArgs e)
         {
             if (!_init) return;
             if (CheckboxChanged != null) CheckboxChanged(this, EventArgs.Empty);
         }
-
+        private void button_clicked(object sender, EventArgs e)
+        {
+            if (!_init) return;
+            ButtonTS btn = (ButtonTS)sender;
+            ValueTuple<OtherButtonId, int, int> meta = (ValueTuple<OtherButtonId, int, int>)btn.Tag;
+            CheckBoxTS cb;
+            _checkbox_by_id.TryGetValue(meta.Item1, out cb);
+            bool is_checked = cb != null && cb.Checked;
+            MacroButtonEventArgs args = new MacroButtonEventArgs(meta.Item1, meta.Item2, meta.Item3, btn, cb, is_checked);
+            if (MacroSetupClicked != null) MacroSetupClicked(this, args);
+        }
         public int GetBitfield(int bit_group)
         {
             int bitfield_value = 0;
-            List<(int bit, CheckBox cb)> list;
-            if (!_by_group.TryGetValue(bit_group, out list)) return 0;
+            List<(int bit, CheckBoxTS cb)> list;
+            if (!_checkbox_by_group.TryGetValue(bit_group, out list)) return 0;
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].cb.Checked) bitfield_value |= (1 << list[i].bit);
@@ -655,8 +1073,8 @@ namespace Thetis
         {
             bool old_init = _init;
             _init = false;
-            List<(int bit, CheckBox cb)> list;
-            if (_by_group.TryGetValue(bit_group, out list))
+            List<(int bit, CheckBoxTS cb)> list;
+            if (_checkbox_by_group.TryGetValue(bit_group, out list))
             {
                 for (int i = 0; i < list.Count; i++)
                 {
@@ -670,14 +1088,25 @@ namespace Thetis
         public int GetCheckedCount(int bit_group)
         {
             int count = 0;
-            List<(int bit, CheckBox cb)> list;
-            if (!_by_group.TryGetValue(bit_group, out list)) return 0;
+            List<(int bit, CheckBoxTS cb)> list;
+            if (!_checkbox_by_group.TryGetValue(bit_group, out list)) return 0;
             for (int i = 0; i < list.Count; i++)
             {
                 if (list[i].cb.Checked) count++;
             }
             return count;
         }
+
+        public OtherButtonMacroSettings GetMacroSettings(int macro)
+        {
+            if (macro < 0 || macro > _macro_settings.Length - 1) return null;
+            return _macro_settings[macro];
+        }
+
+        public void SetMacroSettings(int macro, OtherButtonMacroSettings settings)
+        {
+            if (macro < 0 || macro > _macro_settings.Length - 1) return;
+            _macro_settings[macro] = new OtherButtonMacroSettings(settings);
+        }
     }
 }
-

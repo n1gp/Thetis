@@ -70,6 +70,8 @@ namespace Thetis
     using System.Runtime.InteropServices;
     using System.Runtime.ExceptionServices;
     using System.Security.Cryptography;
+    using CatAtonic;
+
     public partial class Setup : Form
     {
         // for these callsigns always show cmasio tab, as a perk to the testers from discord
@@ -92,13 +94,14 @@ namespace Thetis
         private List<string> m_lstUpdatedControls;
         private List<string> m_lstUpdatedControlsClone;
         private bool m_bShown = false; // used by the selective restore system to know accurate window state
+
         #endregion
 
         #region Constructor and Destructor
 
         public Setup(Console c)
         {
-            InitializeComponent();
+            InitializeComponent();            
 
             _original_pnlP1_adcs_location = pnlP1_adcs.Location;
 
@@ -18782,6 +18785,8 @@ namespace Thetis
             if (chkPHROTEnable.Checked) run = 1;
             else run = 0;
             WDSP.SetTXAPHROTRun(WDSP.id(1, 0), run);
+
+            console.SetGeneralSetting(0, OtherButtonId.PHASE_ROT, chkPHROTEnable.Checked);
         }
 
         private void udPhRotFreq_ValueChanged(object sender, EventArgs e)
@@ -25146,6 +25151,27 @@ namespace Thetis
                 updateMeter2Controls(sId);
             }
         }
+        private string containerNameFromId(string id)
+        {
+            string notes = MeterManager.GetContainerNotes(id).Trim();
+            int newlineIndex = notes.IndexOf('\n');
+            if (newlineIndex >= 0)
+            {
+                notes = notes.Substring(0, newlineIndex);
+            }
+            if (notes.Length > 40)
+            {
+                notes = notes.Substring(0, 40);
+            }
+            if (string.IsNullOrEmpty(notes))
+            {
+                return "Container";
+            }
+            else
+            {
+                return notes;
+            }
+        }
         private void updateMeter2Controls(string sId = "")
         {
             bool bEnableAdd = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
@@ -25164,24 +25190,7 @@ namespace Thetis
                 cci.ID = kvp.Value.ID;
                 cci.ListIndex = i + 1;
 
-                string notes = MeterManager.GetContainerNotes(cci.ID).Trim();
-                int newlineIndex = notes.IndexOf('\n');
-                if (newlineIndex >= 0)
-                {
-                    notes = notes.Substring(0, newlineIndex);
-                }
-                if (notes.Length > 40)
-                {
-                    notes = notes.Substring(0, 40);
-                }
-                if (string.IsNullOrEmpty(notes))
-                {
-                    cci.Text = "Container";
-                }
-                else
-                {
-                    cci.Text = notes;
-                }
+                cci.Text = containerNameFromId(cci.ID);
 
                 comboContainerSelect.Items.Add(cci);
 
@@ -25733,13 +25742,18 @@ namespace Thetis
             {
                 if (mt == MeterType.OTHER_BUTTONS)
                 {
+                    if (_reset_otherbutton_layout) igs.SetSetting<short[]>("buttonbox_button_map", null);
+
                     int max_buttons = 0;
                     for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         igs.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), ucOtherButtonsOptionsGrid_buttons.GetBitfield(n));
                         max_buttons += ucOtherButtonsOptionsGrid_buttons.GetCheckedCount(n);
                     }
-                    if(_reset_otherbutton_layout) igs.SetSetting<short[]>("buttonbox_button_map", null);
+                    for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                    {
+                        igs.SetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), ucOtherButtonsOptionsGrid_buttons.GetMacroSettings(n));
+                    }
 
                     max_buttons = Math.Max(1, max_buttons);
                     if (nudBandButtons_columns.Value > max_buttons) nudBandButtons_columns.Value = max_buttons;
@@ -26017,6 +26031,7 @@ namespace Thetis
 
                 igs.SetSetting<bool>("led_notx_true", chkLed_notx_true.Checked);
                 igs.SetSetting<bool>("led_notx_false", chkLed_notx_false.Checked);
+                igs.SetSetting<bool>("led_process_when_hidden", chkLed_process_when_hidden.Checked);
             }
             else if (mt == MeterType.TEXT_OVERLAY)
             {
@@ -26356,6 +26371,10 @@ namespace Thetis
                     for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         ucOtherButtonsOptionsGrid_buttons.SetBitfield(n, igs.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
+                    }
+                    for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                    {
+                        ucOtherButtonsOptionsGrid_buttons.SetMacroSettings(n, igs.GetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), false, null, null, null));
                     }
                 }
                 else if (mt == MeterType.TUNESTEP_BUTTONS)
@@ -26745,6 +26764,7 @@ namespace Thetis
                 chkLed_notx_true.Checked = igs.GetSetting<bool>("led_notx_true", false, false, false, false);
                 chkLed_notx_false.Checked = igs.GetSetting<bool>("led_notx_false", false, false, false, false);
                 txtLedIndicator_4char.Text = igs.GetSetting<string>("led_4char", false, "", "", "");
+                chkLed_process_when_hidden.Checked = igs.GetSetting<bool>("led_process_when_hidden", false, false, false, false);
 
                 updateLedIndicatorPanelControls();
                 updateLedValidControls();
@@ -27514,6 +27534,10 @@ namespace Thetis
                     for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                     {
                         _itemGroupSettings.SetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), currentSettings.GetSetting<int>("buttonbox_other_buttons_bitfield_" + n.ToString(), true, 0, int.MaxValue, 0));
+                    }
+                    for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
+                    {
+                        _itemGroupSettings.SetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), currentSettings.GetSetting<OtherButtonMacroSettings>("buttonbox_other_buttons_macro_settings_" + n.ToString(), false, null, null, null));
                     }
                 }
                 else if(mt == MeterType.TUNESTEP_BUTTONS)
@@ -35584,6 +35608,44 @@ namespace Thetis
                 btnContainer_save.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
             }
         }
+
+        private void ucOtherButtonsOptionsGrid_buttons_MacroSetupClicked(object sender, ucOtherButtonsOptionsGrid.MacroButtonEventArgs e)
+        {
+            // get container names
+            Dictionary<string, string> containers = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, ucMeter> kvp in MeterManager.MeterContainers.OrderBy((KeyValuePair<string, ucMeter> kvp2) => kvp2.Value.Sequence))
+            {
+                containers.Add(kvp.Value.ID, containerNameFromId(kvp.Value.ID));
+            }
+
+            //get settings from grid buttons control
+            int macro = e.BitNumber;
+            OtherButtonMacroSettings original_settings = ucOtherButtonsOptionsGrid_buttons.GetMacroSettings(macro);
+            OtherButtonMacroSettings changed_settings = new OtherButtonMacroSettings(original_settings);
+
+            CATScriptInterpreter si = new CATScriptInterpreter(null);
+
+            frmMacroButtonConfig frmConfig = new frmMacroButtonConfig(si);
+            DialogResult dr = frmConfig.InitAndShow(original_settings, containers, ref changed_settings);
+            if (dr == DialogResult.OK) 
+            {
+                // something changed, update uc
+                ucOtherButtonsOptionsGrid_buttons.SetMacroSettings(macro, changed_settings);
+                updateMeterType();
+            }
+        }
+
+        private void chkLed_process_when_hidden_CheckedChanged(object sender, EventArgs e)
+        {
+            updateMeterType();
+        }
+
+        //public bool evaluator(string key)
+        //{
+        //    if (string.Equals(key, "STATE", StringComparison.OrdinalIgnoreCase)) return true;
+        //    if (string.Equals(key, "LED_xG2a", StringComparison.OrdinalIgnoreCase)) return false;
+        //    return false;
+        //}
     }
 
     #region FormLoactionHelper
