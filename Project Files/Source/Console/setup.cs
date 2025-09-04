@@ -26221,7 +26221,7 @@ namespace Thetis
             }
 
             Dictionary<string, string> fcm = null;
-            m.ApplySettingsForMeterGroup(mt, igs, null, mtci.Order);
+            m.ApplySettingsForMeterGroup(mt, igs, null, mtci.Order, true);
 
             updateLedValidControls();
             return igs;

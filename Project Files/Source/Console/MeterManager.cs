@@ -8776,6 +8776,17 @@ namespace Thetis
                     bool state = !GetOn(1, index);
                     SetOn(1, index, state);
                     _macro_settings[macro].OnState = state;
+
+                    string sText = GetText(1, index);
+                    if (state && !string.IsNullOrEmpty(_macro_settings[macro].OnText))
+                    {
+                        sText = _macro_settings[macro].OnText;
+                    }
+                    else if (!state && !string.IsNullOrEmpty(_macro_settings[macro].OffText))
+                    {
+                        sText = _macro_settings[macro].OffText;
+                    }
+                    SetText(1, index, sText);
                 }
 
                 if (!string.IsNullOrEmpty(settings.CatMacro)) // to thetis
@@ -10860,12 +10871,21 @@ namespace Thetis
             public void SetText(int bank, int button, string text)
             {
                 if (button < 0 || button >= _number_of_buttons) return;
-                _text_changed[bank][button] = text != _text[bank][button]; // used in caching when displaying text
+                string old = _text[bank][button];
                 _text[bank][button] = text;
+                _text_changed[bank][button] = text != old; // used in caching when displaying text
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetText(int bank, int button)
             {
+                if (button < 0 || button >= _number_of_buttons) return "";
+                return _text[bank][button];
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public string GetTextUpdateChanged(int bank, int button)
+            {
+                // this version of getText updates the changed flag, primarily used by renderer to know
+                // when to reprocess text size in plotText
                 if (button < 0 || button >= _number_of_buttons) return "";
                 _text_changed[bank][button] = false;
                 return _text[bank][button];
@@ -17800,7 +17820,7 @@ namespace Thetis
 
                     if (ReadingsCustom(_owningMeter.RX).IsCustomString(key.ToLower()))
                     {
-                        // is a custom string like time_utc
+                        // is a custom string like time_utc, which are lowercase
                         key = key.ToLower();
                     }
                     else if (Enum.TryParse(key, true, out Reading r))
@@ -17810,8 +17830,7 @@ namespace Thetis
                     }
                     else if (_cat_variables.TryGetValue("%" + key + "%", out string v))
                     {
-                        // if variable in cat vars, then add it
-                        key = key.ToLower();
+                        // if variable in cat vars, then use key directly, case sensitive
                     }
                     else
                     {
@@ -23405,7 +23424,7 @@ namespace Thetis
                     }
                 }
             }
-            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, List<string> webimages = null, int order = -1)
+            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, List<string> webimages = null, int order = -1, bool from_setup = false)
             {
                 lock (_meterItemsLock)
                 {
@@ -23852,7 +23871,10 @@ namespace Thetis
                                             if (igs.UpdateInterval < 50) igs.UpdateInterval = 100; // when it hasnt been set
                                             led.UpdateInterval = igs.UpdateInterval;
 
-                                            led.ConditionLoad = igs.Text1;
+                                            if(from_setup)
+                                                led.Condition = igs.Text1;
+                                            else
+                                                led.ConditionLoad = igs.Text1;
 
                                             led.Padding = igs.SpacerPadding;
 
@@ -34719,6 +34741,7 @@ namespace Thetis
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void drawRoundedRectangle(RoundedRectangle rr, SharpDX.Direct2D1.Brush b, float stroke, bool centred = false)
             {
+                if (stroke <= 0) return;
                 if(rr.RadiusX > 0 || rr.RadiusY > 0)
                     _renderTarget.DrawRoundedRectangle(rr, b, stroke);
                 else
@@ -35083,7 +35106,7 @@ namespace Thetis
 
                         //text + icon
                         bool ignore_cache = bb.GetTextChanged(1, button);
-                        string text = bb.GetText(1, button);
+                        string text = bb.GetTextUpdateChanged(1, button);
                         if (!string.IsNullOrEmpty(text))
                         {
                             rectBB.Top += indicator_adjust.Top;

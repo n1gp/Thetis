@@ -15898,7 +15898,7 @@ namespace Thetis
         private string safeCat(string msg)
         {
             string sRet;
-            if (m_objTCPIPCatParser == null) return "";
+            if (m_objTCPIPCatParser == null) m_objTCPIPCatParser = new CATParser(this);
 
             lock (m_objCatParseLocker)
             {
