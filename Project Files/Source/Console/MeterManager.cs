@@ -10464,6 +10464,7 @@ namespace Thetis
             private System.Drawing.Color[][] _font_colour;
 
             private string[][] _text;
+            private bool[][] _text_changed;
 
             private bool[][] _use_icon;
             private string[][] _icon_on;
@@ -10528,6 +10529,7 @@ namespace Thetis
                 _font_colour = new System.Drawing.Color[2][];
 
                 _text = new string[2][];
+                _text_changed = new bool[2][];
 
                 _use_icon = new bool[2][];
                 _icon_on = new string[2][];
@@ -10561,6 +10563,7 @@ namespace Thetis
                     _font_colour[n] = new System.Drawing.Color[MAX_BUTTONS];
 
                     _text[n] = new string[MAX_BUTTONS];
+                    _text_changed[n] = new bool[MAX_BUTTONS];
 
                     _use_icon[n] = new bool[MAX_BUTTONS];
                     _icon_on[n] = new string[MAX_BUTTONS];
@@ -10601,6 +10604,7 @@ namespace Thetis
                         _font_colour[n][b] = System.Drawing.Color.White;
 
                         _text[n][b] = "";
+                        _text_changed[n][b] = true;
 
                         _use_icon[n][b] = false;
                         _icon_on[n][b] = "";
@@ -10856,13 +10860,21 @@ namespace Thetis
             public void SetText(int bank, int button, string text)
             {
                 if (button < 0 || button >= _number_of_buttons) return;
+                _text_changed[bank][button] = text != _text[bank][button]; // used in caching when displaying text
                 _text[bank][button] = text;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetText(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return "";
+                _text_changed[bank][button] = false;
                 return _text[bank][button];
+            }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool GetTextChanged(int bank, int button)
+            {
+                if (button < 0 || button >= _number_of_buttons) return true;
+                return _text_changed[bank][button];
             }
             public void SetIconOn(int bank, int button, string text)
             {
@@ -29163,7 +29175,7 @@ namespace Thetis
                 return nRedrawDelay;
             }
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            private System.Drawing.SizeF measureString(string sText, string sFontFamily, FontStyle style, float emSize, bool ignore_caching = false)
+            private SizeF measureString(string sText, string sFontFamily, FontStyle style, float emSize, bool ignore_caching = false)
             {
                 if (!_bDXSetup || string.IsNullOrEmpty(sText)) return SizeF.Empty;
                 float roundedSize = (float)Math.Round(emSize, 2);
@@ -29181,8 +29193,6 @@ namespace Thetis
                     ? SharpDX.DirectWrite.FontStyle.Italic
                     : SharpDX.DirectWrite.FontStyle.Normal;
 
-                //SharpDX.DirectWrite.TextFormat tf = new SharpDX.DirectWrite.TextFormat(_fontFactory, sFontFamily, fontWeight, fontStyle, roundedSize);
-                //tf.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
                 (string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle) fmtKey = (sFontFamily, roundedSize, fontWeight, fontStyle);
                 SharpDX.DirectWrite.TextFormat tf;
                 if (!_format_cache.TryGetValue(fmtKey, out tf))
@@ -29207,32 +29217,10 @@ namespace Thetis
                 float width = layout.Metrics.Width;
                 float height = layout.Metrics.Height;
                 Utilities.Dispose(ref layout);
-                //Utilities.Dispose(ref tf);
 
                 sizeValue = new SizeF(
                     width * _pixels_per_point_width,
                     height * _pixels_per_point_height);
-
-                //if (ignore_caching)
-                //{
-                //    if (_stringMeasure.ContainsKey(key)) 
-                //        _stringMeasure[key] = sizeValue;
-                //    else
-                //    {
-                //        _stringMeasure.Add(key, sizeValue);
-                //        _stringMeasureKeys.Enqueue(key);
-                //    }
-                //}
-                //else
-                //{
-                //    _stringMeasure.Add(key, sizeValue);
-                //    _stringMeasureKeys.Enqueue(key);
-                //}
-                //if (_stringMeasure.Count > 2000)
-                //{
-                //    (string, float, FontStyle, string) oldKey = _stringMeasureKeys.Dequeue();
-                //    _stringMeasure.Remove(oldKey);
-                //}
 
                 if (!ignore_caching)
                 {
@@ -31994,11 +31982,11 @@ namespace Thetis
 
                 //mnf/mnf+ button hover
                 // the + "\u200B" is for a zero-width space to preserve layout, otherwise direct write trims
-                SizeF zero = measureString("0", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, true);
-                SizeF mnf = measureString(" MNF " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, true);
-                SizeF mnf_plus = measureString(" +MNF " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, true);
-                SizeF snap = measureString(" SNAP " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, true);
-                SizeF zoomsize = measureString(" FIT " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, true);
+                SizeF zero = measureString("0", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, false);
+                SizeF mnf = measureString(" MNF " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, false);
+                SizeF mnf_plus = measureString(" +MNF " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, false);
+                SizeF snap = measureString(" SNAP " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, false);
+                SizeF zoomsize = measureString(" FIT " + "\u200B", "Trebuchet MS", FontStyle.Regular, fontSizeEmScaled, false);
 
                 System.Drawing.RectangleF mnf_rect = System.Drawing.RectangleF.Empty;
                 System.Drawing.RectangleF mnf_plus_rect = System.Drawing.RectangleF.Empty;
@@ -32303,7 +32291,7 @@ namespace Thetis
                 }
 
                 // centre text
-                plotText("0", centre, text_y + (tsl.Height / 2f), rect.Width, font_size_scaled, extent_text_colour, 255, "Trebuchet MS", FontStyle.Regular, false, true, 0, false, 0, 0, true, text_overlay_colour);
+                plotText("0", centre, text_y + (tsl.Height / 2f), rect.Width, font_size_scaled, extent_text_colour, 255, "Trebuchet MS", FontStyle.Regular, false, true, 0, false, 0, 0, false, text_overlay_colour);
 
                 //mnf and +mnf buttons
                 bool sel = filter.LowSelected || filter.HighSelected || filter.TopSelected || filter.NotchSelected;
@@ -34013,52 +34001,122 @@ namespace Thetis
                 kHz = vfo.Substring(index + 1, 3);
                 hz = vfo.Substring(index + 4, 3);
             }
+
+            //v3
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private (float, float) plotText(string sText, float x, float y, float containerWidth, float fTextSize, System.Drawing.Color c, int nFade, string sFontFamily, FontStyle style, bool bAlignRight = false, bool bAlignCentre = false, float fitSizeWidth = 0, bool ignoreCache = false, float fitSizeHeight = 0, float rotateDeg = 0, bool fillBackground = false, object backColour = null, bool only_shrink = false)
             {
                 if (string.IsNullOrEmpty(sText)) return (0f, 0f);
+                if (fTextSize <= 0f || containerWidth <= 0f) return (0f, 0f);
 
-                float fontSizeEm = (fTextSize / 16f) * (containerWidth / 52f);
+                float em_scale = containerWidth / 52f / 16f;
+                float fontSizeEm = fTextSize * em_scale;
+                if (fontSizeEm <= 0f) return (0f, 0f);
+
                 SizeF sz = measureString(sText, sFontFamily, style, fontSizeEm, ignoreCache);
 
                 float ratio = 1f;
                 if (fitSizeWidth > 0f && fitSizeHeight > 0f)
-                    ratio = (float)Math.Min(fitSizeWidth / sz.Width, fitSizeHeight / sz.Height);
+                {
+                    float rw = fitSizeWidth / sz.Width;
+                    float rh = fitSizeHeight / sz.Height;
+                    ratio = rw < rh ? rw : rh;
+                }
                 else if (fitSizeWidth > 0f)
+                {
                     ratio = fitSizeWidth / sz.Width;
+                }
                 else if (fitSizeHeight > 0f)
+                {
                     ratio = fitSizeHeight / sz.Height;
+                }
 
-                if ((only_shrink && ratio < 1f) || (!only_shrink && ratio != 1f))
+                bool apply_scale = ratio < 1f ? only_shrink : (!only_shrink && ratio != 1f);
+                if (apply_scale)
                 {
                     fTextSize *= ratio;
-                    fontSizeEm = (fTextSize / 16f) * (containerWidth / 52f);
+                    fontSizeEm = fTextSize * em_scale;
+                    if (fontSizeEm <= 0f) return (0f, 0f);
                     sz = measureString(sText, sFontFamily, style, fontSizeEm, ignoreCache);
                 }
 
-                float left = bAlignRight ? x - sz.Width : bAlignCentre ? x - sz.Width * 0.5f : x;
+                float left = bAlignRight ? x - sz.Width : (bAlignCentre ? x - sz.Width * 0.5f : x);
                 float top = bAlignCentre ? y - sz.Height * 0.5f : y;
+
+                if (fontSizeEm <= 0f || sz.Width <= 0f || sz.Height <= 0f) return (0f, 0f);
+
                 SharpDX.RectangleF rect = new SharpDX.RectangleF(left, top, sz.Width, sz.Height);
 
-                if (fontSizeEm <= 0 || rect.Width <= 0 || rect.Height <= 0) return (0f, 0f);
-
-                Matrix3x2 oldTransform = _renderTarget.Transform;
-                
                 if (rotateDeg != 0f)
                 {
-                    const float DEG2RAD = SharpDX.MathUtil.Pi / 180f;
-                    float rad = rotateDeg * DEG2RAD;
-                    Vector2 center = new Vector2(rect.Left + rect.Width * 0.5f, rect.Top + rect.Height * 0.5f);
+                    SharpDX.Matrix3x2 oldTransform = _renderTarget.Transform;
+                    float rad = rotateDeg * 0.017453292519943295f;
+                    SharpDX.Vector2 center = new Vector2(rect.Left + rect.Width * 0.5f, rect.Top + rect.Height * 0.5f);
                     _renderTarget.Transform = oldTransform * Matrix3x2.Rotation(rad, center);
+
+                    if (fillBackground) _renderTarget.FillRectangle(rect, getDXBrushForColour((System.Drawing.Color)backColour, nFade));
+                    _renderTarget.DrawText(sText, getDXTextFormatForFont(sFontFamily, fontSizeEm, style), rect, getDXBrushForColour(c, nFade));
+
+                    _renderTarget.Transform = oldTransform;
                 }
-
-                if (fillBackground) _renderTarget.FillRectangle(rect, getDXBrushForColour((System.Drawing.Color)backColour, nFade));
-
-                _renderTarget.DrawText(sText, getDXTextFormatForFont(sFontFamily, fontSizeEm, style), rect, getDXBrushForColour(c, nFade));
-
-                if (rotateDeg != 0f) _renderTarget.Transform = oldTransform;
+                else
+                {
+                    if (fillBackground) _renderTarget.FillRectangle(rect, getDXBrushForColour((System.Drawing.Color)backColour, nFade));
+                    _renderTarget.DrawText(sText, getDXTextFormatForFont(sFontFamily, fontSizeEm, style), rect, getDXBrushForColour(c, nFade));
+                }
 
                 return (sz.Width, sz.Height);
             }
+
+            //v2
+            //private (float, float) plotText(string sText, float x, float y, float containerWidth, float fTextSize, System.Drawing.Color c, int nFade, string sFontFamily, FontStyle style, bool bAlignRight = false, bool bAlignCentre = false, float fitSizeWidth = 0, bool ignoreCache = false, float fitSizeHeight = 0, float rotateDeg = 0, bool fillBackground = false, object backColour = null, bool only_shrink = false)
+            //{
+            //    if (string.IsNullOrEmpty(sText)) return (0f, 0f);
+
+            //    float fontSizeEm = (fTextSize / 16f) * (containerWidth / 52f);
+            //    SizeF sz = measureString(sText, sFontFamily, style, fontSizeEm, ignoreCache);
+
+            //    float ratio = 1f;
+            //    if (fitSizeWidth > 0f && fitSizeHeight > 0f)
+            //        ratio = (float)Math.Min(fitSizeWidth / sz.Width, fitSizeHeight / sz.Height);
+            //    else if (fitSizeWidth > 0f)
+            //        ratio = fitSizeWidth / sz.Width;
+            //    else if (fitSizeHeight > 0f)
+            //        ratio = fitSizeHeight / sz.Height;
+
+            //    if ((only_shrink && ratio < 1f) || (!only_shrink && ratio != 1f))
+            //    {
+            //        fTextSize *= ratio;
+            //        fontSizeEm = (fTextSize / 16f) * (containerWidth / 52f);
+            //        sz = measureString(sText, sFontFamily, style, fontSizeEm, ignoreCache);
+            //    }
+
+            //    float left = bAlignRight ? x - sz.Width : bAlignCentre ? x - sz.Width * 0.5f : x;
+            //    float top = bAlignCentre ? y - sz.Height * 0.5f : y;
+            //    SharpDX.RectangleF rect = new SharpDX.RectangleF(left, top, sz.Width, sz.Height);
+
+            //    if (fontSizeEm <= 0 || rect.Width <= 0 || rect.Height <= 0) return (0f, 0f);
+
+            //    Matrix3x2 oldTransform = _renderTarget.Transform;
+
+            //    if (rotateDeg != 0f)
+            //    {
+            //        const float DEG2RAD = SharpDX.MathUtil.Pi / 180f;
+            //        float rad = rotateDeg * DEG2RAD;
+            //        Vector2 center = new Vector2(rect.Left + rect.Width * 0.5f, rect.Top + rect.Height * 0.5f);
+            //        _renderTarget.Transform = oldTransform * Matrix3x2.Rotation(rad, center);
+            //    }
+
+            //    if (fillBackground) _renderTarget.FillRectangle(rect, getDXBrushForColour((System.Drawing.Color)backColour, nFade));
+
+            //    _renderTarget.DrawText(sText, getDXTextFormatForFont(sFontFamily, fontSizeEm, style), rect, getDXBrushForColour(c, nFade));
+
+            //    if (rotateDeg != 0f) _renderTarget.Transform = oldTransform;
+
+            //    return (sz.Width, sz.Height);
+            //}
+
+            //v1
             //private (float, float) plotText(string sText, float x, float y, float containerWidth, float fTextSize, System.Drawing.Color c, int nFade, string sFontFamily, FontStyle style, bool bAlignRight = false, bool bAlignCentre = false, float fit_size_width = 0, bool ignore_cache = false, float fit_size_height = 0, float rotate_deg = 0, bool fill_background = false, object back_colour = null)
             //{
             //    if (string.IsNullOrEmpty(sText)) return (0, 0);
@@ -35024,6 +35082,7 @@ namespace Thetis
                         }
 
                         //text + icon
+                        bool ignore_cache = bb.GetTextChanged(1, button);
                         string text = bb.GetText(1, button);
                         if (!string.IsNullOrEmpty(text))
                         {
@@ -35089,7 +35148,7 @@ namespace Thetis
 
                                     plotText(text, cx + (bb.FontShiftX * wh / (float)(buttons_per_row * 2f)), cy + (bb.FontShiftY * wh / (float)(buttons_per_row * 2f)),
                                         rect.Width, font_size, text_icon_is_indicator ? text_icon_indicator_colour : text_colour, 255, bb.GetFontFamily(1, button),
-                                        bb.GetFontStyle(1, button), false, true, text_box_width, true, text_box_height);
+                                        bb.GetFontStyle(1, button), false, true, text_box_width, ignore_cache, text_box_height);
                                 }
                             }
                         }
