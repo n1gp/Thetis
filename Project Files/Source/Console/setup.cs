@@ -7481,6 +7481,7 @@ namespace Thetis
 
         private void comboAudioBuffer3_SelectedIndexChanged(object sender, System.EventArgs e)
         {
+            if (initializing) return;
             if (comboAudioBuffer3.SelectedIndex < 0) return;
 
             int old_size = console.BlockSize3;
@@ -35530,9 +35531,11 @@ namespace Thetis
                         string txt = txt = File.ReadAllText(ofd.FileName, Encoding.UTF8);
 
                         List<string> webimages = new List<string>();
+                        MeterScriptEngine.BeginBatch();
                         ucMeter ucm = MeterManager.ContainerFromString(txt, webimages);
+                        MeterScriptEngine.EndBatch();
 
-                        if(ucm == null)
+                        if (ucm == null)
                         {
                             MessageBox.Show("This doesnt seem to be a valid container file.",                                
                                 "Container file not recognised",
@@ -35599,7 +35602,9 @@ namespace Thetis
             {
                 string data64 = MeterManager.ContainerToString(cci.ID);
 
+                MeterScriptEngine.BeginBatch();
                 ucMeter ucm = MeterManager.ContainerFromString(data64);
+                MeterScriptEngine.EndBatch();
                 MeterManager.RunRendererDisplay(ucm.ID);
                 MeterManager.FinishSetupAndDisplay(ucm.ID);
 
@@ -35640,12 +35645,18 @@ namespace Thetis
             updateMeterType();
         }
 
-        //public bool evaluator(string key)
-        //{
-        //    if (string.Equals(key, "STATE", StringComparison.OrdinalIgnoreCase)) return true;
-        //    if (string.Equals(key, "LED_xG2a", StringComparison.OrdinalIgnoreCase)) return false;
-        //    return false;
-        //}
+        private void btnRecoverContainer_Click(object sender, EventArgs e)
+        {
+            if (chkLockContainer.Checked) return;
+            clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
+
+            if (cci != null)
+            {
+                MeterManager.RecoverContainer(cci.ID);
+                chkContainerShowRX.Checked = true;
+                chkContainerShowTX.Checked = true;
+            }
+        }
     }
 
     #region FormLoactionHelper

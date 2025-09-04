@@ -70,7 +70,7 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using System.Linq.Expressions;
+using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace Thetis
 {
@@ -2591,6 +2591,14 @@ namespace Thetis
                 bOldState = uc.MeterEnabled;
                 uc.MeterEnabled = enabled;
 
+                if (undo_hidden_by_macro)
+                {
+                    uc.HiddenByMacro = false;
+                    if (_meters != null && _meters.ContainsKey(sId))
+                    {
+                        _meters[sId].HiddenByMacro = false;
+                    }
+                }
                 updateHiddenMacroInfo(uc);
 
                 if (uc.HiddenByMacro)
@@ -5993,6 +6001,25 @@ namespace Thetis
                 }
             }
         }
+        public static void RecoverContainer(string sId)
+        {
+            lock (_metersLock)
+            {
+                if (!_lstUCMeters.ContainsKey(sId)) return;
+
+                ucMeter uc = _lstUCMeters[sId];
+
+                uc.Floating = false;
+                uc.MeterEnabled = false; // set to falso so that enableContainer will show it
+                enableContainer(sId, true, true);
+                if(uc.Parent != null)
+                {
+                    Size ps = uc.Parent.Size;
+                    uc.Location = new System.Drawing.Point((uc.Parent.ClientRectangle.Width / 2) - (uc.Width / 2), (uc.Parent.ClientRectangle.Height / 2) - (uc.Height / 2));
+
+                }
+            }
+        }
         public static void RemoveMeterContainer(string sId)
         {
             lock (_metersLock)
@@ -6169,6 +6196,22 @@ namespace Thetis
 
             private bool _udpate_always;
 
+            internal struct ButtonPadding
+            {
+                public float left;
+                public float right;
+                public bool left_edge;
+                public bool right_edge;
+
+                public ButtonPadding(float left = 0, float right = 0, bool left_edge = true, bool right_edge = true)
+                {
+                    this.left = left;
+                    this.right = right;
+                    this.left_edge = left_edge;
+                    this.right_edge = right_edge;
+                }
+            }
+
             public clsMeterItem(clsMeter owningMeter = null)
             {
                 // constructor
@@ -6270,22 +6313,6 @@ namespace Thetis
                 _scales_maxY = _scales_calibValues.Max(p => p.Y);
             }
 
-            //public Guid GetMMIOGuid(int index)
-            //{
-            //    return _mmio_guid[index];
-            //}
-            //public void SetMMIOGuid(int index, Guid g)
-            //{
-            //    _mmio_guid[index] = g;
-            //}
-            //public string GetMMIOVariable(int index)
-            //{
-            //    return _mmio_variable[index];
-            //}
-            //public void SetMMIOVariable(int index, string variable)
-            //{
-            //    _mmio_variable[index] = variable;
-            //}
             public bool Visible
             {
                 get { return _visible; }
@@ -7699,6 +7726,9 @@ namespace Thetis
 
             private short[] _map;
             private readonly object _map_lock = new object();
+            private short[] _map_copy;
+            private readonly object _map_copy_lock = new object();
+            private bool _map_changed;
 
             private OtherButtonMacroSettings[] _macro_settings;
             private readonly object _macro_settings_lock = new object();
@@ -7726,10 +7756,13 @@ namespace Thetis
                 }
 
                 _map = new short[base.Buttons];
-                for(short n=0; n < _map.Length; n++)
+                _map_copy = new short[base.Buttons];
+                for (short n=0; n < _map.Length; n++)
                 {
                     _map[n] = n;
+                    _map_copy[n] = n;
                 }
+                _map_changed = false;
 
                 _macro_settings = new OtherButtonMacroSettings[OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP];
                 for (int n = 0; n < OtherButtonIdHelpers.MACRO_BUTTONS_PERGROUP; n++)
@@ -8167,7 +8200,7 @@ namespace Thetis
                 index = bit_group * 32 + bit;
                 return true;
             }
-            public override short[] ButtonMap
+            public short[] ButtonMap
             {
                 get
                 {
@@ -8193,8 +8226,31 @@ namespace Thetis
                             int len = Math.Min(value.Length, _map.Length);
                             Array.Copy(value, _map, len);
                         }
+                        _map_changed = true;
                     }
                     setupButtons();
+                }
+            }
+            public short[] MapCopy
+            {
+                get
+                {
+                    lock (_map_lock)
+                    {
+                        if (_map_changed)
+                        {
+                            lock (_map_copy)
+                            {
+                                _map_copy = new short[_map.Length];
+                                Array.Copy(_map, _map_copy, _map.Length);
+                            }
+                            _map_changed = false;
+                        }
+                    }
+                    lock (_map_copy)
+                    {
+                        return _map_copy;
+                    }
                 }
             }
             private void setupButtons(bool init = false)
@@ -8580,7 +8636,7 @@ namespace Thetis
                                     _map[_last_draged_to] = moving;
                                 }
                             }
-
+                            _map_changed = true;
                             //Debug.Print($"{_dragging_index} to {_last_draged_to}");
                         }
                         setupButtons();
@@ -10594,6 +10650,11 @@ namespace Thetis
                 get { return _button_index; }
                 set { _button_index = value; }
             }
+            public virtual int GapHighlight
+            {
+                get { return -1; }
+                set { }
+            }
             public int Buttons
             {
                 get { return _number_of_buttons; }
@@ -10612,11 +10673,6 @@ namespace Thetis
             public virtual void SetVisibleBits(int bit_group, int bit_field) { }
             public virtual void SetMacroSettings(int macro, OtherButtonMacroSettings settings) { }
             public virtual OtherButtonMacroSettings GetMacroSettings(int macro) { return null; }
-            public virtual short[] ButtonMap
-            {
-                get { return null; }
-                set { }
-            }
             public virtual int Columns
             {
                 get { return _columns; }
@@ -10647,6 +10703,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _fill_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetFillColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10657,6 +10714,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _hover_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetHoverColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10667,6 +10725,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _click_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetClickColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10677,16 +10736,19 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _border_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetBorderColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
                 return _border_colour[bank][button];
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void SetUseOffColour(int bank, int button, bool use)
             {
                 if (button < 0 || button >= _number_of_buttons) return;
                 _use_off_colour[bank][button] = use;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool GetUseOffColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
@@ -10697,6 +10759,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _use_indicator[bank][button] = use;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool GetUseIndicator(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
@@ -10707,6 +10770,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _on[bank][button] = on;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool GetOn(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
@@ -10717,6 +10781,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _indicator_width[bank][button] = width;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public float GetIndicatorWidth(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return 0;
@@ -10727,6 +10792,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _on_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetOnColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10737,6 +10803,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _off_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetOffColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10747,6 +10814,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _fontFamily[bank][button] = font_family;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetFontFamily(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return "";
@@ -10757,6 +10825,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _fontStyle[bank][button] = font_style;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public FontStyle GetFontStyle(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return FontStyle.Regular;
@@ -10767,6 +10836,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _fontSize[bank][button] = size;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public float GetFontSize(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return 0;
@@ -10777,6 +10847,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _font_colour[bank][button] = colour;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public System.Drawing.Color GetFontColour(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return System.Drawing.Color.Empty;
@@ -10787,6 +10858,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _text[bank][button] = text;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetText(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return "";
@@ -10797,6 +10869,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _icon_on[bank][button] = text;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetIconOn(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return "";
@@ -10807,6 +10880,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _icon_off[bank][button] = text;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public string GetIconOff(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return "";
@@ -10817,6 +10891,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _use_icon[bank][button] = icon;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool GetUseIcon(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
@@ -10848,6 +10923,7 @@ namespace Thetis
             {
                 get { return _total_buttons_visible; }
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool GetVisible(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return false;
@@ -10858,6 +10934,7 @@ namespace Thetis
                 if (button < 0 || button >= _number_of_buttons) return;
                 _indicator_type[bank][button] = type;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public IndicatorType GetIndicatorType(int bank, int button)
             {
                 if (button < 0 || button >= _number_of_buttons) return IndicatorType.RING;
@@ -17750,6 +17827,17 @@ namespace Thetis
                 else
                     _timer.Change(_delay_milliseconds, Timeout.Infinite);
             }
+            public string ConditionLoad
+            {
+                get { return ""; }
+                set
+                {
+                    // do it now
+                    if (value == _condition) return;
+                    _pending_condition = value;
+                    onTimerElapsedCondition();
+                }               
+            }
             public string Condition
             {
                 get { return _pending_condition; }
@@ -21974,6 +22062,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsBandButtonBox bb = new clsBandButtonBox(this);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -21984,6 +22073,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22008,6 +22098,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsDiscordButtonBox bb = new clsDiscordButtonBox(this);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22018,6 +22109,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22042,6 +22134,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsModeButtonBox bb = new clsModeButtonBox(this);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22052,6 +22145,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22076,6 +22170,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsFilterButtonBox bb = new clsFilterButtonBox(this);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22086,6 +22181,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22139,6 +22235,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsAntennaButtonBox bb = new clsAntennaButtonBox(this, ig);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22149,6 +22246,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22173,6 +22271,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsTunestepButtons bb = new clsTunestepButtons(this, ig);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22183,6 +22282,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true;
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -22207,6 +22307,7 @@ namespace Thetis
                 ig.ParentID = ID;
 
                 clsOtherButtons bb = new clsOtherButtons(this, ig);
+                bb.RebuildButtons = false;
                 bb.ParentID = ig.ID;
 
                 bb.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
@@ -22217,6 +22318,7 @@ namespace Thetis
                 bb.Margin = 0.005f;
                 bb.Radius = 0.01f;
                 bb.HeightRatio = 0.5f;
+                bb.RebuildButtons = true; // cause it to rebuild, instead of at every stage
                 bb.Border = 0.005f;
                 addMeterItem(bb);
 
@@ -23467,7 +23569,7 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                bb.ButtonMap = igs.GetSetting<short[]>("buttonbox_button_map", false, null, null, null);
+                                                ((clsOtherButtons)bb).ButtonMap = igs.GetSetting<short[]>("buttonbox_button_map", false, null, null, null);
 
                                                 for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
@@ -23738,7 +23840,7 @@ namespace Thetis
                                             if (igs.UpdateInterval < 50) igs.UpdateInterval = 100; // when it hasnt been set
                                             led.UpdateInterval = igs.UpdateInterval;
 
-                                            led.Condition = igs.Text1;
+                                            led.ConditionLoad = igs.Text1;
 
                                             led.Padding = igs.SpacerPadding;
 
@@ -24777,7 +24879,7 @@ namespace Thetis
 
                                             if (mt == MeterType.OTHER_BUTTONS)
                                             {
-                                                igs.SetSetting<short[]>("buttonbox_button_map", bb.ButtonMap);
+                                                igs.SetSetting<short[]>("buttonbox_button_map", ((clsOtherButtons)bb).ButtonMap);
 
                                                 for (int n = 0; n < OtherButtonIdHelpers.MAX_BITFIELD_GROUP; n++)
                                                 {
@@ -27482,6 +27584,9 @@ namespace Thetis
             private SharpDX.DirectWrite.Factory _fontFactory;
             private readonly Dictionary<(string, float, FontStyle, string), SizeF> _stringMeasure;
             private readonly Queue<(string, float, FontStyle, string)> _stringMeasureKeys;
+            private readonly Dictionary<(string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle), SharpDX.DirectWrite.TextFormat> _format_cache;
+            private readonly Queue<(string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle)> _format_cache_keys;
+             
             //
             private SharpDX.Direct2D1.Bitmap _filter_display_waterfall_bmp;
             private SharpDX.Direct2D1.Bitmap _filter_display_waterfall_bmp_tx;
@@ -27512,6 +27617,8 @@ namespace Thetis
             private bool _enabled;
 
             private bool _waterfall_row_added;
+
+            private int _quickest_update_interval;
 
             private StrokeStyle _rounded_stroke_style;
             private StrokeStyle _dash_style;
@@ -27553,6 +27660,8 @@ namespace Thetis
                 _textFormats = new Dictionary<(string, float, FontStyle), SharpDX.DirectWrite.TextFormat>();
                 _stringMeasure = new Dictionary<(string, float, FontStyle, string), SizeF>();
                 _stringMeasureKeys = new Queue<(string, float, FontStyle, string)>();
+                _format_cache = new Dictionary<(string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle), SharpDX.DirectWrite.TextFormat>();
+                _format_cache_keys = new Queue<(string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle)>();
 
                 _dxDisplayThreadRunning = false;
                 _bAntiAlias = true;
@@ -27571,6 +27680,8 @@ namespace Thetis
                 _newTargetHeight = targetHeight;
                 _targetVisible = target.Visible;
                 //
+
+                _quickest_update_interval = int.MaxValue;
 
                 _backgroundColour = System.Drawing.Color.Black;
                 _backColour_clear_colour = convertColour(System.Drawing.Color.FromArgb(255, System.Drawing.Color.Black));
@@ -28179,8 +28290,10 @@ namespace Thetis
 
                 HiPerfTimer objStopWatch = new HiPerfTimer();
 
+#if !DEBUG
                 try
                 {
+#endif
                     _dxDisplayThreadRunning = true;
 
                     while (_dxDisplayThreadRunning)
@@ -28203,8 +28316,7 @@ namespace Thetis
                                     targetHeight = _newTargetHeight;
 
                                     //Debug.Print(">> dx is resizing from dxRender <<");
-                                    bool bOk = resizeDX();
-                                    if (!bOk) break; // exit do while as resizeDx will have thrown an exception and called shutdowndx
+                                    if (!resizeDX()) break; // exit do while as resizeDx will have thrown an exception and called shutdowndx
                                 }
 
                                 _renderTarget.BeginDraw();
@@ -28221,7 +28333,10 @@ namespace Thetis
                                 SharpDX.RectangleF rect = new SharpDX.RectangleF(-0.5f, -0.5f, targetWidth + 1, targetHeight + 1);
                                 _renderTarget.FillRectangle(rect, getDXBrushForColour(_backgroundColour));
 
+
+                                // all draw routines
                                 nSleepTime = drawMeters(out height);
+
                                 if (nSleepTime > 250) nSleepTime = 250; // sleep max of 250ms for some sensible redraw
                                                                         // maxint can be returned if no meteritem entries
 
@@ -28305,12 +28420,14 @@ namespace Thetis
                         if (height != int.MinValue)
                             MeterManager.SetContainerHeight(_meter.ID, height);
                     }
+#if !DEBUG
                 }
                 catch (Exception e)
                 {
                     ShutdownDX(true);
                     MessageBox.Show("Problem in DirectX Meter Renderer !" + System.Environment.NewLine + System.Environment.NewLine + "[ " + e.ToString() + " ]", "DirectX", MessageBoxButtons.OK, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
                 }
+#endif
             }
             private void setupAliasing()
             {
@@ -28380,6 +28497,14 @@ namespace Thetis
             private void releaseDXFonts()
             {
                 if (!_bDXSetup) return;
+
+                foreach (KeyValuePair<(string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle), SharpDX.DirectWrite.TextFormat> kv in _format_cache)
+                {
+                    SharpDX.DirectWrite.TextFormat tf = kv.Value;
+                    Utilities.Dispose(ref tf);
+                }
+                _format_cache.Clear();
+                _format_cache_keys.Clear();
 
                 if (_fontFactory != null) Utilities.Dispose(ref _fontFactory);
 
@@ -28895,7 +29020,9 @@ namespace Thetis
                 height = ucMeter.MIN_CONTAINER_HEIGHT; // min height, taken from ucMeter
 
                 lock (m._meterItemsLock)
-                {
+                {                    
+                    _quickest_update_interval = m.QuickestUpdateInterval(m.MOX, false); // so that items being rendered have access to this info without calling it themselves
+
                     if (m.RX == _rx && m.SortedMeterItemsForZOrder != null && m.SortedMeterItemsForZOrder.Count > 0)
                     {
                         float tw = targetWidth - 1f;
@@ -29038,13 +29165,13 @@ namespace Thetis
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private System.Drawing.SizeF measureString(string sText, string sFontFamily, FontStyle style, float emSize, bool ignore_caching = false)
             {
-                if (!_bDXSetup || sText == null || sText.Length == 0) return System.Drawing.SizeF.Empty;
+                if (!_bDXSetup || string.IsNullOrEmpty(sText)) return SizeF.Empty;
                 float roundedSize = (float)Math.Round(emSize, 2);
-                if (roundedSize == 0) return System.Drawing.SizeF.Empty;
+                if (roundedSize == 0) return SizeF.Empty;
 
                 (string, float, FontStyle, string) key = (sFontFamily, roundedSize, style, sText);
-                System.Drawing.SizeF sizeValue;
 
+                SizeF sizeValue;
                 if (!ignore_caching && _stringMeasure.TryGetValue(key, out sizeValue)) return sizeValue;
 
                 SharpDX.DirectWrite.FontWeight fontWeight = (style & FontStyle.Bold) != 0
@@ -29054,39 +29181,77 @@ namespace Thetis
                     ? SharpDX.DirectWrite.FontStyle.Italic
                     : SharpDX.DirectWrite.FontStyle.Normal;
 
-                SharpDX.DirectWrite.TextFormat tf = new SharpDX.DirectWrite.TextFormat(_fontFactory, sFontFamily, fontWeight, fontStyle, roundedSize);
-                tf.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
+                //SharpDX.DirectWrite.TextFormat tf = new SharpDX.DirectWrite.TextFormat(_fontFactory, sFontFamily, fontWeight, fontStyle, roundedSize);
+                //tf.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
+                (string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle) fmtKey = (sFontFamily, roundedSize, fontWeight, fontStyle);
+                SharpDX.DirectWrite.TextFormat tf;
+                if (!_format_cache.TryGetValue(fmtKey, out tf))
+                {
+                    tf = new SharpDX.DirectWrite.TextFormat(_fontFactory, sFontFamily, fontWeight, fontStyle, roundedSize);
+                    tf.WordWrapping = SharpDX.DirectWrite.WordWrapping.NoWrap;
+                    _format_cache.Add(fmtKey, tf);
+                    _format_cache_keys.Enqueue(fmtKey);
+                    if (_format_cache.Count > 2000)
+                    {
+                        (string, float, SharpDX.DirectWrite.FontWeight, SharpDX.DirectWrite.FontStyle) oldFmtKey = _format_cache_keys.Dequeue();
+                        SharpDX.DirectWrite.TextFormat oldTf;
+                        if (_format_cache.TryGetValue(oldFmtKey, out oldTf))
+                        {
+                            Utilities.Dispose(ref oldTf);
+                            _format_cache.Remove(oldFmtKey);
+                        }
+                    }
+                }
 
                 SharpDX.DirectWrite.TextLayout layout = new SharpDX.DirectWrite.TextLayout(_fontFactory, sText, tf, float.MaxValue, float.MaxValue);
                 float width = layout.Metrics.Width;
                 float height = layout.Metrics.Height;
                 Utilities.Dispose(ref layout);
-                Utilities.Dispose(ref tf);
+                //Utilities.Dispose(ref tf);
 
-                sizeValue = new System.Drawing.SizeF(
+                sizeValue = new SizeF(
                     width * _pixels_per_point_width,
                     height * _pixels_per_point_height);
 
-                if (ignore_caching)
+                //if (ignore_caching)
+                //{
+                //    if (_stringMeasure.ContainsKey(key)) 
+                //        _stringMeasure[key] = sizeValue;
+                //    else
+                //    {
+                //        _stringMeasure.Add(key, sizeValue);
+                //        _stringMeasureKeys.Enqueue(key);
+                //    }
+                //}
+                //else
+                //{
+                //    _stringMeasure.Add(key, sizeValue);
+                //    _stringMeasureKeys.Enqueue(key);
+                //}
+                //if (_stringMeasure.Count > 2000)
+                //{
+                //    (string, float, FontStyle, string) oldKey = _stringMeasureKeys.Dequeue();
+                //    _stringMeasure.Remove(oldKey);
+                //}
+
+                if (!ignore_caching)
                 {
-                    if (_stringMeasure.ContainsKey(key)) 
+                    if (_stringMeasure.ContainsKey(key))
+                    {
                         _stringMeasure[key] = sizeValue;
+                    }
                     else
                     {
                         _stringMeasure.Add(key, sizeValue);
                         _stringMeasureKeys.Enqueue(key);
+                        if (_stringMeasure.Count > 2000)
+                        {
+                            (string, float, FontStyle, string) oldKey = _stringMeasureKeys.Dequeue();
+                            _stringMeasure.Remove(oldKey);
+                        }
                     }
                 }
-                else
-                {
-                    _stringMeasure.Add(key, sizeValue);
-                    _stringMeasureKeys.Enqueue(key);
-                }
-                if (_stringMeasure.Count > 2000)
-                {
-                    (string, float, FontStyle, string) oldKey = _stringMeasureKeys.Dequeue();
-                    _stringMeasure.Remove(oldKey);
-                }
+
                 return sizeValue;
             }
             //private SizeF measureString(string sText, string sFontFamily, FontStyle style, float emSize, bool ignore_caching = false)
@@ -29157,7 +29322,7 @@ namespace Thetis
                 if (!mi.Disabled && !mi.FadeOnTx && m.MOX && mi.FadeValue == 255) return 255;
                 if (!mi.Disabled && !mi.FadeOnRx && !m.MOX && mi.FadeValue == 255) return 255;
 
-                int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                 updateInterval = Math.Min(updateInterval, 500);
                 // fade to take half a second
                 int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -30022,7 +30187,7 @@ namespace Thetis
                     }
                     else
                     {
-                        int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                        int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                         updateInterval = Math.Min(updateInterval, 500);
                         // fade to take half a second
                         int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -30099,7 +30264,7 @@ namespace Thetis
                         }
                     }
 
-                    int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                    int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                     updateInterval = Math.Min(updateInterval, intervalSpeed);
                     int steps_needed = (int)Math.Ceiling(intervalSpeed / (float)updateInterval);
                     float stepSize = 1 / (float)steps_needed;
@@ -30149,7 +30314,7 @@ namespace Thetis
                     }
                     else
                     {
-                        int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                        int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                         updateInterval = Math.Min(updateInterval, 500);
                         // fade to take half a second
                         int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -32327,7 +32492,7 @@ namespace Thetis
                     }
                     else
                     {
-                        int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                        int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                         updateInterval = Math.Min(updateInterval, 500);
                         // fade to take half a second
                         int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -32556,7 +32721,7 @@ namespace Thetis
                     }
                     else
                     {
-                        int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                        int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                         updateInterval = Math.Min(updateInterval, 500);
                         // fade to take half a second
                         int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -32590,7 +32755,7 @@ namespace Thetis
                     }
                     else
                     {
-                        int updateInterval = m.QuickestUpdateInterval(m.MOX, false);
+                        int updateInterval = _quickest_update_interval;// m.QuickestUpdateInterval(m.MOX, false);
                         updateInterval = Math.Min(updateInterval, 500);
                         // fade to take half a second
                         int steps_needed = (int)Math.Ceiling(500 / (float)updateInterval);
@@ -34493,6 +34658,7 @@ namespace Thetis
                 shrunk.Width = newWidth;
                 shrunk.Height = newHeight;
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void drawRoundedRectangle(RoundedRectangle rr, SharpDX.Direct2D1.Brush b, float stroke, bool centred = false)
             {
                 if(rr.RadiusX > 0 || rr.RadiusY > 0)
@@ -34500,6 +34666,7 @@ namespace Thetis
                 else
                     _renderTarget.DrawRectangle(rr.Rect, b, stroke);
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void fillRoundedRectangle(RoundedRectangle rr, SharpDX.Direct2D1.Brush b, bool centred = false)
             {
                 if (rr.RadiusX > 0 || rr.RadiusY > 0)
@@ -34507,6 +34674,7 @@ namespace Thetis
                 else
                     _renderTarget.FillRectangle(rr.Rect, b);
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             private void drawSafeLine(RawVector2 start, RawVector2 end, SharpDX.Direct2D1.Brush b, float width)
             {
                 float start_x = start.X;
@@ -34528,6 +34696,7 @@ namespace Thetis
                 float y = (mi.DisplayTopLeft.Y / m.YRatio) * rect.Height;
                 float w = rect.Width * (mi.Size.Width / m.XRatio);
                 float h = rect.Height * (mi.Size.Height / m.YRatio);
+                float base_w = w;
 
                 //SharpDX.RectangleF rectSC = new SharpDX.RectangleF(x, y, w, h);
                 //_renderTarget.FillRectangle(rectSC, getDXBrushForColour(System.Drawing.Color.Green));
@@ -34548,9 +34717,9 @@ namespace Thetis
                 float expand = (bb.Margin * wh) - half_border; //expand so that last margin is not shown
                 float button_width = ((w + expand) / (float)bb.Columns) - margin - border;
                 float button_height = ((h + expand) / (float)rows) - margin - border;
-
                 button_width += margin + border;
                 button_height += margin + border;
+                float base_button_width = button_width;
 
                 int highlighted_index = -1;
                 int button_index = 0;
@@ -34575,15 +34744,14 @@ namespace Thetis
 
                 if (is_other_button)
                 {
-                    clsOtherButtons ob = bb as clsOtherButtons;
-                    map = new short[ob.Buttons];
-                    Array.Copy(ob.ButtonMap, map, map.Length);
+                    map = ((clsOtherButtons)bb).MapCopy;
                 }
 
-                for (int row  = 0; row < rows; row++)                
+                for (int row = 0; row < rows; row++)                
                 {
                     int col = 0;
-                    while(col < buttons_per_row)
+
+                    while (col < buttons_per_row)
                     {
                         int button = is_other_button ? map[button_index] : button_index;
 
@@ -34598,7 +34766,7 @@ namespace Thetis
                         System.Drawing.Color text_icon_indicator_colour = System.Drawing.Color.Empty;
 
                         bool indicator = bb.GetUseIndicator(1, button);
-                        float xP = x + half_border + (button_width * col);
+                        float xP = x + half_border + (button_width * col) ;
                         float yP = y + half_border + (button_height * row);
 
                         rectBB.X = xP;
@@ -34662,7 +34830,7 @@ namespace Thetis
                         }
 
                         //click - change the highlight
-                        if(bb.MouseEntered)
+                        if (bb.MouseEntered)
                         {
                             if (bb.ClickHighlight) hover_colour = click_colour;
 
@@ -36080,6 +36248,7 @@ namespace Thetis
 
                 //needle
                 _renderTarget.DrawLine(new SharpDX.Vector2(startX, startY), new SharpDX.Vector2(endX, endY), getDXBrushForColour(ni.Colour, 255), fStrokeWidth);
+
                 //marker
                 switch(ni.ReadingSource)
                 {
@@ -36196,9 +36365,13 @@ namespace Thetis
 
                 float value = (float)Math.Round(rawValue, 2);
                 if (mi.ReadingSource == Reading.SIGNAL_STRENGTH || mi.ReadingSource == Reading.AVG_SIGNAL_STRENGTH)
+                {
                     value += MeterManager.dbmOffsetForAboveS9Frequency(_rx);
+                }
                 else if (mi.NormaliseTo100W)
+                {
                     value *= 100f / mi.MaxPower;
+                }
                 else if (mi.IsCustom)
                 {
                     float c = Math.Max(mi.CustomMin, Math.Min(mi.CustomMax, value));
@@ -36474,7 +36647,7 @@ namespace Thetis
             }            
         }        
     }
-    #endregion DX
+#endregion DX
     #region MMIO
     public static class MultiMeterIO
     {
@@ -39668,5 +39841,5 @@ namespace Thetis
             }
         }
     }
-    #endregion          
+    #endregion
 }
