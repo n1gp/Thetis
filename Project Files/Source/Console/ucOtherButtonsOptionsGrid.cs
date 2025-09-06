@@ -273,11 +273,13 @@ namespace Thetis
         private bool[] _open_uses_location = new bool[4];
         private bool[] _send_via_mmio = new bool[4];
         private string[] _mmio_4char = new string[4];
-        private string[] _mmio_message = new string[4];
+        private string[] _mmio_message_on = new string[4];
+        private string[] _mmio_message_off = new string[4];
         private OB_ButtonState _buttonstate_type;
         private string _led_indicator_four_char;
         private string _buttonstate_container_visible_id;
         private string _buttonstate_cat_on_reply;
+        private bool _run_state_command_on_visible;
         private bool[] _cat_macro_send = new bool[1]; //0=to thetis, future proofing using array
         private bool _on_state;
         private string _cat_macro;
@@ -310,7 +312,8 @@ namespace Thetis
                 _open_uses_location = clone._open_uses_location;
                 _send_via_mmio = clone._send_via_mmio;
                 _mmio_4char = clone._mmio_4char;
-                _mmio_message = clone._mmio_message;
+                _mmio_message_on = clone._mmio_message_on;
+                _mmio_message_off = clone._mmio_message_off;
                 _buttonstate_type = clone._buttonstate_type;
                 _led_indicator_four_char = clone._led_indicator_four_char;
                 _buttonstate_container_visible_id = clone._buttonstate_container_visible_id;
@@ -318,6 +321,7 @@ namespace Thetis
                 _cat_macro_send = clone._cat_macro_send;
                 _on_state = clone._on_state;
                 _cat_macro = clone._cat_macro;
+                _run_state_command_on_visible = clone._run_state_command_on_visible;
             }
         }
 
@@ -394,11 +398,18 @@ namespace Thetis
                 return _mmio_4char;
             }
         }
-        public string[] MMIOMessage
+        public string[] MMIOMessageON
         {
             get
             {
-                return _mmio_message;
+                return _mmio_message_on;
+            }
+        }
+        public string[] MMIOMessageOFF
+        {
+            get
+            {
+                return _mmio_message_off;
             }
         }
         public OB_ButtonState ButtonStateType
@@ -450,6 +461,17 @@ namespace Thetis
             get
             {
                 return _cat_macro_send;
+            }
+        }
+        public bool RunStateCommandOnVisible
+        {
+            get
+            {
+                return _run_state_command_on_visible;
+            }
+            set
+            {
+                _run_state_command_on_visible = value;
             }
         }
         public bool OnState

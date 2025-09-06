@@ -117,17 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="txtCatMacro.Text" xml:space="preserve">
-    <value>#PS1;           # power on - disabled for debug
-FA00003710000;   # 3.710 mhz
-MD1;                # LSB
-ZZFI05;               # filter 5 (2.7khz)
-ZZAG050;              # 50% master af
-ZZZQ1;      # rx1 auto agc compensation
-ZZLA050;                # %50 rx1 af
-ZZPC010;                # 10% drive
-ZZTO010;               # 10% tune</value>
-  </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>17, 17</value>
   </metadata>
@@ -141,5 +130,16 @@ ZZTO010;               # 10% tune</value>
 [IF_%variable%]             #use MMIO variable (must be a bool !). Must use %
 [IF_$4char$]                   #use 4char LED indicator variable. Must use $
 [STATE]PS;                     #writes output of cat cmd into cat ON= state</value>
+  </data>
+  <data name="txtCatMacro.Text" xml:space="preserve">
+    <value>#PS1;           # power on - disabled for debug
+FA00003710000;   # 3.710 mhz
+MD1;                # LSB
+ZZFI05;               # filter 5 (2.7khz)
+ZZAG050;              # 50% master af
+ZZZQ1;      # rx1 auto agc compensation
+ZZLA050;                # %50 rx1 af
+ZZPC010;                # 10% drive
+ZZTO010;               # 10% tune</value>
   </data>
 </root>

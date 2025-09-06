@@ -63,11 +63,15 @@ namespace Thetis
         private string _base_title;
         private OtherButtonMacroSettings _settings;
         private CATScriptInterpreter _si;
+        private CATTester _cat_tester;
+        private Console _console;
 
         public frmMacroButtonConfig(CATScriptInterpreter si)
         {
             InitializeComponent();
 
+            _console = null;
+            _cat_tester = null;
             _base_title = this.Text;
             picError.Visible = false;
             lblErrorText.Visible = false;
@@ -77,9 +81,10 @@ namespace Thetis
             //_init = true;
         }
 
-        public DialogResult InitAndShow(OtherButtonMacroSettings settings, Dictionary<string, string> containers, ref OtherButtonMacroSettings working_set)
+        public DialogResult InitAndShow(OtherButtonMacroSettings settings, Dictionary<string, string> containers, ref OtherButtonMacroSettings working_set, Console c)
         {
             //_init = true;
+            _console = c;
             _settings = working_set;
 
             this.Text = _base_title + $" - Macro {_settings.Number + 1}";
@@ -115,14 +120,21 @@ namespace Thetis
             txtMMIO_4char_3.Text = _settings.MMICFourChar[2];
             txtMMIO_4char_4.Text = _settings.MMICFourChar[3];
 
-            txtMMIO_message_1.Text = _settings.MMIOMessage[0];
-            txtMMIO_message_2.Text = _settings.MMIOMessage[1];
-            txtMMIO_message_3.Text = _settings.MMIOMessage[2];
-            txtMMIO_message_4.Text = _settings.MMIOMessage[3];
+            txtMMIO_message_1.Text = _settings.MMIOMessageON[0];
+            txtMMIO_message_2.Text = _settings.MMIOMessageON[1];
+            txtMMIO_message_3.Text = _settings.MMIOMessageON[2];
+            txtMMIO_message_4.Text = _settings.MMIOMessageON[3];
+
+            txtMMIO_message_off_1.Text = _settings.MMIOMessageOFF[0];
+            txtMMIO_message_off_2.Text = _settings.MMIOMessageOFF[1];
+            txtMMIO_message_off_3.Text = _settings.MMIOMessageOFF[2];
+            txtMMIO_message_off_4.Text = _settings.MMIOMessageOFF[3];
 
             txtButtonState_led_4char.Text = _settings.LedIndiciatorFourChar;
 
             txtButtonState_cat_on_reply.Text = _settings.ButtonStateCatReply;
+
+            chkRunStateCommandOnVisible.Checked = _settings.RunStateCommandOnVisible;
 
             switch (_settings.ButtonStateType)
             {
@@ -205,6 +217,11 @@ namespace Thetis
             //_init = false;
 
             DialogResult dr = this.ShowDialog();
+
+            if(_cat_tester != null && !_cat_tester.IsDisposed)
+            {
+                _cat_tester.Close();
+            }
 
             return dr;
         }
@@ -358,9 +375,14 @@ namespace Thetis
         {
             //if (_init) return;
             int idx = getIndexFromName(sender); if (idx == -1) return;
-            _settings.MMIOMessage[idx] = (sender as TextBoxTS).Text;
+            _settings.MMIOMessageON[idx] = (sender as TextBoxTS).Text;
         }
-
+        private void txtMMIO_message_n_off_TextChanged(object sender, EventArgs e)
+        {
+            //if (_init) return;
+            int idx = getIndexFromName(sender); if (idx == -1) return;
+            _settings.MMIOMessageOFF[idx] = (sender as TextBoxTS).Text;
+        }
         private void radButtonState_n_CheckedChanged(object sender, EventArgs e)
         {
             //if (_init) return;
@@ -464,6 +486,22 @@ namespace Thetis
         private void btnOK_Click(object sender, EventArgs e)
         {
             
+        }
+
+        private void btnCatTest_Click(object sender, EventArgs e)
+        {
+            if (_cat_tester == null || _cat_tester.IsDisposed)
+            {
+                _cat_tester = new CATTester(_console);
+            }
+
+            _cat_tester.Show();
+            _cat_tester.Focus();
+        }
+
+        private void chkRunStateCommandOnVisible_CheckedChanged(object sender, EventArgs e)
+        {
+            _settings.RunStateCommandOnVisible = chkRunStateCommandOnVisible.Checked;
         }
     }
 }

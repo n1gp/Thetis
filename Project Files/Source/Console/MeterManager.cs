@@ -70,7 +70,6 @@ using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
-using System.Runtime.InteropServices.WindowsRuntime;
 
 namespace Thetis
 {
@@ -316,10 +315,15 @@ namespace Thetis
         private delegate void CatState(int queue_id, Guid id, ScriptCommand sc, string cat_result);
         private static CatState CatStateHandlers;
 
+        private delegate void ContainerVisible(string id, bool visible);
+        private static ContainerVisible ContainerVisibleHandlers;
+
         private static ConcurrentDictionary<string, string> _cat_variables;
         private static ConcurrentDictionary<string, bool> _led_results;
         private static ConcurrentDictionary<Guid, bool> _cat_state_done;
 
+        private static ConcurrentDictionary<string, bool> _concurrent_hidden_by_macro = new ConcurrentDictionary<string, bool>(); // this will override _concurrent_container_visibility
+        private static ConcurrentDictionary<string, bool> _concurrent_container_visibility = new ConcurrentDictionary<string, bool>();
 
         static MeterManager()
         {
@@ -2494,6 +2498,24 @@ namespace Thetis
                 }
             }
         }
+        public static void RefreshContainerVisible(string id)
+        {
+            bool visible = !ContainerIsHidden(id);
+            containerVisible(id, visible);
+        }
+        private static void containerVisible(string id, bool visible)
+        {
+            int loop = 20;
+            while (loop > 0)
+            {
+                bool ok = _concurrent_container_visibility.AddOrUpdate(id, visible, (key, val) => visible);
+                if (ok) break;
+                loop--;
+            }
+            
+            ContainerVisibleHandlers?.Invoke(id, visible);
+        }
+
         public static void ContainerHidesWhenRXNotUsed(string sId, bool hides)
         {
             lock (_metersLock)
@@ -2521,6 +2543,7 @@ namespace Thetis
                         uc.Hide();
                         uc.Repaint();
                     }
+                    containerVisible(uc.ID, false);
                 }
                 else
                 {
@@ -2530,6 +2553,8 @@ namespace Thetis
                             setMeterFloating(uc, _lstMeterDisplayForms[uc.ID]);
                         else
                             returnMeterFromFloating(uc, _lstMeterDisplayForms[uc.ID]);
+
+                        containerVisible(uc.ID, true);
                     }
                 }
             }
@@ -2588,8 +2613,7 @@ namespace Thetis
                 rx = uc.RX;
             }
             return rx;
-        }
-        private static ConcurrentDictionary<string, bool> _concurrent_hidden_by_macro = new ConcurrentDictionary<string, bool>();
+        }        
         private static void updateHiddenMacroInfo(ucMeter ucM)
         {
             //update the concurrent dict
@@ -2732,17 +2756,23 @@ namespace Thetis
                         uc.Repaint();
                     }
                     ContainerHiddenByMacroHandlers?.Invoke(sId, uc.HiddenByMacro);
+                    containerVisible(sId, false);
                 }
                 else if ((undo_hidden_by_macro || (enabled != bOldState)) && _lstMeterDisplayForms.ContainsKey(uc.ID))
                 {
-                    f.FormEnabled = enabled;
+                    bool send_container_visible = true; // prevent duplicates, as one will be sent from set/return floating
 
+                    f.FormEnabled = enabled;
+    
                     if (uc.Floating)
                     {
                         if (!enabled)
                             f.Hide();
                         else
+                        {
                             setMeterFloating(uc, f);
+                            send_container_visible = false;
+                        }
                     }
                     else
                     {
@@ -2752,7 +2782,10 @@ namespace Thetis
                             uc.Repaint();
                         }
                         else
+                        {
                             returnMeterFromFloating(uc, f);
+                            send_container_visible = false;
+                        }
                     }
 
                     // meter
@@ -2766,6 +2799,7 @@ namespace Thetis
                     // inform everyone
                     ContainerHiddenByMacroHandlers?.Invoke(sId, uc.HiddenByMacro);
                     ContainerEnabledHandlers?.Invoke(sId, enabled);
+                    if (send_container_visible) containerVisible(sId, enabled);
                 }
             }
         }
@@ -2824,7 +2858,7 @@ namespace Thetis
                 return uc.ContainerHidesWhenRXNotUsed;
             }
         }
-        public static bool ContainerIsHiddenByMacro(string sId)
+        public static bool ContainerIsHidden(string sId)
         {
             //lock (_metersLock)
             //{
@@ -2846,7 +2880,19 @@ namespace Thetis
                 if (ok) break;
                 loop--;
             }
-            return ok ? ret : false;
+            if (ok && ret) return true; // container hidden by macro
+
+            // now check actual visibility
+            loop = 20;
+            while (loop > 0)
+            {
+                ok = _concurrent_container_visibility.TryGetValue(sId, out ret);
+                if (ok) break;
+                loop--;
+            }
+            if (ok) return !ret;
+
+            return false;
         }
         public static bool ContainerShowOnRX(string sId)
         {
@@ -5541,10 +5587,18 @@ namespace Thetis
             setPoisitionOfDockedMeter(m);
             m.BringToFront();
 
-            if (m.RX == 2 && (!_console.RX2Enabled && m.ContainerHidesWhenRXNotUsed)) return;
+            if (!_finishedSetup)
+            {
+                containerVisible(m.ID, false);
+            }
+            if (m.RX == 2 && (!_console.RX2Enabled && m.ContainerHidesWhenRXNotUsed))
+            {                
+                return;
+            }
 
             if (!_finishedSetup) return;
             m.Show();
+            containerVisible(m.ID, true);
         }
         private static void setMeterFloating(ucMeter m, frmMeterDisplay frm)
         {
@@ -5560,11 +5614,16 @@ namespace Thetis
 
             //if (m.RX == 2 && !_console.RX2Enabled) return;
 
-            if (!_finishedSetup) return;
+            if (!_finishedSetup)
+            {
+                containerVisible(frm.ID, false);
+                return;
+            }
 
             //frm.Opacity = 0f;            
             frm.Show();
             //Common.FadeIn(frm, 100);
+            containerVisible(frm.ID, true);
         }
         private static void OnRX2EnabledChanged(bool enabled)
         {
@@ -5626,6 +5685,7 @@ namespace Thetis
                                 ucM.Hide();
                                 ucM.Repaint();
                             }
+                            containerVisible(ucM.ID, false);
                         }
 
                         if (_meters.ContainsKey(ucM.ID))
@@ -6141,6 +6201,8 @@ namespace Thetis
         {
             lock (_metersLock)
             {
+                containerVisible(sId, false);
+
                 frmMeterDisplay f = null;
                 if (_lstMeterDisplayForms.ContainsKey(sId))
                 {
@@ -6180,6 +6242,13 @@ namespace Thetis
                     while(loop > 20)
                     {
                         bool ok = _concurrent_hidden_by_macro.TryRemove(sId, out _);
+                        if (ok) break;
+                        loop--;
+                    }
+                    loop = 20;
+                    while (loop > 20)
+                    {
+                        bool ok = _concurrent_container_visibility.TryRemove(sId, out _);
                         if (ok) break;
                         loop--;
                     }
@@ -7832,7 +7901,7 @@ namespace Thetis
         //
         internal class clsOtherButtons : clsButtonBox
         {
-            private clsTextOverlay _dummy_text_overlay; // use for parse text
+            private clsTextOverlay _text_overlay_to_use_parser; // use for parse text
             private clsMeter _owningmeter;
             private clsItemGroup _ig;
             private bool _click_highlight;
@@ -7855,7 +7924,7 @@ namespace Thetis
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
                 _cat_inter = null;
-                _dummy_text_overlay = new clsTextOverlay(owningmeter);
+                _text_overlay_to_use_parser = new clsTextOverlay(owningmeter);
                 _owningmeter = owningmeter;
                 _click_highlight = false;
                 _ig = ig;
@@ -7889,12 +7958,65 @@ namespace Thetis
                 }
 
                 MeterManager.CatStateHandlers += OnCatState;
+                MeterManager.ContainerVisibleHandlers += OnContainerVisible;
 
                 Initialise();
             }
             public override void Removing()
             {
+                MeterManager.ContainerVisibleHandlers -= OnContainerVisible;
                 MeterManager.CatStateHandlers -= OnCatState;
+            }
+            private void OnContainerVisible(string id, bool visible)
+            {
+                Debug.Print("CONTAINER : " + id + " ----> VISIBLE: " + visible.ToString());
+
+                //update any macros that use this id
+                for(int n = 0; n < _macro_settings.Length -1; n++)
+                {
+                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId._MACRO_0 + n);
+                    bit = (bit_group * 32) + bit;
+
+                    OtherButtonMacroSettings settings = _macro_settings[n];
+                    if (settings.ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.CONT_VIS && settings.ContainerVisibleID == id)
+                    {
+                        SetOn(1, bit, visible);
+                        settings.OnState = visible;
+                    }
+                    else if (settings.ButtonStateType == OtherButtonMacroSettings.OB_ButtonState.CAT && settings.RunStateCommandOnVisible && visible)
+                    {
+                        if (_cat_inter == null) _cat_inter = new CATScriptInterpreter();
+                        ScriptResult result = _cat_inter.run(settings.CatMacro);
+
+                        if (result.is_valid)
+                        {
+                            //add tokens to catQ
+                            if (result.commands.Count > 0)
+                            {
+                                for (int nn = 0; n < settings.CatMacroSend.Length; n++)
+                                {
+                                    if (settings.CatMacroSend[nn]) // only using 0 (to thetis) right now, here for future
+                                    {
+                                        foreach (ScriptCommand sc in result.commands)
+                                        {
+                                            if (sc.type == ScriptCommandType.CatState)
+                                            {
+                                                MessageQueueSystem.MessageBatch batch = _cat_queue_system.createBatch();
+                                                sc.ID = ID;
+                                                sc.macro = n;
+                                                sc.button_index = bit;
+                                                batch.add(sc);
+                                                _cat_queue_system.sendBatch(n, batch);
+
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
             private void OnCatState(int queue, Guid id, ScriptCommand sc, string cat_result)
             {
@@ -8497,7 +8619,7 @@ namespace Thetis
                                 on = false;
                                 break;
                             case OtherButtonMacroSettings.OB_ButtonState.CONT_VIS:
-                                on = !MeterManager.ContainerIsHiddenByMacro(macro_settings.ContainerVisibleID);
+                                on = !MeterManager.ContainerIsHidden(macro_settings.ContainerVisibleID);                                
                                 break;
                             case OtherButtonMacroSettings.OB_ButtonState.CAT:
                                 on = false;
@@ -8836,7 +8958,7 @@ namespace Thetis
                     if (settings.ClosesContainer[n] && settings.OpensContainer[n] && settings.CloseContainerID[n] == settings.OpenContainerID[n])
                     {
                         //toggle same container
-                        bool hidden = MeterManager.ContainerIsHiddenByMacro(settings.CloseContainerID[n]);
+                        bool hidden = MeterManager.ContainerIsHidden(settings.CloseContainerID[n]);
                         MeterManager.HiddenByMacro(settings.CloseContainerID[n], !hidden, null);
                     }
                     else
@@ -8860,8 +8982,16 @@ namespace Thetis
                             Guid guid = MultiMeterIO.GuidfromFourChar(settings.MMICFourChar[n]);
                             if(guid != Guid.Empty)
                             {
-                                _dummy_text_overlay.Text1 = settings.MMIOMessage[n];
-                                MultiMeterIO.SendDataMMIO(guid, _dummy_text_overlay.ParsedText1);
+                                bool state = !GetOn(1, index);
+                                if (state)
+                                {
+                                    _text_overlay_to_use_parser.Text1 = settings.MMIOMessageON[n];
+                                }
+                                else
+                                {
+                                    _text_overlay_to_use_parser.Text1 = settings.MMIOMessageOFF[n];
+                                }
+                                MultiMeterIO.SendDataMMIO(guid, _text_overlay_to_use_parser.ParsedText1);
                             }
                         }
                     }
@@ -17707,7 +17837,7 @@ namespace Thetis
                 _timer = null;
                 _delay_milliseconds = 1000;
 
-                _true_colour = System.Drawing.Color.FromArgb(255, 255, 255);
+                _true_colour = System.Drawing.Color.FromArgb(0, 255, 0);
                 _false_colour = System.Drawing.Color.FromArgb(192, 192, 192);
                 _panel_back_colour_1 = System.Drawing.Color.FromArgb(32, 32, 32);
                 _panel_back_colour_2 = System.Drawing.Color.FromArgb(32, 32, 32);

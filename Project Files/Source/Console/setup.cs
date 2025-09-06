@@ -35640,12 +35640,18 @@ namespace Thetis
             CATScriptInterpreter si = new CATScriptInterpreter();
 
             frmMacroButtonConfig frmConfig = new frmMacroButtonConfig(si);
-            DialogResult dr = frmConfig.InitAndShow(original_settings, containers, ref changed_settings);
+            DialogResult dr = frmConfig.InitAndShow(original_settings, containers, ref changed_settings, console);
             if (dr == DialogResult.OK) 
             {
                 // something changed, update uc
                 ucOtherButtonsOptionsGrid_buttons.SetMacroSettings(macro, changed_settings);
                 updateMeterType();
+
+                clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
+                if (cci != null)
+                {
+                    MeterManager.RefreshContainerVisible(cci.ID);  //causes delegates to be called for any visible container
+                }
             }
         }
 

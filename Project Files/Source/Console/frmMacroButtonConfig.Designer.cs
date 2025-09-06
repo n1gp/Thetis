@@ -31,16 +31,21 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(frmMacroButtonConfig));
             this.groupBoxTS3 = new System.Windows.Forms.GroupBoxTS();
-            this.groupBoxTS4 = new System.Windows.Forms.GroupBoxTS();
-            this.panelTS1 = new System.Windows.Forms.PanelTS();
-            this.btnCancel = new System.Windows.Forms.ButtonTS();
-            this.btnOK = new System.Windows.Forms.ButtonTS();
+            this.btnCatTest = new System.Windows.Forms.ButtonTS();
+            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.chkCatSend_1 = new System.Windows.Forms.CheckBoxTS();
             this.txtTokens = new System.Windows.Forms.TextBoxTS();
             this.lblErrorText = new System.Windows.Forms.LabelTS();
             this.picError = new System.Windows.Forms.PictureBox();
             this.txtCatMacro = new System.Windows.Forms.TextBoxTS();
+            this.btnCancel = new System.Windows.Forms.ButtonTS();
+            this.btnOK = new System.Windows.Forms.ButtonTS();
             this.groupBoxTS2 = new System.Windows.Forms.GroupBoxTS();
+            this.labelTS8 = new System.Windows.Forms.LabelTS();
+            this.txtMMIO_message_off_4 = new System.Windows.Forms.TextBoxTS();
+            this.txtMMIO_message_off_3 = new System.Windows.Forms.TextBoxTS();
+            this.txtMMIO_message_off_2 = new System.Windows.Forms.TextBoxTS();
+            this.txtMMIO_message_off_1 = new System.Windows.Forms.TextBoxTS();
             this.txtMMIO_message_4 = new System.Windows.Forms.TextBoxTS();
             this.txtMMIO_4char_4 = new System.Windows.Forms.TextBoxTS();
             this.chkSendMssageViaMMIO_4 = new System.Windows.Forms.CheckBoxTS();
@@ -94,77 +99,62 @@
             this.txtON = new System.Windows.Forms.TextBoxTS();
             this.labelTS2 = new System.Windows.Forms.LabelTS();
             this.labelTS1 = new System.Windows.Forms.LabelTS();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tpButtonState = new System.Windows.Forms.TabPage();
+            this.tpMMIO = new System.Windows.Forms.TabPage();
+            this.tpCAT = new System.Windows.Forms.TabPage();
+            this.chkRunStateCommandOnVisible = new System.Windows.Forms.CheckBoxTS();
             this.groupBoxTS3.SuspendLayout();
-            this.groupBoxTS4.SuspendLayout();
-            this.panelTS1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picError)).BeginInit();
             this.groupBoxTS2.SuspendLayout();
             this.groupBoxTS1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+            this.tabControl1.SuspendLayout();
+            this.tpButtonState.SuspendLayout();
+            this.tpMMIO.SuspendLayout();
+            this.tpCAT.SuspendLayout();
             this.SuspendLayout();
             // 
             // groupBoxTS3
             // 
-            this.groupBoxTS3.Controls.Add(this.groupBoxTS4);
+            this.groupBoxTS3.Controls.Add(this.btnCatTest);
+            this.groupBoxTS3.Controls.Add(this.pictureBox1);
             this.groupBoxTS3.Controls.Add(this.chkCatSend_1);
             this.groupBoxTS3.Controls.Add(this.txtTokens);
             this.groupBoxTS3.Controls.Add(this.lblErrorText);
             this.groupBoxTS3.Controls.Add(this.picError);
             this.groupBoxTS3.Controls.Add(this.txtCatMacro);
-            this.groupBoxTS3.Location = new System.Drawing.Point(15, 414);
+            this.groupBoxTS3.Location = new System.Drawing.Point(6, 6);
             this.groupBoxTS3.Name = "groupBoxTS3";
             this.groupBoxTS3.Size = new System.Drawing.Size(761, 303);
             this.groupBoxTS3.TabIndex = 37;
             this.groupBoxTS3.TabStop = false;
             this.groupBoxTS3.Text = "CAT Macro";
             // 
-            // groupBoxTS4
+            // btnCatTest
             // 
-            this.groupBoxTS4.Controls.Add(this.panelTS1);
-            this.groupBoxTS4.Location = new System.Drawing.Point(525, 222);
-            this.groupBoxTS4.Name = "groupBoxTS4";
-            this.groupBoxTS4.Size = new System.Drawing.Size(236, 81);
-            this.groupBoxTS4.TabIndex = 39;
-            this.groupBoxTS4.TabStop = false;
+            this.btnCatTest.Image = null;
+            this.btnCatTest.Location = new System.Drawing.Point(291, 19);
+            this.btnCatTest.Name = "btnCatTest";
+            this.btnCatTest.Selectable = true;
+            this.btnCatTest.Size = new System.Drawing.Size(75, 23);
+            this.btnCatTest.TabIndex = 40;
+            this.btnCatTest.Text = "Cat Tester";
+            this.toolTip1.SetToolTip(this.btnCatTest, "Show the cat tester");
+            this.btnCatTest.UseVisualStyleBackColor = true;
+            this.btnCatTest.Click += new System.EventHandler(this.btnCatTest_Click);
             // 
-            // panelTS1
+            // pictureBox1
             // 
-            this.panelTS1.AutoScrollMargin = new System.Drawing.Size(0, 0);
-            this.panelTS1.AutoScrollMinSize = new System.Drawing.Size(0, 0);
-            this.panelTS1.Controls.Add(this.btnCancel);
-            this.panelTS1.Controls.Add(this.btnOK);
-            this.panelTS1.Location = new System.Drawing.Point(2, 10);
-            this.panelTS1.Name = "panelTS1";
-            this.panelTS1.Size = new System.Drawing.Size(246, 114);
-            this.panelTS1.TabIndex = 38;
-            // 
-            // btnCancel
-            // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Image = null;
-            this.btnCancel.Location = new System.Drawing.Point(139, 21);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Selectable = true;
-            this.btnCancel.Size = new System.Drawing.Size(95, 50);
-            this.btnCancel.TabIndex = 38;
-            this.btnCancel.Text = "&Cancel";
-            this.btnCancel.UseVisualStyleBackColor = true;
-            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
-            // 
-            // btnOK
-            // 
-            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOK.Image = null;
-            this.btnOK.Location = new System.Drawing.Point(16, 21);
-            this.btnOK.Name = "btnOK";
-            this.btnOK.Selectable = true;
-            this.btnOK.Size = new System.Drawing.Size(98, 50);
-            this.btnOK.TabIndex = 33;
-            this.btnOK.Text = "&OK";
-            this.btnOK.UseVisualStyleBackColor = true;
-            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            this.pictureBox1.Image = global::Thetis.Properties.Resources.info;
+            this.pictureBox1.Location = new System.Drawing.Point(379, 12);
+            this.pictureBox1.Name = "pictureBox1";
+            this.pictureBox1.Size = new System.Drawing.Size(32, 32);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.pictureBox1.TabIndex = 38;
+            this.pictureBox1.TabStop = false;
+            this.toolTip1.SetToolTip(this.pictureBox1, resources.GetString("pictureBox1.ToolTip"));
             // 
             // chkCatSend_1
             // 
@@ -188,24 +178,24 @@
             this.txtTokens.Name = "txtTokens";
             this.txtTokens.ReadOnly = true;
             this.txtTokens.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtTokens.Size = new System.Drawing.Size(213, 171);
+            this.txtTokens.Size = new System.Drawing.Size(213, 243);
             this.txtTokens.TabIndex = 38;
             // 
             // lblErrorText
             // 
             this.lblErrorText.AutoSize = true;
-            this.lblErrorText.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblErrorText.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblErrorText.Image = null;
-            this.lblErrorText.Location = new System.Drawing.Point(513, 23);
+            this.lblErrorText.Location = new System.Drawing.Point(459, 24);
             this.lblErrorText.Name = "lblErrorText";
-            this.lblErrorText.Size = new System.Drawing.Size(36, 16);
+            this.lblErrorText.Size = new System.Drawing.Size(44, 20);
             this.lblErrorText.TabIndex = 37;
             this.lblErrorText.Text = "Error";
             // 
             // picError
             // 
             this.picError.Image = global::Thetis.Properties.Resources.warning4;
-            this.picError.Location = new System.Drawing.Point(472, 13);
+            this.picError.Location = new System.Drawing.Point(421, 13);
             this.picError.Name = "picError";
             this.picError.Size = new System.Drawing.Size(32, 32);
             this.picError.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -226,8 +216,39 @@
             this.txtCatMacro.Text = resources.GetString("txtCatMacro.Text");
             this.txtCatMacro.TextChanged += new System.EventHandler(this.txtCatMacro_TextChanged);
             // 
+            // btnCancel
+            // 
+            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnCancel.Image = null;
+            this.btnCancel.Location = new System.Drawing.Point(699, 577);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Selectable = true;
+            this.btnCancel.Size = new System.Drawing.Size(95, 50);
+            this.btnCancel.TabIndex = 38;
+            this.btnCancel.Text = "&Cancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
+            // btnOK
+            // 
+            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.btnOK.Image = null;
+            this.btnOK.Location = new System.Drawing.Point(595, 577);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Selectable = true;
+            this.btnOK.Size = new System.Drawing.Size(98, 50);
+            this.btnOK.TabIndex = 33;
+            this.btnOK.Text = "&OK";
+            this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.btnOK_Click);
+            // 
             // groupBoxTS2
             // 
+            this.groupBoxTS2.Controls.Add(this.labelTS8);
+            this.groupBoxTS2.Controls.Add(this.txtMMIO_message_off_4);
+            this.groupBoxTS2.Controls.Add(this.txtMMIO_message_off_3);
+            this.groupBoxTS2.Controls.Add(this.txtMMIO_message_off_2);
+            this.groupBoxTS2.Controls.Add(this.txtMMIO_message_off_1);
             this.groupBoxTS2.Controls.Add(this.txtMMIO_message_4);
             this.groupBoxTS2.Controls.Add(this.txtMMIO_4char_4);
             this.groupBoxTS2.Controls.Add(this.chkSendMssageViaMMIO_4);
@@ -242,12 +263,62 @@
             this.groupBoxTS2.Controls.Add(this.txtMMIO_message_1);
             this.groupBoxTS2.Controls.Add(this.txtMMIO_4char_1);
             this.groupBoxTS2.Controls.Add(this.chkSendMssageViaMMIO_1);
-            this.groupBoxTS2.Location = new System.Drawing.Point(12, 216);
+            this.groupBoxTS2.Location = new System.Drawing.Point(6, 6);
             this.groupBoxTS2.Name = "groupBoxTS2";
-            this.groupBoxTS2.Size = new System.Drawing.Size(469, 135);
+            this.groupBoxTS2.Size = new System.Drawing.Size(751, 135);
             this.groupBoxTS2.TabIndex = 36;
             this.groupBoxTS2.TabStop = false;
             this.groupBoxTS2.Text = "MMIO Actions";
+            // 
+            // labelTS8
+            // 
+            this.labelTS8.AutoSize = true;
+            this.labelTS8.Image = null;
+            this.labelTS8.Location = new System.Drawing.Point(524, 11);
+            this.labelTS8.Name = "labelTS8";
+            this.labelTS8.Size = new System.Drawing.Size(112, 13);
+            this.labelTS8.TabIndex = 37;
+            this.labelTS8.Text = "OFF raw text message";
+            // 
+            // txtMMIO_message_off_4
+            // 
+            this.txtMMIO_message_off_4.Location = new System.Drawing.Point(462, 105);
+            this.txtMMIO_message_off_4.MaxLength = 255;
+            this.txtMMIO_message_off_4.Name = "txtMMIO_message_off_4";
+            this.txtMMIO_message_off_4.Size = new System.Drawing.Size(232, 20);
+            this.txtMMIO_message_off_4.TabIndex = 48;
+            this.txtMMIO_message_off_4.Text = "WWWWWWWWWWWWWWWWWWWW";
+            this.txtMMIO_message_off_4.TextChanged += new System.EventHandler(this.txtMMIO_message_n_off_TextChanged);
+            // 
+            // txtMMIO_message_off_3
+            // 
+            this.txtMMIO_message_off_3.Location = new System.Drawing.Point(462, 79);
+            this.txtMMIO_message_off_3.MaxLength = 255;
+            this.txtMMIO_message_off_3.Name = "txtMMIO_message_off_3";
+            this.txtMMIO_message_off_3.Size = new System.Drawing.Size(232, 20);
+            this.txtMMIO_message_off_3.TabIndex = 47;
+            this.txtMMIO_message_off_3.Text = "%x4Kn.power%";
+            this.txtMMIO_message_off_3.TextChanged += new System.EventHandler(this.txtMMIO_message_n_off_TextChanged);
+            // 
+            // txtMMIO_message_off_2
+            // 
+            this.txtMMIO_message_off_2.Location = new System.Drawing.Point(462, 53);
+            this.txtMMIO_message_off_2.MaxLength = 255;
+            this.txtMMIO_message_off_2.Name = "txtMMIO_message_off_2";
+            this.txtMMIO_message_off_2.Size = new System.Drawing.Size(232, 20);
+            this.txtMMIO_message_off_2.TabIndex = 46;
+            this.txtMMIO_message_off_2.Text = "%vfoa_freq%";
+            this.txtMMIO_message_off_2.TextChanged += new System.EventHandler(this.txtMMIO_message_n_off_TextChanged);
+            // 
+            // txtMMIO_message_off_1
+            // 
+            this.txtMMIO_message_off_1.Location = new System.Drawing.Point(462, 27);
+            this.txtMMIO_message_off_1.MaxLength = 255;
+            this.txtMMIO_message_off_1.Name = "txtMMIO_message_off_1";
+            this.txtMMIO_message_off_1.Size = new System.Drawing.Size(232, 20);
+            this.txtMMIO_message_off_1.TabIndex = 45;
+            this.txtMMIO_message_off_1.Text = "Buton [ID] pressed. [STATE] [OLDSTATE]";
+            this.txtMMIO_message_off_1.TextChanged += new System.EventHandler(this.txtMMIO_message_n_off_TextChanged);
             // 
             // txtMMIO_message_4
             // 
@@ -359,11 +430,11 @@
             // 
             this.labelTS4.AutoSize = true;
             this.labelTS4.Image = null;
-            this.labelTS4.Location = new System.Drawing.Point(295, 11);
+            this.labelTS4.Location = new System.Drawing.Point(280, 11);
             this.labelTS4.Name = "labelTS4";
-            this.labelTS4.Size = new System.Drawing.Size(89, 13);
+            this.labelTS4.Size = new System.Drawing.Size(108, 13);
             this.labelTS4.TabIndex = 34;
-            this.labelTS4.Text = "raw text message";
+            this.labelTS4.Text = "ON raw text message";
             // 
             // txtMMIO_message_1
             // 
@@ -418,6 +489,8 @@
             // 
             // groupBoxTS1
             // 
+            this.groupBoxTS1.BackColor = System.Drawing.Color.Transparent;
+            this.groupBoxTS1.Controls.Add(this.chkRunStateCommandOnVisible);
             this.groupBoxTS1.Controls.Add(this.labelTS7);
             this.groupBoxTS1.Controls.Add(this.txtButtonState_cat_on_reply);
             this.groupBoxTS1.Controls.Add(this.radButtonState_catstate);
@@ -429,9 +502,9 @@
             this.groupBoxTS1.Controls.Add(this.radButtonState_container_visible);
             this.groupBoxTS1.Controls.Add(this.radButtonState_toggle);
             this.groupBoxTS1.Controls.Add(this.radButtonState_led);
-            this.groupBoxTS1.Location = new System.Drawing.Point(487, 216);
+            this.groupBoxTS1.Location = new System.Drawing.Point(10, 12);
             this.groupBoxTS1.Name = "groupBoxTS1";
-            this.groupBoxTS1.Size = new System.Drawing.Size(289, 192);
+            this.groupBoxTS1.Size = new System.Drawing.Size(362, 227);
             this.groupBoxTS1.TabIndex = 32;
             this.groupBoxTS1.TabStop = false;
             this.groupBoxTS1.Text = "Button State";
@@ -839,29 +912,74 @@
             this.labelTS1.TabIndex = 0;
             this.labelTS1.Text = "ON state text:";
             // 
-            // pictureBox1
+            // tabControl1
             // 
-            this.pictureBox1.Image = global::Thetis.Properties.Resources.info;
-            this.pictureBox1.Location = new System.Drawing.Point(436, 376);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(32, 32);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-            this.pictureBox1.TabIndex = 38;
-            this.pictureBox1.TabStop = false;
-            this.toolTip1.SetToolTip(this.pictureBox1, resources.GetString("pictureBox1.ToolTip"));
+            this.tabControl1.Controls.Add(this.tpButtonState);
+            this.tabControl1.Controls.Add(this.tpMMIO);
+            this.tabControl1.Controls.Add(this.tpCAT);
+            this.tabControl1.Location = new System.Drawing.Point(12, 211);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(786, 364);
+            this.tabControl1.TabIndex = 38;
+            // 
+            // tpButtonState
+            // 
+            this.tpButtonState.BackColor = System.Drawing.SystemColors.Control;
+            this.tpButtonState.Controls.Add(this.groupBoxTS1);
+            this.tpButtonState.Location = new System.Drawing.Point(4, 22);
+            this.tpButtonState.Name = "tpButtonState";
+            this.tpButtonState.Size = new System.Drawing.Size(778, 338);
+            this.tpButtonState.TabIndex = 2;
+            this.tpButtonState.Text = "Button State";
+            // 
+            // tpMMIO
+            // 
+            this.tpMMIO.BackColor = System.Drawing.SystemColors.Control;
+            this.tpMMIO.Controls.Add(this.groupBoxTS2);
+            this.tpMMIO.Location = new System.Drawing.Point(4, 22);
+            this.tpMMIO.Name = "tpMMIO";
+            this.tpMMIO.Padding = new System.Windows.Forms.Padding(3);
+            this.tpMMIO.Size = new System.Drawing.Size(778, 338);
+            this.tpMMIO.TabIndex = 0;
+            this.tpMMIO.Text = "MMIO Actions";
+            // 
+            // tpCAT
+            // 
+            this.tpCAT.BackColor = System.Drawing.SystemColors.Control;
+            this.tpCAT.Controls.Add(this.groupBoxTS3);
+            this.tpCAT.Location = new System.Drawing.Point(4, 22);
+            this.tpCAT.Name = "tpCAT";
+            this.tpCAT.Padding = new System.Windows.Forms.Padding(3);
+            this.tpCAT.Size = new System.Drawing.Size(778, 338);
+            this.tpCAT.TabIndex = 1;
+            this.tpCAT.Text = "CAT Macro";
+            // 
+            // chkRunStateCommandOnVisible
+            // 
+            this.chkRunStateCommandOnVisible.AutoSize = true;
+            this.chkRunStateCommandOnVisible.Image = null;
+            this.chkRunStateCommandOnVisible.Location = new System.Drawing.Point(67, 187);
+            this.chkRunStateCommandOnVisible.Name = "chkRunStateCommandOnVisible";
+            this.chkRunStateCommandOnVisible.Size = new System.Drawing.Size(282, 17);
+            this.chkRunStateCommandOnVisible.TabIndex = 39;
+            this.chkRunStateCommandOnVisible.Text = "Run state cmd when parent container becomes visible";
+            this.toolTip1.SetToolTip(this.chkRunStateCommandOnVisible, "Run the state command, when the parent container becomes visible.\r\nThis ensures b" +
+        "utton state accuracy.");
+            this.chkRunStateCommandOnVisible.UseVisualStyleBackColor = true;
+            this.chkRunStateCommandOnVisible.CheckedChanged += new System.EventHandler(this.chkRunStateCommandOnVisible_CheckedChanged);
             // 
             // frmMacroButtonConfig
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(790, 725);
+            this.ClientSize = new System.Drawing.Size(803, 633);
             this.ControlBox = false;
-            this.Controls.Add(this.pictureBox1);
-            this.Controls.Add(this.groupBoxTS3);
-            this.Controls.Add(this.groupBoxTS2);
+            this.Controls.Add(this.btnCancel);
+            this.Controls.Add(this.tabControl1);
+            this.Controls.Add(this.btnOK);
             this.Controls.Add(this.labelTS3);
             this.Controls.Add(this.txtNotes);
-            this.Controls.Add(this.groupBoxTS1);
             this.Controls.Add(this.chkUseParent_loc_size_4);
             this.Controls.Add(this.comboOpenContainer_4);
             this.Controls.Add(this.chkOpensContainer_4);
@@ -895,14 +1013,16 @@
             this.Text = "Macro Button Configuration";
             this.groupBoxTS3.ResumeLayout(false);
             this.groupBoxTS3.PerformLayout();
-            this.groupBoxTS4.ResumeLayout(false);
-            this.panelTS1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.picError)).EndInit();
             this.groupBoxTS2.ResumeLayout(false);
             this.groupBoxTS2.PerformLayout();
             this.groupBoxTS1.ResumeLayout(false);
             this.groupBoxTS1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+            this.tabControl1.ResumeLayout(false);
+            this.tpButtonState.ResumeLayout(false);
+            this.tpMMIO.ResumeLayout(false);
+            this.tpCAT.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -972,9 +1092,18 @@
         private System.Windows.Forms.ButtonTS btnCancel;
         private System.Windows.Forms.TextBoxTS txtTokens;
         private System.Windows.Forms.CheckBoxTS chkCatSend_1;
-        private System.Windows.Forms.PanelTS panelTS1;
-        private System.Windows.Forms.GroupBoxTS groupBoxTS4;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tpMMIO;
+        private System.Windows.Forms.TabPage tpCAT;
+        private System.Windows.Forms.LabelTS labelTS8;
+        private System.Windows.Forms.TextBoxTS txtMMIO_message_off_4;
+        private System.Windows.Forms.TextBoxTS txtMMIO_message_off_3;
+        private System.Windows.Forms.TextBoxTS txtMMIO_message_off_2;
+        private System.Windows.Forms.TextBoxTS txtMMIO_message_off_1;
+        private System.Windows.Forms.TabPage tpButtonState;
+        private System.Windows.Forms.ButtonTS btnCatTest;
+        private System.Windows.Forms.CheckBoxTS chkRunStateCommandOnVisible;
     }
 }
