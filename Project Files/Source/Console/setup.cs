@@ -25215,9 +25215,10 @@ namespace Thetis
 
             bool locked = chkLockContainer.Checked;
 
-            btnContainer_save.Enabled = MeterManager.TotalMeterContainers > 0 && comboContainerSelect.SelectedIndex > -1;
-            btnContainer_load.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
-            btnContainer_dupe.Enabled = bEnableControls && comboContainerSelect.SelectedIndex > -1;
+            btnContainer_save.Enabled = bEnableControls;// MeterManager.TotalMeterContainers > 0 && comboContainerSelect.SelectedIndex > -1;
+            btnContainer_load.Enabled = bEnableAdd;// MeterManager.TotalMeterContainers < MAX_CONTAINERS;
+            btnContainer_dupe.Enabled = bEnableControls;// && comboContainerSelect.SelectedIndex > -1;
+            btnRecoverContainer.Enabled = bEnableControls && !locked;
             btnContainerDelete.Enabled = bEnableControls && !locked;
             chkContainerHighlight.Enabled = bEnableControls;
             comboContainerSelect.Enabled = bEnableControls;
@@ -25261,7 +25262,7 @@ namespace Thetis
             //lstMetersAvailable.SuspendLayout();
 
             lstMetersInUse.Items.Clear();
-            lstMetersAvailable.Items.Clear();
+            //lstMetersAvailable.Items.Clear();
 
             MeterManager.clsMeter m = meterFromSelectedContainer();
             if (m == null) return;
@@ -25297,21 +25298,24 @@ namespace Thetis
             //mtci_tmp = new clsMeterTypeComboboxItem(MeterType.TEXT_OVERLAY, -1);
             //notinuse.Add(mtci_tmp);
 
-
-            foreach (clsMeterTypeComboboxItem mtci in notinuse)
+            if (lstMetersAvailable.Items.Count == 0)
             {
-                //if ((int)mtci.MeterType < (int)MeterType.MAGIC_EYE)
-                //{
-                //    // add directly as these are not special items
-                //    lstMetersAvailable.Items.Add(mtci);
-                //}
-                //else
-                //{
+                foreach (clsMeterTypeComboboxItem mtci in notinuse)
+                {
+                    //if ((int)mtci.MeterType < (int)MeterType.MAGIC_EYE)
+                    //{
+                    //    // add directly as these are not special items
+                    //    lstMetersAvailable.Items.Add(mtci);
+                    //}
+                    //else
+                    //{
                     // work out where to add it alphabetically, per block, rx, tx, special
                     int insert_pos = findIndexForInsertOfSpecialItem(mtci, lstMetersAvailable);
                     lstMetersAvailable.Items.Insert(insert_pos, mtci);
-                //}
+                    //}
+                }
             }
+
             foreach (clsMeterTypeComboboxItem mtci in inuse.OrderBy(o => o.Order))
             {
                 lstMetersInUse.Items.Add(mtci);
@@ -25373,11 +25377,15 @@ namespace Thetis
             if (cci != null)
             {
                 MeterManager.RemoveMeterContainer(cci.ID);
+                int selected = comboContainerSelect.SelectedIndex;
                 comboContainerSelect.Items.Remove(cci);
 
                 updateMeter2Controls();
 
                 setupMMSettingsGroupBoxes(MeterType.NONE);
+
+                if (selected > comboContainerSelect.Items.Count - 1) selected = comboContainerSelect.Items.Count - 1;
+                if (selected > -1) comboContainerSelect.SelectedIndex = selected;
             }
         }
 
@@ -32946,6 +32954,7 @@ namespace Thetis
             if (cci != null)
             {
                 MeterManager.LockContainer(cci.ID, chkLockContainer.Checked);
+                btnRecoverContainer.Enabled = !chkLockContainer.Checked;
                 btnContainerDelete.Enabled = !chkLockContainer.Checked;
                 btnAddMeterItem.Enabled = !chkLockContainer.Checked;
                 btnRemoveMeterItem.Enabled = !chkLockContainer.Checked;
@@ -35628,7 +35637,7 @@ namespace Thetis
             OtherButtonMacroSettings original_settings = ucOtherButtonsOptionsGrid_buttons.GetMacroSettings(macro);
             OtherButtonMacroSettings changed_settings = new OtherButtonMacroSettings(original_settings);
 
-            CATScriptInterpreter si = new CATScriptInterpreter(null);
+            CATScriptInterpreter si = new CATScriptInterpreter();
 
             frmMacroButtonConfig frmConfig = new frmMacroButtonConfig(si);
             DialogResult dr = frmConfig.InitAndShow(original_settings, containers, ref changed_settings);

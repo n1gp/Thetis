@@ -423,7 +423,7 @@ namespace Thetis
         private void txtCatMacro_TextChanged(object sender, EventArgs e)
         {
             //if (_init) return;
-            ScriptResult res = _si.Run(0, txtCatMacro.Text);
+            ScriptResult res = _si.run(txtCatMacro.Text);
 
             if (!res.is_valid)
             {
@@ -440,10 +440,6 @@ namespace Thetis
                     i++;
                 }
 
-                if (!string.IsNullOrEmpty(res.cat_state_command))
-                {
-                    token_text += "catstate) " + res.cat_state_command;
-                }
                 txtTokens.Text = token_text;
             }
 

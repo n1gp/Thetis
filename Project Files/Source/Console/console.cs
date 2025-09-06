@@ -37016,9 +37016,9 @@ namespace Thetis
         {
             if (_ignoreQuickSplitSet)
             {
-                _ignoreQuickSplitSet = false;
                 return;
             }
+            _ignoreQuickSplitSet = true;
 
             bool bOldQuickSplitState = _quickSplitState;
             bool bRestore = false;
@@ -37101,17 +37101,23 @@ namespace Thetis
                 //do we have old settings?
                 if (_oldQuickSplitSettings != null)
                 {
-                    if (_oldQuickSplitSettings.ContainsKey("zoom")) Zoom = (int)_oldQuickSplitSettings["zoom"];
-                    if (_oldQuickSplitSettings.ContainsKey("multirx")) chkEnableMultiRX.Checked = (bool)_oldQuickSplitSettings["multirx"];
-                    if (_oldQuickSplitSettings.ContainsKey("txfl")) chkShowTXFilter.Checked = (bool)_oldQuickSplitSettings["txfl"];
-                    if (_oldQuickSplitSettings.ContainsKey("swapwheels")) Midi2Cat.SwapVFOWheelsProperty = (bool)_oldQuickSplitSettings["swapwheels"];
-                    if (_oldQuickSplitSettings.ContainsKey("VFOASubFreq")) VFOASubFreq = (double)_oldQuickSplitSettings["VFOASubFreq"];
-                    if (_oldQuickSplitSettings.ContainsKey("VFOBFreq")) VFOBFreq = (double)_oldQuickSplitSettings["VFOBFreq"];
-                    if (_oldQuickSplitSettings.ContainsKey("panmain")) PanMainRX = (int)_oldQuickSplitSettings["panmain"];
-                    if (_oldQuickSplitSettings.ContainsKey("pansub")) PanSubRX = (int)_oldQuickSplitSettings["pansub"];
-                    if (_oldQuickSplitSettings.ContainsKey("vfosync")) VFOSync = (bool)_oldQuickSplitSettings["vfosync"];
-                    _oldQuickSplitSettings.Clear();
-                    _oldQuickSplitSettings = null;
+                    //if (!_restoring_quick_split) // prevent multiple events fired from each of the changes below, coming back into setquicksplit and setting
+                    //                            // _oldQuickSplitSettings to null
+                    //{
+                        //_restoring_quick_split = true;
+                        if (_oldQuickSplitSettings.ContainsKey("zoom")) Zoom = (int)_oldQuickSplitSettings["zoom"];
+                        if (_oldQuickSplitSettings.ContainsKey("multirx")) chkEnableMultiRX.Checked = (bool)_oldQuickSplitSettings["multirx"];
+                        if (_oldQuickSplitSettings.ContainsKey("txfl")) chkShowTXFilter.Checked = (bool)_oldQuickSplitSettings["txfl"];
+                        if (_oldQuickSplitSettings.ContainsKey("swapwheels")) Midi2Cat.SwapVFOWheelsProperty = (bool)_oldQuickSplitSettings["swapwheels"];
+                        if (_oldQuickSplitSettings.ContainsKey("VFOASubFreq")) VFOASubFreq = (double)_oldQuickSplitSettings["VFOASubFreq"];
+                        if (_oldQuickSplitSettings.ContainsKey("VFOBFreq")) VFOBFreq = (double)_oldQuickSplitSettings["VFOBFreq"];
+                        if (_oldQuickSplitSettings.ContainsKey("panmain")) PanMainRX = (int)_oldQuickSplitSettings["panmain"];
+                        if (_oldQuickSplitSettings.ContainsKey("pansub")) PanSubRX = (int)_oldQuickSplitSettings["pansub"];
+                        if (_oldQuickSplitSettings.ContainsKey("vfosync")) VFOSync = (bool)_oldQuickSplitSettings["vfosync"];
+                        _oldQuickSplitSettings.Clear();
+                        _oldQuickSplitSettings = null;
+                        //_restoring_quick_split = false;
+                    //}
                 }
             }
 
@@ -37119,6 +37125,7 @@ namespace Thetis
             {
                 QuickSplitChangedHandlers?.Invoke(bOldQuickSplitState, _quickSplitState);
             }
+            _ignoreQuickSplitSet = false;
         }
 
         private void chkXIT_CheckedChanged(object sender, System.EventArgs e)
@@ -37796,6 +37803,7 @@ namespace Thetis
                         {
                             _ignoreQuickSplitSet = true;
                             chkVFOSplit_CheckedChanged(this, EventArgs.Empty);
+                            _ignoreQuickSplitSet = false;
                         }
                         else
                         {
@@ -37827,6 +37835,7 @@ namespace Thetis
                     {
                         _ignoreQuickSplitSet = true;
                         chkVFOSplit_CheckedChanged(this, EventArgs.Empty);
+                        _ignoreQuickSplitSet = false;
                     }
                     //else if (rx2_enabled)
                     //{
@@ -52672,8 +52681,15 @@ namespace Thetis
         }
 
         //
+        private bool _busy_doing_otherbutton_action = false;
+        public bool BustDoingOtherbuttonAction
+        {
+            get { return _busy_doing_otherbutton_action; }
+        }
         public void DoOtherButtonAction(int rx, OtherButtonId id, MouseButtons button)
         {
+            if (_busy_doing_otherbutton_action) return;
+            _busy_doing_otherbutton_action = true;
             switch (id)
             {
                 case OtherButtonId.POWER: PowerOn = !PowerOn; break;
@@ -52907,8 +52923,9 @@ namespace Thetis
                 case OtherButtonId.STACK_D: SetBandStack(rx, -1); break;
 
                 case OtherButtonId.NF: SetNFEnabled(rx, !GetNFEnabled(rx)); break;
-
             }
+
+            _busy_doing_otherbutton_action = false;
         }
         public void SetNFEnabled(int rx, bool state)
         {

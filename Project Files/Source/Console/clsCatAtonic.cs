@@ -58,23 +58,22 @@ namespace CatAtonic
         public string text;
         public int wait_ms;
         public string variable_name;
-        public string parent_uid;
+        public List<string> guard_true;
+        public List<string> guard_false;
+        public string ID;
         public int macro;
+        public int button_index;
     }
 
     public class ScriptResult
     {
         public List<ScriptCommand> commands;
-        public int total_wait_ms;
-        public string cat_state_command;
         public bool is_valid;
         public string error_message;
 
         public ScriptResult()
         {
             this.commands = new List<ScriptCommand>();
-            this.total_wait_ms = 0;
-            this.cat_state_command = null;
             this.is_valid = true;
             this.error_message = string.Empty;
         }
@@ -170,7 +169,7 @@ namespace CatAtonic
                         this.index = j + 1;
                         return new Token(TokenType.Cat, cmd);
                     }
-                    if (ch == '[' || ch == ']' || ch == '#')
+                    if (ch == '\r' || ch == '\n' || ch == '[' || ch == ']' || ch == '#')
                     {
                         return new Token(TokenType.Error, "non terminated cat message in a ;");
                     }
@@ -185,27 +184,22 @@ namespace CatAtonic
     {
         private struct if_ctx
         {
-            public bool cond_true;
-            public bool in_else;
+            public List<string> conds_seen;
+            public string branch_cond;
             public bool seen_else;
-            public bool matched;
             public HashSet<string> used_conds;
         }
 
-        private readonly Func<int, string, bool> condition_evaluator;
-
-        public CATScriptInterpreter(Func<int, string, bool> condition_evaluator)
+        public CATScriptInterpreter()
         {
-            this.condition_evaluator = condition_evaluator;
         }
 
-        public ScriptResult Run(int id, string script)
+        public ScriptResult run(string script)
         {
             ScriptResult result = new ScriptResult();
             Tokeniser t = new Tokeniser(script);
             List<if_ctx> stack = new List<if_ctx>();
             bool expect_cat_after_cat_state = false;
-            bool executed_cat_state_seen = false;
             string pending_var_name = null;
 
             while (true)
@@ -239,17 +233,16 @@ namespace CatAtonic
                             result.error_message = "ELSE without IF";
                             return result;
                         }
-                        if_ctx ctx_else = stack[stack.Count - 1];
-                        if (ctx_else.seen_else)
+                        if_ctx ctx = stack[stack.Count - 1];
+                        if (ctx.seen_else)
                         {
                             result.is_valid = false;
                             result.error_message = "multiple ELSE in IF";
                             return result;
                         }
-                        ctx_else.in_else = true;
-                        ctx_else.seen_else = true;
-                        ctx_else.cond_true = ctx_else.matched;
-                        stack[stack.Count - 1] = ctx_else;
+                        ctx.seen_else = true;
+                        ctx.branch_cond = null;
+                        stack[stack.Count - 1] = ctx;
                         continue;
                     }
 
@@ -261,8 +254,8 @@ namespace CatAtonic
                             result.error_message = "ELSE_IF without IF";
                             return result;
                         }
-                        if_ctx ctx_ei = stack[stack.Count - 1];
-                        if (ctx_ei.seen_else)
+                        if_ctx ctx = stack[stack.Count - 1];
+                        if (ctx.seen_else)
                         {
                             result.is_valid = false;
                             result.error_message = "ELSE_IF after ELSE";
@@ -271,23 +264,18 @@ namespace CatAtonic
                         int prefix_len = upper.StartsWith("ELSEIF_", StringComparison.Ordinal) ? 7 : 8;
                         string cond_name = inner.Substring(prefix_len);
                         string cond_upper = cond_name.ToUpperInvariant();
-                        if (ctx_ei.used_conds != null && ctx_ei.used_conds.Contains(cond_upper))
+                        if (ctx.used_conds != null && ctx.used_conds.Contains(cond_upper))
                         {
                             result.is_valid = false;
                             result.error_message = "duplicate condition in IF chain: " + cond_name;
                             return result;
                         }
-                        if (ctx_ei.used_conds == null) ctx_ei.used_conds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                        ctx_ei.used_conds.Add(cond_upper);
-                        bool cond_true_ei = false;
-                        if (!ctx_ei.matched)
-                        {
-                            if (this.condition_evaluator != null) cond_true_ei = this.condition_evaluator(id, cond_name);
-                        }
-                        ctx_ei.in_else = false;
-                        ctx_ei.cond_true = cond_true_ei;
-                        if (cond_true_ei) ctx_ei.matched = true;
-                        stack[stack.Count - 1] = ctx_ei;
+                        if (ctx.used_conds == null) ctx.used_conds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                        ctx.used_conds.Add(cond_upper);
+                        if (ctx.conds_seen == null) ctx.conds_seen = new List<string>();
+                        ctx.conds_seen.Add(cond_name);
+                        ctx.branch_cond = cond_name;
+                        stack[stack.Count - 1] = ctx;
                         continue;
                     }
 
@@ -305,52 +293,37 @@ namespace CatAtonic
 
                     if (upper == "STATE")
                     {
-                        if (IsActive(stack))
-                        {
-                            if (executed_cat_state_seen)
-                            {
-                                result.is_valid = false;
-                                result.error_message = "multiple STATE on active path";
-                                return result;
-                            }
-                            expect_cat_after_cat_state = true;
-                        }
+                        expect_cat_after_cat_state = true;
                         continue;
                     }
 
                     if (upper.StartsWith("VAR_", StringComparison.Ordinal))
                     {
-                        if (IsActive(stack))
+                        if (pending_var_name != null)
                         {
-                            if (pending_var_name != null)
-                            {
-                                result.is_valid = false;
-                                result.error_message = "multiple VAR before CAT";
-                                return result;
-                            }
-                            pending_var_name = inner.Substring(4);
-                            if (pending_var_name.Length == 0)
-                            {
-                                result.is_valid = false;
-                                result.error_message = "empty VAR name";
-                                return result;
-                            }
+                            result.is_valid = false;
+                            result.error_message = "multiple VAR before CAT";
+                            return result;
+                        }
+                        pending_var_name = inner.Substring(4);
+                        if (pending_var_name.Length == 0)
+                        {
+                            result.is_valid = false;
+                            result.error_message = "empty VAR name";
+                            return result;
                         }
                         continue;
                     }
 
                     if (upper == "WAIT")
                     {
-                        if (IsActive(stack))
-                        {
-                            ScriptCommand cmd_w = new ScriptCommand();
-                            cmd_w.type = ScriptCommandType.Wait;
-                            cmd_w.text = "[WAIT]";
-                            cmd_w.wait_ms = 100;
-                            cmd_w.variable_name = null;
-                            result.commands.Add(cmd_w);
-                            result.total_wait_ms += 100;
-                        }
+                        ScriptCommand cmd_w = new ScriptCommand();
+                        cmd_w.type = ScriptCommandType.Wait;
+                        cmd_w.text = "[WAIT]";
+                        cmd_w.wait_ms = 100;
+                        cmd_w.variable_name = null;
+                        set_guard_from_stack(cmd_w, stack);
+                        result.commands.Add(cmd_w);
                         continue;
                     }
 
@@ -365,32 +338,27 @@ namespace CatAtonic
                             result.error_message = "invalid WAIT value";
                             return result;
                         }
-                        if (IsActive(stack))
-                        {
-                            ScriptCommand cmd_wv = new ScriptCommand();
-                            cmd_wv.type = ScriptCommandType.Wait;
-                            cmd_wv.text = "[WAIT" + ms.ToString(CultureInfo.InvariantCulture) + "]";
-                            cmd_wv.wait_ms = ms;
-                            cmd_wv.variable_name = null;
-                            result.commands.Add(cmd_wv);
-                            result.total_wait_ms += ms;
-                        }
+                        ScriptCommand cmd_wv = new ScriptCommand();
+                        cmd_wv.type = ScriptCommandType.Wait;
+                        cmd_wv.text = "[WAIT" + ms.ToString(CultureInfo.InvariantCulture) + "]";
+                        cmd_wv.wait_ms = ms;
+                        cmd_wv.variable_name = null;
+                        set_guard_from_stack(cmd_wv, stack);
+                        result.commands.Add(cmd_wv);
                         continue;
                     }
 
                     if (upper.StartsWith("IF_", StringComparison.Ordinal))
                     {
-                        string cond_name_if = inner.Substring(3);
-                        string cond_upper_if = cond_name_if.ToUpperInvariant();
-                        bool cond_true_if = false;
-                        if (this.condition_evaluator != null) cond_true_if = this.condition_evaluator(id, cond_name_if);
+                        string cond_name = inner.Substring(3);
+                        string cond_upper = cond_name.ToUpperInvariant();
                         if_ctx ctx_if = new if_ctx();
-                        ctx_if.cond_true = cond_true_if;
-                        ctx_if.in_else = false;
+                        ctx_if.conds_seen = new List<string>();
+                        ctx_if.conds_seen.Add(cond_name);
+                        ctx_if.branch_cond = cond_name;
                         ctx_if.seen_else = false;
-                        ctx_if.matched = cond_true_if;
                         ctx_if.used_conds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-                        ctx_if.used_conds.Add(cond_upper_if);
+                        ctx_if.used_conds.Add(cond_upper);
                         stack.Add(ctx_if);
                         continue;
                     }
@@ -402,31 +370,23 @@ namespace CatAtonic
 
                 if (tok.type == TokenType.Cat)
                 {
-                    string cmd_text = tok.text;
+                    ScriptCommand cmd = new ScriptCommand();
 
                     if (expect_cat_after_cat_state)
                     {
-                        ScriptCommand cmd_cs = new ScriptCommand();
-                        cmd_cs.type = ScriptCommandType.CatState;
-                        cmd_cs.text = cmd_text;
-                        cmd_cs.wait_ms = 0;
-                        cmd_cs.variable_name = pending_var_name;
-                        result.commands.Add(cmd_cs);
-
-                        result.cat_state_command = cmd_text;
-                        expect_cat_after_cat_state = false;
-                        executed_cat_state_seen = true;
+                        cmd.type = ScriptCommandType.CatState;
+                        cmd.text = tok.text;
+                        cmd.wait_ms = 0;
+                        cmd.variable_name = pending_var_name;
                         pending_var_name = null;
-                        continue;
+                        expect_cat_after_cat_state = false;
                     }
-
-                    if (IsActive(stack))
+                    else
                     {
-                        ScriptCommand cmd = new ScriptCommand();
                         if (pending_var_name != null)
                         {
                             cmd.type = ScriptCommandType.CatMessageVar;
-                            cmd.text = cmd_text;
+                            cmd.text = tok.text;
                             cmd.wait_ms = 0;
                             cmd.variable_name = pending_var_name;
                             pending_var_name = null;
@@ -434,13 +394,14 @@ namespace CatAtonic
                         else
                         {
                             cmd.type = ScriptCommandType.CatMessage;
-                            cmd.text = cmd_text;
+                            cmd.text = tok.text;
                             cmd.wait_ms = 0;
                             cmd.variable_name = null;
                         }
-                        result.commands.Add(cmd);
                     }
 
+                    set_guard_from_stack(cmd, stack);
+                    result.commands.Add(cmd);
                     continue;
                 }
             }
@@ -469,43 +430,144 @@ namespace CatAtonic
             return result;
         }
 
-        public bool Validate(int id, string script)
+        public List<ScriptCommand> filter_now(ScriptResult r, Func<string, bool> eval)
         {
-            ScriptResult r = Run(id, script);
-            return r.is_valid;
-        }
-
-        public string Cat_state_command(int id, string script)
-        {
-            ScriptResult r = Run(id, script);
-            if (!r.is_valid) return string.Empty;
-            return r.cat_state_command ?? string.Empty;
-        }
-
-        public int Total_wait_milliseconds(int id, string script)
-        {
-            ScriptResult r = Run(id, script);
-            if (!r.is_valid) return 0;
-            return r.total_wait_ms;
-        }
-
-        private bool IsActive(List<if_ctx> stack)
-        {
-            bool active = true;
-            int k = 0;
-            int count = stack.Count;
-            while (k < count)
+            List<ScriptCommand> list = new List<ScriptCommand>();
+            if (r == null || !r.is_valid) return list;
+            int i = 0;
+            int n = r.commands.Count;
+            bool cat_state_done = false;
+            while (i < n)
             {
-                if_ctx ctx = stack[k];
-                bool branch = ctx.in_else ? !ctx.cond_true : ctx.cond_true;
-                if (!branch)
+                ScriptCommand c = r.commands[i];
+                if (guard_holds(c, eval))
                 {
-                    active = false;
-                    break;
+                    if (c.type == ScriptCommandType.CatState)
+                    {
+                        if (cat_state_done) return new List<ScriptCommand>();
+                        cat_state_done = true;
+                    }
+                    list.Add(c);
                 }
-                k++;
+                i++;
             }
-            return active;
+            return list;
+        }
+
+        public int total_wait_milliseconds_now(ScriptResult r, Func<string, bool> eval)
+        {
+            if (r == null || !r.is_valid) return 0;
+            int total = 0;
+            int i = 0;
+            int n = r.commands.Count;
+            while (i < n)
+            {
+                ScriptCommand c = r.commands[i];
+                if (c.type == ScriptCommandType.Wait && guard_holds(c, eval)) total += c.wait_ms;
+                i++;
+            }
+            return total;
+        }
+
+        public string cat_state_command_now(ScriptResult r, Func<string, bool> eval)
+        {
+            if (r == null || !r.is_valid) return string.Empty;
+            int i = 0;
+            int n = r.commands.Count;
+            while (i < n)
+            {
+                ScriptCommand c = r.commands[i];
+                if (c.type == ScriptCommandType.CatState && guard_holds(c, eval)) return c.text;
+                i++;
+            }
+            return string.Empty;
+        }
+
+        private static bool guard_holds(ScriptCommand c, Func<string, bool> eval)
+        {
+            if (c.guard_true != null)
+            {
+                int i = 0;
+                int n = c.guard_true.Count;
+                while (i < n)
+                {
+                    string name = c.guard_true[i];
+                    if (!eval(name)) return false;
+                    i++;
+                }
+            }
+            if (c.guard_false != null)
+            {
+                int j = 0;
+                int m = c.guard_false.Count;
+                while (j < m)
+                {
+                    string name = c.guard_false[j];
+                    if (eval(name)) return false;
+                    j++;
+                }
+            }
+            return true;
+        }
+
+        private static void set_guard_from_stack(ScriptCommand cmd, List<if_ctx> stack)
+        {
+            List<string> gtrue = null;
+            List<string> gfalse = null;
+
+            int i = 0;
+            int n = stack.Count;
+            while (i < n)
+            {
+                if_ctx ctx = stack[i];
+                if (ctx.branch_cond == null)
+                {
+                    if (ctx.conds_seen != null)
+                    {
+                        int k = 0;
+                        int t = ctx.conds_seen.Count;
+                        while (k < t)
+                        {
+                            if (gfalse == null) gfalse = new List<string>();
+                            if (!contains_string(gfalse, ctx.conds_seen[k])) gfalse.Add(ctx.conds_seen[k]);
+                            k++;
+                        }
+                    }
+                }
+                else
+                {
+                    if (gtrue == null) gtrue = new List<string>();
+                    if (!contains_string(gtrue, ctx.branch_cond)) gtrue.Add(ctx.branch_cond);
+
+                    if (ctx.conds_seen != null)
+                    {
+                        int k2 = 0;
+                        int t2 = ctx.conds_seen.Count - 1;
+                        while (k2 < t2)
+                        {
+                            if (gfalse == null) gfalse = new List<string>();
+                            if (!contains_string(gfalse, ctx.conds_seen[k2])) gfalse.Add(ctx.conds_seen[k2]);
+                            k2++;
+                        }
+                    }
+                }
+                i++;
+            }
+
+            cmd.guard_true = gtrue ?? new List<string>();
+            cmd.guard_false = gfalse ?? new List<string>();
+        }
+
+        private static bool contains_string(List<string> list, string s)
+        {
+            int i = 0;
+            int n = list.Count;
+            while (i < n)
+            {
+                if (string.Equals(list[i], s, StringComparison.OrdinalIgnoreCase)) return true;
+                i++;
+            }
+            return false;
         }
     }
 }

@@ -132,14 +132,14 @@ ZZTO010;               # 10% tune</value>
     <value>17, 17</value>
   </metadata>
   <data name="pictureBox1.ToolTip" xml:space="preserve">
-    <value>[IF_ON]
-[IF_OFF]
+    <value>[IF_ON]                        #if this button is on
+[IF_OFF]                       # if this button is off
 [ELSE]
 [ENDIF]
 [WAIT200]                      #wait 200ms
-[VAR_%variable%]PS;   #write result of cat cmd to variable
-[IF_%variable%]             #use mmio variable (must be bool)
-[IF_$4char$]                   #use 4char variable
-[STATE]PS;                     #writes output of cat cmd into state which can be checked for</value>
+[VAR_%variable%]PS;   #write result of cat cmd to variable. Must use %
+[IF_%variable%]             #use MMIO variable (must be a bool !). Must use %
+[IF_$4char$]                   #use 4char LED indicator variable. Must use $
+[STATE]PS;                     #writes output of cat cmd into cat ON= state</value>
   </data>
 </root>

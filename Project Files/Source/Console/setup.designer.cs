@@ -3277,25 +3277,24 @@
             this.comboMeterType = new System.Windows.Forms.ComboBoxTS();
             this.tpAppearanceMeter2 = new System.Windows.Forms.TabPage();
             this.grpMultiMeterHolder = new System.Windows.Forms.GroupBoxTS();
+            this.btnRecoverContainer = new System.Windows.Forms.ButtonTS();
             this.btnContainer_dupe = new System.Windows.Forms.ButtonTS();
             this.btnContainer_load = new System.Windows.Forms.ButtonTS();
-            this.btnContainer_save = new System.Windows.Forms.ButtonTS();
             this.chkContainer_hidewhennotused = new System.Windows.Forms.CheckBoxTS();
+            this.chkContainerMinimises = new System.Windows.Forms.CheckBoxTS();
+            this.btnContainer_save = new System.Windows.Forms.ButtonTS();
+            this.lblMMContainerNotes = new System.Windows.Forms.LabelTS();
             this.radContainer_rx2_data = new System.Windows.Forms.RadioButtonTS();
+            this.clrbtnContainerBackground = new Thetis.ColorButton();
+            this.btnContainerDelete = new System.Windows.Forms.ButtonTS();
+            this.lblMMContainerBackground = new System.Windows.Forms.LabelTS();
             this.radContainer_rx1_data = new System.Windows.Forms.RadioButtonTS();
-            this.chkLockContainer = new System.Windows.Forms.CheckBoxTS();
             this.chkContainerShowTX = new System.Windows.Forms.CheckBoxTS();
             this.chkMultiMeter_auto_container_height = new System.Windows.Forms.CheckBoxTS();
-            this.chkContainerMinimises = new System.Windows.Forms.CheckBoxTS();
-            this.lblMMContainerNotes = new System.Windows.Forms.LabelTS();
             this.txtContainerNotes = new System.Windows.Forms.TextBoxTS();
-            this.chkContainerShowRX = new System.Windows.Forms.CheckBoxTS();
-            this.chkContainerNoTitle = new System.Windows.Forms.CheckBoxTS();
             this.btnMeterCopySettings = new System.Windows.Forms.ButtonTS();
+            this.chkContainerNoTitle = new System.Windows.Forms.CheckBoxTS();
             this.btnMeterPasteSettings = new System.Windows.Forms.ButtonTS();
-            this.lblMMContainerBackground = new System.Windows.Forms.LabelTS();
-            this.clrbtnContainerBackground = new Thetis.ColorButton();
-            this.chkContainerBorder = new System.Windows.Forms.CheckBoxTS();
             this.grpMeterItemSettings = new System.Windows.Forms.GroupBoxTS();
             this.radMeterItemSettings_custom = new System.Windows.Forms.RadioButtonTS();
             this.radMeterItemSettings = new System.Windows.Forms.RadioButtonTS();
@@ -3353,16 +3352,18 @@
             this.lblMMBackground = new System.Windows.Forms.LabelTS();
             this.clrbtnMeterItemHBackground = new Thetis.ColorButton();
             this.pnlVariableInUse_1 = new System.Windows.Forms.PanelTS();
+            this.chkContainerBorder = new System.Windows.Forms.CheckBoxTS();
+            this.chkContainerShowRX = new System.Windows.Forms.CheckBoxTS();
             this.btnMeterUp = new System.Windows.Forms.ButtonTS();
+            this.chkLockContainer = new System.Windows.Forms.CheckBoxTS();
             this.btnMeterDown = new System.Windows.Forms.ButtonTS();
             this.btnRemoveMeterItem = new System.Windows.Forms.ButtonTS();
             this.btnAddMeterItem = new System.Windows.Forms.ButtonTS();
             this.lstMetersInUse = new System.Windows.Forms.ListBox();
             this.lstMetersAvailable = new System.Windows.Forms.ListBox();
-            this.chkContainerHighlight = new System.Windows.Forms.CheckBoxTS();
-            this.btnContainerDelete = new System.Windows.Forms.ButtonTS();
             this.comboContainerSelect = new System.Windows.Forms.ComboBoxTS();
             this.btnAddRX1Container = new System.Windows.Forms.ButtonTS();
+            this.chkContainerHighlight = new System.Windows.Forms.CheckBoxTS();
             this.tpAppearanceCollapsible = new System.Windows.Forms.TabPage();
             this.txtCollapsedHeight = new System.Windows.Forms.TextBoxTS();
             this.txtCollapsedWidth = new System.Windows.Forms.TextBoxTS();
@@ -4334,7 +4335,6 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
-            this.btnRecoverContainer = new System.Windows.Forms.ButtonTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -53607,6 +53607,19 @@
             this.grpMultiMeterHolder.TabIndex = 86;
             this.grpMultiMeterHolder.TabStop = false;
             // 
+            // btnRecoverContainer
+            // 
+            this.btnRecoverContainer.Image = null;
+            this.btnRecoverContainer.Location = new System.Drawing.Point(209, 63);
+            this.btnRecoverContainer.Name = "btnRecoverContainer";
+            this.btnRecoverContainer.Selectable = true;
+            this.btnRecoverContainer.Size = new System.Drawing.Size(71, 44);
+            this.btnRecoverContainer.TabIndex = 118;
+            this.btnRecoverContainer.Text = "Recover Container";
+            this.toolTip1.SetToolTip(this.btnRecoverContainer, "Recover this container to the console window");
+            this.btnRecoverContainer.UseVisualStyleBackColor = true;
+            this.btnRecoverContainer.Click += new System.EventHandler(this.btnRecoverContainer_Click);
+            // 
             // btnContainer_dupe
             // 
             this.btnContainer_dupe.Image = global::Thetis.Properties.Resources.cont_copy;
@@ -53631,19 +53644,6 @@
             this.btnContainer_load.UseVisualStyleBackColor = true;
             this.btnContainer_load.Click += new System.EventHandler(this.btnContainer_load_Click);
             // 
-            // btnContainer_save
-            // 
-            this.btnContainer_save.Image = global::Thetis.Properties.Resources.cont_save;
-            this.btnContainer_save.Location = new System.Drawing.Point(153, 354);
-            this.btnContainer_save.Name = "btnContainer_save";
-            this.btnContainer_save.Selectable = true;
-            this.btnContainer_save.Size = new System.Drawing.Size(32, 32);
-            this.btnContainer_save.TabIndex = 115;
-            this.btnContainer_save.Text = "S";
-            this.toolTip1.SetToolTip(this.btnContainer_save, "Save a container file");
-            this.btnContainer_save.UseVisualStyleBackColor = true;
-            this.btnContainer_save.Click += new System.EventHandler(this.btnContainer_save_Click);
-            // 
             // chkContainer_hidewhennotused
             // 
             this.chkContainer_hidewhennotused.AutoSize = true;
@@ -53657,6 +53657,44 @@
             this.toolTip1.SetToolTip(this.chkContainer_hidewhennotused, "Hide this container if RX is not in use");
             this.chkContainer_hidewhennotused.UseVisualStyleBackColor = true;
             this.chkContainer_hidewhennotused.CheckedChanged += new System.EventHandler(this.chkContainer_hidewhennotused_CheckedChanged);
+            // 
+            // chkContainerMinimises
+            // 
+            this.chkContainerMinimises.AutoSize = true;
+            this.chkContainerMinimises.Image = null;
+            this.chkContainerMinimises.Location = new System.Drawing.Point(294, 121);
+            this.chkContainerMinimises.Name = "chkContainerMinimises";
+            this.chkContainerMinimises.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkContainerMinimises.Size = new System.Drawing.Size(66, 17);
+            this.chkContainerMinimises.TabIndex = 108;
+            this.chkContainerMinimises.Text = "Minimise";
+            this.toolTip1.SetToolTip(this.chkContainerMinimises, "Container will minimise if main window is minimised");
+            this.chkContainerMinimises.UseVisualStyleBackColor = true;
+            this.chkContainerMinimises.CheckedChanged += new System.EventHandler(this.chkContainerMinimises_CheckedChanged);
+            // 
+            // btnContainer_save
+            // 
+            this.btnContainer_save.Image = global::Thetis.Properties.Resources.cont_save;
+            this.btnContainer_save.Location = new System.Drawing.Point(153, 354);
+            this.btnContainer_save.Name = "btnContainer_save";
+            this.btnContainer_save.Selectable = true;
+            this.btnContainer_save.Size = new System.Drawing.Size(32, 32);
+            this.btnContainer_save.TabIndex = 115;
+            this.btnContainer_save.Text = "S";
+            this.toolTip1.SetToolTip(this.btnContainer_save, "Save a container file");
+            this.btnContainer_save.UseVisualStyleBackColor = true;
+            this.btnContainer_save.Click += new System.EventHandler(this.btnContainer_save_Click);
+            // 
+            // lblMMContainerNotes
+            // 
+            this.lblMMContainerNotes.AutoSize = true;
+            this.lblMMContainerNotes.Image = null;
+            this.lblMMContainerNotes.Location = new System.Drawing.Point(7, 113);
+            this.lblMMContainerNotes.Name = "lblMMContainerNotes";
+            this.lblMMContainerNotes.Size = new System.Drawing.Size(38, 13);
+            this.lblMMContainerNotes.TabIndex = 107;
+            this.lblMMContainerNotes.Text = "Notes:";
+            this.lblMMContainerNotes.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // radContainer_rx2_data
             // 
@@ -53673,6 +53711,45 @@
             this.radContainer_rx2_data.UseVisualStyleBackColor = true;
             this.radContainer_rx2_data.CheckedChanged += new System.EventHandler(this.radContainer_rx2_data_CheckedChanged);
             // 
+            // clrbtnContainerBackground
+            // 
+            this.clrbtnContainerBackground.Automatic = "Automatic";
+            this.clrbtnContainerBackground.Color = System.Drawing.Color.Black;
+            this.clrbtnContainerBackground.Image = null;
+            this.clrbtnContainerBackground.Location = new System.Drawing.Point(159, 102);
+            this.clrbtnContainerBackground.MoreColors = "More Colors...";
+            this.clrbtnContainerBackground.Name = "clrbtnContainerBackground";
+            this.clrbtnContainerBackground.Selectable = true;
+            this.clrbtnContainerBackground.Size = new System.Drawing.Size(40, 23);
+            this.clrbtnContainerBackground.TabIndex = 98;
+            this.toolTip1.SetToolTip(this.clrbtnContainerBackground, "Container Background Colour");
+            this.clrbtnContainerBackground.Changed += new System.EventHandler(this.clrbtnContainerBackground_Changed);
+            // 
+            // btnContainerDelete
+            // 
+            this.btnContainerDelete.Image = null;
+            this.btnContainerDelete.Location = new System.Drawing.Point(209, 119);
+            this.btnContainerDelete.Name = "btnContainerDelete";
+            this.btnContainerDelete.Selectable = true;
+            this.btnContainerDelete.Size = new System.Drawing.Size(71, 44);
+            this.btnContainerDelete.TabIndex = 88;
+            this.btnContainerDelete.Text = "Remove Container";
+            this.toolTip1.SetToolTip(this.btnContainerDelete, "Removes the selected container and all meter items contained within");
+            this.btnContainerDelete.UseVisualStyleBackColor = true;
+            this.btnContainerDelete.Click += new System.EventHandler(this.btnContainerDelete_Click);
+            // 
+            // lblMMContainerBackground
+            // 
+            this.lblMMContainerBackground.AutoSize = true;
+            this.lblMMContainerBackground.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblMMContainerBackground.Image = null;
+            this.lblMMContainerBackground.Location = new System.Drawing.Point(89, 107);
+            this.lblMMContainerBackground.Name = "lblMMContainerBackground";
+            this.lblMMContainerBackground.Size = new System.Drawing.Size(68, 13);
+            this.lblMMContainerBackground.TabIndex = 99;
+            this.lblMMContainerBackground.Text = "Background:";
+            this.lblMMContainerBackground.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
             // radContainer_rx1_data
             // 
             this.radContainer_rx1_data.AutoSize = true;
@@ -53687,21 +53764,6 @@
             this.toolTip1.SetToolTip(this.radContainer_rx1_data, "This container will use RX1 data");
             this.radContainer_rx1_data.UseVisualStyleBackColor = true;
             this.radContainer_rx1_data.CheckedChanged += new System.EventHandler(this.radContainer_rx1_data_CheckedChanged);
-            // 
-            // chkLockContainer
-            // 
-            this.chkLockContainer.AutoSize = true;
-            this.chkLockContainer.Image = null;
-            this.chkLockContainer.Location = new System.Drawing.Point(310, 62);
-            this.chkLockContainer.Name = "chkLockContainer";
-            this.chkLockContainer.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkLockContainer.Size = new System.Drawing.Size(50, 17);
-            this.chkLockContainer.TabIndex = 111;
-            this.chkLockContainer.Text = "Lock";
-            this.toolTip1.SetToolTip(this.chkLockContainer, "Lock the container to prevent removal and to prevent add/remove of items. You can" +
-        " still make adjustments to items");
-            this.chkLockContainer.UseVisualStyleBackColor = true;
-            this.chkLockContainer.CheckedChanged += new System.EventHandler(this.chkLockContainer_CheckedChanged);
             // 
             // chkContainerShowTX
             // 
@@ -53731,31 +53793,6 @@
             this.chkMultiMeter_auto_container_height.UseVisualStyleBackColor = true;
             this.chkMultiMeter_auto_container_height.CheckedChanged += new System.EventHandler(this.chkMultiMeter_auto_container_height_CheckedChanged);
             // 
-            // chkContainerMinimises
-            // 
-            this.chkContainerMinimises.AutoSize = true;
-            this.chkContainerMinimises.Image = null;
-            this.chkContainerMinimises.Location = new System.Drawing.Point(294, 121);
-            this.chkContainerMinimises.Name = "chkContainerMinimises";
-            this.chkContainerMinimises.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkContainerMinimises.Size = new System.Drawing.Size(66, 17);
-            this.chkContainerMinimises.TabIndex = 108;
-            this.chkContainerMinimises.Text = "Minimise";
-            this.toolTip1.SetToolTip(this.chkContainerMinimises, "Container will minimise if main window is minimised");
-            this.chkContainerMinimises.UseVisualStyleBackColor = true;
-            this.chkContainerMinimises.CheckedChanged += new System.EventHandler(this.chkContainerMinimises_CheckedChanged);
-            // 
-            // lblMMContainerNotes
-            // 
-            this.lblMMContainerNotes.AutoSize = true;
-            this.lblMMContainerNotes.Image = null;
-            this.lblMMContainerNotes.Location = new System.Drawing.Point(7, 113);
-            this.lblMMContainerNotes.Name = "lblMMContainerNotes";
-            this.lblMMContainerNotes.Size = new System.Drawing.Size(38, 13);
-            this.lblMMContainerNotes.TabIndex = 107;
-            this.lblMMContainerNotes.Text = "Notes:";
-            this.lblMMContainerNotes.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
             // txtContainerNotes
             // 
             this.txtContainerNotes.Location = new System.Drawing.Point(7, 130);
@@ -53767,19 +53804,17 @@
             this.toolTip1.SetToolTip(this.txtContainerNotes, "Somewhere to store notes about this container");
             this.txtContainerNotes.TextChanged += new System.EventHandler(this.txtContainerNotes_TextChanged);
             // 
-            // chkContainerShowRX
+            // btnMeterCopySettings
             // 
-            this.chkContainerShowRX.AutoSize = true;
-            this.chkContainerShowRX.Image = null;
-            this.chkContainerShowRX.Location = new System.Drawing.Point(128, 40);
-            this.chkContainerShowRX.Name = "chkContainerShowRX";
-            this.chkContainerShowRX.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
-            this.chkContainerShowRX.Size = new System.Drawing.Size(71, 17);
-            this.chkContainerShowRX.TabIndex = 105;
-            this.chkContainerShowRX.Text = "Show RX";
-            this.toolTip1.SetToolTip(this.chkContainerShowRX, "Show the selected container on RX");
-            this.chkContainerShowRX.UseVisualStyleBackColor = true;
-            this.chkContainerShowRX.CheckedChanged += new System.EventHandler(this.chkContainerShowRX_CheckedChanged);
+            this.btnMeterCopySettings.Image = global::Thetis.Properties.Resources.pipette32border;
+            this.btnMeterCopySettings.Location = new System.Drawing.Point(337, 316);
+            this.btnMeterCopySettings.Name = "btnMeterCopySettings";
+            this.btnMeterCopySettings.Selectable = true;
+            this.btnMeterCopySettings.Size = new System.Drawing.Size(32, 32);
+            this.btnMeterCopySettings.TabIndex = 103;
+            this.toolTip1.SetToolTip(this.btnMeterCopySettings, "Copy settings and colours");
+            this.btnMeterCopySettings.UseVisualStyleBackColor = true;
+            this.btnMeterCopySettings.Click += new System.EventHandler(this.btnMeterCopySettings_Click);
             // 
             // chkContainerNoTitle
             // 
@@ -53795,22 +53830,10 @@
             this.chkContainerNoTitle.UseVisualStyleBackColor = true;
             this.chkContainerNoTitle.CheckedChanged += new System.EventHandler(this.chkContainerNoTitle_CheckedChanged);
             // 
-            // btnMeterCopySettings
-            // 
-            this.btnMeterCopySettings.Image = global::Thetis.Properties.Resources.pipette32border;
-            this.btnMeterCopySettings.Location = new System.Drawing.Point(336, 293);
-            this.btnMeterCopySettings.Name = "btnMeterCopySettings";
-            this.btnMeterCopySettings.Selectable = true;
-            this.btnMeterCopySettings.Size = new System.Drawing.Size(32, 32);
-            this.btnMeterCopySettings.TabIndex = 103;
-            this.toolTip1.SetToolTip(this.btnMeterCopySettings, "Copy settings and colours");
-            this.btnMeterCopySettings.UseVisualStyleBackColor = true;
-            this.btnMeterCopySettings.Click += new System.EventHandler(this.btnMeterCopySettings_Click);
-            // 
             // btnMeterPasteSettings
             // 
             this.btnMeterPasteSettings.Image = global::Thetis.Properties.Resources.brush32border;
-            this.btnMeterPasteSettings.Location = new System.Drawing.Point(336, 340);
+            this.btnMeterPasteSettings.Location = new System.Drawing.Point(336, 353);
             this.btnMeterPasteSettings.Name = "btnMeterPasteSettings";
             this.btnMeterPasteSettings.Selectable = true;
             this.btnMeterPasteSettings.Size = new System.Drawing.Size(32, 32);
@@ -53818,46 +53841,6 @@
             this.toolTip1.SetToolTip(this.btnMeterPasteSettings, "Paste settings and colours into suitable meter item");
             this.btnMeterPasteSettings.UseVisualStyleBackColor = true;
             this.btnMeterPasteSettings.Click += new System.EventHandler(this.btnMeterPasteSettings_Click);
-            // 
-            // lblMMContainerBackground
-            // 
-            this.lblMMContainerBackground.AutoSize = true;
-            this.lblMMContainerBackground.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblMMContainerBackground.Image = null;
-            this.lblMMContainerBackground.Location = new System.Drawing.Point(89, 107);
-            this.lblMMContainerBackground.Name = "lblMMContainerBackground";
-            this.lblMMContainerBackground.Size = new System.Drawing.Size(68, 13);
-            this.lblMMContainerBackground.TabIndex = 99;
-            this.lblMMContainerBackground.Text = "Background:";
-            this.lblMMContainerBackground.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            // 
-            // clrbtnContainerBackground
-            // 
-            this.clrbtnContainerBackground.Automatic = "Automatic";
-            this.clrbtnContainerBackground.Color = System.Drawing.Color.Black;
-            this.clrbtnContainerBackground.Image = null;
-            this.clrbtnContainerBackground.Location = new System.Drawing.Point(159, 102);
-            this.clrbtnContainerBackground.MoreColors = "More Colors...";
-            this.clrbtnContainerBackground.Name = "clrbtnContainerBackground";
-            this.clrbtnContainerBackground.Selectable = true;
-            this.clrbtnContainerBackground.Size = new System.Drawing.Size(40, 23);
-            this.clrbtnContainerBackground.TabIndex = 98;
-            this.toolTip1.SetToolTip(this.clrbtnContainerBackground, "Container Background Colour");
-            this.clrbtnContainerBackground.Changed += new System.EventHandler(this.clrbtnContainerBackground_Changed);
-            // 
-            // chkContainerBorder
-            // 
-            this.chkContainerBorder.AutoSize = true;
-            this.chkContainerBorder.Image = null;
-            this.chkContainerBorder.Location = new System.Drawing.Point(8, 61);
-            this.chkContainerBorder.Name = "chkContainerBorder";
-            this.chkContainerBorder.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.chkContainerBorder.Size = new System.Drawing.Size(57, 17);
-            this.chkContainerBorder.TabIndex = 97;
-            this.chkContainerBorder.Text = "Border";
-            this.toolTip1.SetToolTip(this.chkContainerBorder, "Container has a border");
-            this.chkContainerBorder.UseVisualStyleBackColor = true;
-            this.chkContainerBorder.CheckedChanged += new System.EventHandler(this.chkContainerBorder_CheckedChanged);
             // 
             // grpMeterItemSettings
             // 
@@ -54754,10 +54737,38 @@
             this.pnlVariableInUse_1.Size = new System.Drawing.Size(28, 6);
             this.pnlVariableInUse_1.TabIndex = 130;
             // 
+            // chkContainerBorder
+            // 
+            this.chkContainerBorder.AutoSize = true;
+            this.chkContainerBorder.Image = null;
+            this.chkContainerBorder.Location = new System.Drawing.Point(8, 61);
+            this.chkContainerBorder.Name = "chkContainerBorder";
+            this.chkContainerBorder.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.chkContainerBorder.Size = new System.Drawing.Size(57, 17);
+            this.chkContainerBorder.TabIndex = 97;
+            this.chkContainerBorder.Text = "Border";
+            this.toolTip1.SetToolTip(this.chkContainerBorder, "Container has a border");
+            this.chkContainerBorder.UseVisualStyleBackColor = true;
+            this.chkContainerBorder.CheckedChanged += new System.EventHandler(this.chkContainerBorder_CheckedChanged);
+            // 
+            // chkContainerShowRX
+            // 
+            this.chkContainerShowRX.AutoSize = true;
+            this.chkContainerShowRX.Image = null;
+            this.chkContainerShowRX.Location = new System.Drawing.Point(128, 40);
+            this.chkContainerShowRX.Name = "chkContainerShowRX";
+            this.chkContainerShowRX.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkContainerShowRX.Size = new System.Drawing.Size(71, 17);
+            this.chkContainerShowRX.TabIndex = 105;
+            this.chkContainerShowRX.Text = "Show RX";
+            this.toolTip1.SetToolTip(this.chkContainerShowRX, "Show the selected container on RX");
+            this.chkContainerShowRX.UseVisualStyleBackColor = true;
+            this.chkContainerShowRX.CheckedChanged += new System.EventHandler(this.chkContainerShowRX_CheckedChanged);
+            // 
             // btnMeterUp
             // 
             this.btnMeterUp.Image = global::Thetis.Properties.Resources.arrow_up_black;
-            this.btnMeterUp.Location = new System.Drawing.Point(337, 147);
+            this.btnMeterUp.Location = new System.Drawing.Point(337, 174);
             this.btnMeterUp.Name = "btnMeterUp";
             this.btnMeterUp.Selectable = true;
             this.btnMeterUp.Size = new System.Drawing.Size(32, 32);
@@ -54766,10 +54777,25 @@
             this.btnMeterUp.UseVisualStyleBackColor = true;
             this.btnMeterUp.Click += new System.EventHandler(this.btnMeterUp_Click);
             // 
+            // chkLockContainer
+            // 
+            this.chkLockContainer.AutoSize = true;
+            this.chkLockContainer.Image = null;
+            this.chkLockContainer.Location = new System.Drawing.Point(310, 62);
+            this.chkLockContainer.Name = "chkLockContainer";
+            this.chkLockContainer.RightToLeft = System.Windows.Forms.RightToLeft.Yes;
+            this.chkLockContainer.Size = new System.Drawing.Size(50, 17);
+            this.chkLockContainer.TabIndex = 111;
+            this.chkLockContainer.Text = "Lock";
+            this.toolTip1.SetToolTip(this.chkLockContainer, "Lock the container to prevent removal and to prevent add/remove of items. You can" +
+        " still make adjustments to items");
+            this.chkLockContainer.UseVisualStyleBackColor = true;
+            this.chkLockContainer.CheckedChanged += new System.EventHandler(this.chkLockContainer_CheckedChanged);
+            // 
             // btnMeterDown
             // 
             this.btnMeterDown.Image = global::Thetis.Properties.Resources.down_black;
-            this.btnMeterDown.Location = new System.Drawing.Point(337, 194);
+            this.btnMeterDown.Location = new System.Drawing.Point(336, 212);
             this.btnMeterDown.Name = "btnMeterDown";
             this.btnMeterDown.Selectable = true;
             this.btnMeterDown.Size = new System.Drawing.Size(32, 32);
@@ -54826,32 +54852,6 @@
             this.lstMetersAvailable.SelectedIndexChanged += new System.EventHandler(this.lstMetersAvailable_SelectedIndexChanged);
             this.lstMetersAvailable.DoubleClick += new System.EventHandler(this.lstMetersAvailable_DoubleClick);
             // 
-            // chkContainerHighlight
-            // 
-            this.chkContainerHighlight.AutoSize = true;
-            this.chkContainerHighlight.Image = null;
-            this.chkContainerHighlight.Location = new System.Drawing.Point(8, 40);
-            this.chkContainerHighlight.Name = "chkContainerHighlight";
-            this.chkContainerHighlight.Size = new System.Drawing.Size(67, 17);
-            this.chkContainerHighlight.TabIndex = 89;
-            this.chkContainerHighlight.Text = "Highlight";
-            this.toolTip1.SetToolTip(this.chkContainerHighlight, "Highlight selected container");
-            this.chkContainerHighlight.UseVisualStyleBackColor = true;
-            this.chkContainerHighlight.CheckedChanged += new System.EventHandler(this.chkContainerHighlight_CheckedChanged);
-            // 
-            // btnContainerDelete
-            // 
-            this.btnContainerDelete.Image = null;
-            this.btnContainerDelete.Location = new System.Drawing.Point(209, 119);
-            this.btnContainerDelete.Name = "btnContainerDelete";
-            this.btnContainerDelete.Selectable = true;
-            this.btnContainerDelete.Size = new System.Drawing.Size(71, 44);
-            this.btnContainerDelete.TabIndex = 88;
-            this.btnContainerDelete.Text = "Remove Container";
-            this.toolTip1.SetToolTip(this.btnContainerDelete, "Removes the selected container and all meter items contained within");
-            this.btnContainerDelete.UseVisualStyleBackColor = true;
-            this.btnContainerDelete.Click += new System.EventHandler(this.btnContainerDelete_Click);
-            // 
             // comboContainerSelect
             // 
             this.comboContainerSelect.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
@@ -54875,6 +54875,19 @@
             this.toolTip1.SetToolTip(this.btnAddRX1Container, "Add a meter item container");
             this.btnAddRX1Container.UseVisualStyleBackColor = true;
             this.btnAddRX1Container.Click += new System.EventHandler(this.btnAddRX1Container_Click);
+            // 
+            // chkContainerHighlight
+            // 
+            this.chkContainerHighlight.AutoSize = true;
+            this.chkContainerHighlight.Image = null;
+            this.chkContainerHighlight.Location = new System.Drawing.Point(8, 40);
+            this.chkContainerHighlight.Name = "chkContainerHighlight";
+            this.chkContainerHighlight.Size = new System.Drawing.Size(67, 17);
+            this.chkContainerHighlight.TabIndex = 89;
+            this.chkContainerHighlight.Text = "Highlight";
+            this.toolTip1.SetToolTip(this.chkContainerHighlight, "Highlight selected container");
+            this.chkContainerHighlight.UseVisualStyleBackColor = true;
+            this.chkContainerHighlight.CheckedChanged += new System.EventHandler(this.chkContainerHighlight_CheckedChanged);
             // 
             // tpAppearanceCollapsible
             // 
@@ -69003,19 +69016,6 @@
             this.radioButtonTS6.TabStop = true;
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
-            // 
-            // btnRecoverContainer
-            // 
-            this.btnRecoverContainer.Image = null;
-            this.btnRecoverContainer.Location = new System.Drawing.Point(209, 63);
-            this.btnRecoverContainer.Name = "btnRecoverContainer";
-            this.btnRecoverContainer.Selectable = true;
-            this.btnRecoverContainer.Size = new System.Drawing.Size(71, 44);
-            this.btnRecoverContainer.TabIndex = 118;
-            this.btnRecoverContainer.Text = "Recover Container";
-            this.toolTip1.SetToolTip(this.btnRecoverContainer, "Recover this container to the console window");
-            this.btnRecoverContainer.UseVisualStyleBackColor = true;
-            this.btnRecoverContainer.Click += new System.EventHandler(this.btnRecoverContainer_Click);
             // 
             // Setup
             // 
