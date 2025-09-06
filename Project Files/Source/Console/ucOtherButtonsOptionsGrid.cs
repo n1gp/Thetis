@@ -44,6 +44,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Security.Policy;
 using System.Windows.Forms;
+using System.Runtime.Serialization;
+using System.IO;
+using System.Reflection;
+using System.Runtime.Serialization.Formatters.Binary;
 
 namespace Thetis
 {
@@ -284,44 +288,62 @@ namespace Thetis
         private bool _on_state;
         private string _cat_macro;
 
-        private static OtherButtonMacroSettings deep_clone(OtherButtonMacroSettings source)
+        //private static OtherButtonMacroSettings deep_clone(OtherButtonMacroSettings source)
+        //{
+        //    if (source == null) return null;
+        //    System.IO.MemoryStream ms = new System.IO.MemoryStream();
+        //    System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+        //    formatter.Serialize(ms, source);
+        //    ms.Position = 0;
+        //    object deserialized = formatter.Deserialize(ms);
+        //    return (OtherButtonMacroSettings)deserialized;
+        //}
+
+        private static T deep_clone<T>(T obj)
         {
-            if (source == null) return null;
-            System.IO.MemoryStream ms = new System.IO.MemoryStream();
-            System.Runtime.Serialization.Formatters.Binary.BinaryFormatter formatter = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-            formatter.Serialize(ms, source);
-            ms.Position = 0;
-            object deserialized = formatter.Deserialize(ms);
-            return (OtherButtonMacroSettings)deserialized;
+            if (!typeof(T).IsSerializable) throw new InvalidOperationException("Type must be serializable");
+            using (MemoryStream memory_stream = new MemoryStream())
+            {
+                BinaryFormatter formatter = new BinaryFormatter();
+                formatter.Serialize(memory_stream, obj);
+                memory_stream.Position = 0;
+                object deserialized = formatter.Deserialize(memory_stream);
+                return (T)deserialized;
+            }
         }
 
         public OtherButtonMacroSettings(OtherButtonMacroSettings settings)
         {
             if (settings != null)
             {
-                OtherButtonMacroSettings clone = deep_clone(settings);
-                _number = clone._number;
-                _on_text = clone._on_text;
-                _off_text = clone._off_text;
-                _notes = clone._notes;
-                _closes_parent = clone._closes_parent;
-                _closes_container = clone._closes_container;
-                _opens_container = clone._opens_container;
-                _close_container_id = clone._close_container_id;
-                _open_container_id = clone._open_container_id;
-                _open_uses_location = clone._open_uses_location;
-                _send_via_mmio = clone._send_via_mmio;
-                _mmio_4char = clone._mmio_4char;
-                _mmio_message_on = clone._mmio_message_on;
-                _mmio_message_off = clone._mmio_message_off;
-                _buttonstate_type = clone._buttonstate_type;
-                _led_indicator_four_char = clone._led_indicator_four_char;
-                _buttonstate_container_visible_id = clone._buttonstate_container_visible_id;
-                _buttonstate_cat_on_reply = clone._buttonstate_cat_on_reply;
-                _cat_macro_send = clone._cat_macro_send;
-                _on_state = clone._on_state;
-                _cat_macro = clone._cat_macro;
-                _run_state_command_on_visible = clone._run_state_command_on_visible;
+                OtherButtonMacroSettings deep = deep_clone(settings);
+                MemberInfo[] members = FormatterServices.GetSerializableMembers(typeof(OtherButtonMacroSettings));
+                object[] data = FormatterServices.GetObjectData(deep, members);
+                FormatterServices.PopulateObjectMembers(this, members, data);
+
+                //OtherButtonMacroSettings clone = deep_clone(settings);
+                //_number = clone._number;
+                //_on_text = clone._on_text;
+                //_off_text = clone._off_text;
+                //_notes = clone._notes;
+                //_closes_parent = clone._closes_parent;
+                //_closes_container = clone._closes_container;
+                //_opens_container = clone._opens_container;
+                //_close_container_id = clone._close_container_id;
+                //_open_container_id = clone._open_container_id;
+                //_open_uses_location = clone._open_uses_location;
+                //_send_via_mmio = clone._send_via_mmio;
+                //_mmio_4char = clone._mmio_4char;
+                //_mmio_message_on = clone._mmio_message_on;
+                //_mmio_message_off = clone._mmio_message_off;
+                //_buttonstate_type = clone._buttonstate_type;
+                //_led_indicator_four_char = clone._led_indicator_four_char;
+                //_buttonstate_container_visible_id = clone._buttonstate_container_visible_id;
+                //_buttonstate_cat_on_reply = clone._buttonstate_cat_on_reply;
+                //_cat_macro_send = clone._cat_macro_send;
+                //_on_state = clone._on_state;
+                //_cat_macro = clone._cat_macro;
+                //_run_state_command_on_visible = clone._run_state_command_on_visible;
             }
         }
 
