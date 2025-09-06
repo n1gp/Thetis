@@ -34292,7 +34292,7 @@ namespace Thetis
                     ratio = fitSizeHeight / sz.Height;
                 }
 
-                bool apply_scale = ratio < 1f ? only_shrink : (!only_shrink && ratio != 1f);
+                bool apply_scale = (only_shrink && ratio < 1f) || (!only_shrink && ratio != 1f);
                 if (apply_scale)
                 {
                     fTextSize *= ratio;

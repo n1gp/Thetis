@@ -63,6 +63,7 @@
             this.labelTS3 = new System.Windows.Forms.LabelTS();
             this.txtNotes = new System.Windows.Forms.TextBoxTS();
             this.groupBoxTS1 = new System.Windows.Forms.GroupBoxTS();
+            this.chkRunStateCommandOnVisible = new System.Windows.Forms.CheckBoxTS();
             this.labelTS7 = new System.Windows.Forms.LabelTS();
             this.txtButtonState_cat_on_reply = new System.Windows.Forms.TextBoxTS();
             this.radButtonState_catstate = new System.Windows.Forms.RadioButtonTS();
@@ -104,7 +105,6 @@
             this.tpButtonState = new System.Windows.Forms.TabPage();
             this.tpMMIO = new System.Windows.Forms.TabPage();
             this.tpCAT = new System.Windows.Forms.TabPage();
-            this.chkRunStateCommandOnVisible = new System.Windows.Forms.CheckBoxTS();
             this.groupBoxTS3.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.picError)).BeginInit();
@@ -509,6 +509,20 @@
             this.groupBoxTS1.TabStop = false;
             this.groupBoxTS1.Text = "Button State";
             // 
+            // chkRunStateCommandOnVisible
+            // 
+            this.chkRunStateCommandOnVisible.AutoSize = true;
+            this.chkRunStateCommandOnVisible.Image = null;
+            this.chkRunStateCommandOnVisible.Location = new System.Drawing.Point(67, 187);
+            this.chkRunStateCommandOnVisible.Name = "chkRunStateCommandOnVisible";
+            this.chkRunStateCommandOnVisible.Size = new System.Drawing.Size(282, 17);
+            this.chkRunStateCommandOnVisible.TabIndex = 39;
+            this.chkRunStateCommandOnVisible.Text = "Run state cmd when parent container becomes visible";
+            this.toolTip1.SetToolTip(this.chkRunStateCommandOnVisible, "Run the state command, when the parent container becomes visible.\r\nThis ensures b" +
+        "utton state accuracy.");
+            this.chkRunStateCommandOnVisible.UseVisualStyleBackColor = true;
+            this.chkRunStateCommandOnVisible.CheckedChanged += new System.EventHandler(this.chkRunStateCommandOnVisible_CheckedChanged);
+            // 
             // labelTS7
             // 
             this.labelTS7.AutoSize = true;
@@ -876,7 +890,7 @@
             // txtOFF
             // 
             this.txtOFF.Location = new System.Drawing.Point(94, 39);
-            this.txtOFF.MaxLength = 20;
+            this.txtOFF.MaxLength = 40;
             this.txtOFF.Name = "txtOFF";
             this.txtOFF.Size = new System.Drawing.Size(232, 20);
             this.txtOFF.TabIndex = 3;
@@ -886,7 +900,7 @@
             // txtON
             // 
             this.txtON.Location = new System.Drawing.Point(94, 13);
-            this.txtON.MaxLength = 20;
+            this.txtON.MaxLength = 40;
             this.txtON.Name = "txtON";
             this.txtON.Size = new System.Drawing.Size(232, 20);
             this.txtON.TabIndex = 2;
@@ -954,20 +968,6 @@
             this.tpCAT.Size = new System.Drawing.Size(778, 338);
             this.tpCAT.TabIndex = 1;
             this.tpCAT.Text = "CAT Macro";
-            // 
-            // chkRunStateCommandOnVisible
-            // 
-            this.chkRunStateCommandOnVisible.AutoSize = true;
-            this.chkRunStateCommandOnVisible.Image = null;
-            this.chkRunStateCommandOnVisible.Location = new System.Drawing.Point(67, 187);
-            this.chkRunStateCommandOnVisible.Name = "chkRunStateCommandOnVisible";
-            this.chkRunStateCommandOnVisible.Size = new System.Drawing.Size(282, 17);
-            this.chkRunStateCommandOnVisible.TabIndex = 39;
-            this.chkRunStateCommandOnVisible.Text = "Run state cmd when parent container becomes visible";
-            this.toolTip1.SetToolTip(this.chkRunStateCommandOnVisible, "Run the state command, when the parent container becomes visible.\r\nThis ensures b" +
-        "utton state accuracy.");
-            this.chkRunStateCommandOnVisible.UseVisualStyleBackColor = true;
-            this.chkRunStateCommandOnVisible.CheckedChanged += new System.EventHandler(this.chkRunStateCommandOnVisible_CheckedChanged);
             // 
             // frmMacroButtonConfig
             // 
