@@ -8117,6 +8117,7 @@ namespace Thetis
             private int _dragging_index;
             private int[] _visible_bits;
             private int _last_draged_to;
+            private bool _has_macro_buttons;
 
             private short[] _map;
             private readonly object _map_lock = new object();
@@ -8131,6 +8132,7 @@ namespace Thetis
 
             public clsOtherButtons(clsMeter owningmeter, clsItemGroup ig)
             {
+                _has_macro_buttons = false;
                 _cat_inter = null;
                 _text_overlay_to_use_parser = new clsTextOverlay(owningmeter);
                 _owningmeter = owningmeter;
@@ -8178,22 +8180,8 @@ namespace Thetis
             private void OnContainerVisible(string id, bool visible)
             {
                 // we dont care about this if we have no macro buttons
-                bool any_visible = false;
-                for (int n = 0; n < _macro_settings.Length - 1; n++)
-                {
-                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId._MACRO_0 + n);
-                    bit = (bit_group * 32) + bit;
-
-                    if(GetVisible(1, bit))
-                    {
-                        any_visible = true;
-                        break;
-                    }
-                }
-
-                if (!any_visible) return;
+                if (!_has_macro_buttons) return;
                 
-                Debug.Print("CONTAINER : " + id + " ----> VISIBLE: " + visible.ToString());
                 //update any macros that use this id
                 for(int n = 0; n < _macro_settings.Length -1; n++)
                 {
@@ -8737,6 +8725,8 @@ namespace Thetis
             {
                 if (!RebuildButtons) return;
 
+                _has_macro_buttons = false;
+
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
                 {
@@ -8908,7 +8898,7 @@ namespace Thetis
                     SetIndicatorWidth(1, i, GetIndicatorWidth(0, i));
                     SetEnabled(1, i, button_enabled);
 
-                    if(!skip_set_visible) SetVisible(1, i, isVisible(bit_group, bit));//GetVisible(0, i));
+                    if(!skip_set_visible) SetVisible(1, i, isVisible(bit_group, bit));//GetVisible(0, i));  // skip if set above
 
                     //get the state from the console
                     //bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
@@ -8930,6 +8920,8 @@ namespace Thetis
 
                     if (macro_button)
                     {
+                        _has_macro_buttons |= isVisible(bit_group, bit);
+
                         lock (_macro_settings_lock)
                         {
                             _macro_settings[macro] = new OtherButtonMacroSettings(macro_settings);
