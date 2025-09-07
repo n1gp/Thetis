@@ -30190,11 +30190,6 @@ namespace Thetis
             clrbtnTextOverlay_TextBackColour2.Enabled = chkTextOverlay_textback2.Checked;
         }
 
-        private void pbTextOverlay_variables_Click(object sender, EventArgs e)
-        {
-            toolTip1.Show(toolTip1.GetToolTip(pbTextOverlay_variables), pbTextOverlay_variables, 10 * 1000);
-        }
-
         #region MultiMeter IO
         // Code for the multimeter IO - MW0LGE [2.10.3.6]
         private bool _MMIO_ignore_change_events = false;
@@ -35602,8 +35597,9 @@ namespace Thetis
             DialogResult dr = f.ShowDialog(this);
             if (dr == DialogResult.OK)
             {
-                Clipboard.SetText(f.Variable);
-                return f.Variable;
+                string tmp = "%" + f.Variable.Trim('%') + "%";
+                Clipboard.SetText(tmp);
+                return tmp;
             }
             return "";
         }

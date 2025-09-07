@@ -8177,8 +8177,23 @@ namespace Thetis
             }
             private void OnContainerVisible(string id, bool visible)
             {
-                Debug.Print("CONTAINER : " + id + " ----> VISIBLE: " + visible.ToString());
+                // we dont care about this if we have no macro buttons
+                bool any_visible = false;
+                for (int n = 0; n < _macro_settings.Length - 1; n++)
+                {
+                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID(OtherButtonId._MACRO_0 + n);
+                    bit = (bit_group * 32) + bit;
 
+                    if(GetVisible(1, bit))
+                    {
+                        any_visible = true;
+                        break;
+                    }
+                }
+
+                if (!any_visible) return;
+                
+                Debug.Print("CONTAINER : " + id + " ----> VISIBLE: " + visible.ToString());
                 //update any macros that use this id
                 for(int n = 0; n < _macro_settings.Length -1; n++)
                 {
@@ -17909,8 +17924,6 @@ namespace Thetis
                             string tmp = mmio.VariableValueType(val, precis_found ? precision_format : "");
 
                             sTmp = sTmp.ReplaceIgnoreTokenCase(token, tmp);
-
-                            break;//[2.10.3.12]MW0LGE leave after we find a match, if more than one mmio with same variable, then nothing we can do about it
                         }
                     }
                 }
