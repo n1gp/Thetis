@@ -6382,22 +6382,6 @@ namespace Thetis
 
             private bool _udpate_always;
 
-            internal struct ButtonPadding
-            {
-                public float left;
-                public float right;
-                public bool left_edge;
-                public bool right_edge;
-
-                public ButtonPadding(float left = 0, float right = 0, bool left_edge = true, bool right_edge = true)
-                {
-                    this.left = left;
-                    this.right = right;
-                    this.left_edge = left_edge;
-                    this.right_edge = right_edge;
-                }
-            }
-
             public clsMeterItem(clsMeter owningMeter = null)
             {
                 // constructor
@@ -35016,7 +35000,6 @@ namespace Thetis
                 float y = (mi.DisplayTopLeft.Y / m.YRatio) * rect.Height;
                 float w = rect.Width * (mi.Size.Width / m.XRatio);
                 float h = rect.Height * (mi.Size.Height / m.YRatio);
-                float base_w = w;
 
                 //SharpDX.RectangleF rectSC = new SharpDX.RectangleF(x, y, w, h);
                 //_renderTarget.FillRectangle(rectSC, getDXBrushForColour(System.Drawing.Color.Green));
@@ -35039,7 +35022,6 @@ namespace Thetis
                 float button_height = ((h + expand) / (float)rows) - margin - border;
                 button_width += margin + border;
                 button_height += margin + border;
-                float base_button_width = button_width;
 
                 int highlighted_index = -1;
                 int button_index = 0;
@@ -35062,9 +35044,11 @@ namespace Thetis
                 short[] map = null;
                 bool is_other_button = bb.ItemType == clsMeterItem.MeterItemType.OTHER_BUTTONS;
 
+                clsOtherButtons ob = null;
                 if (is_other_button)
                 {
-                    map = ((clsOtherButtons)bb).MapCopy;
+                    ob = bb as clsOtherButtons;
+                    map = ob.MapCopy;
                 }
 
                 for (int row = 0; row < rows; row++)                
@@ -35086,7 +35070,7 @@ namespace Thetis
                         System.Drawing.Color text_icon_indicator_colour = System.Drawing.Color.Empty;
 
                         bool indicator = bb.GetUseIndicator(1, button);
-                        float xP = x + half_border + (button_width * col) ;
+                        float xP = x + half_border + (button_width * col);
                         float yP = y + half_border + (button_height * row);
 
                         rectBB.X = xP;
@@ -35453,7 +35437,7 @@ namespace Thetis
                     }
                     drawRoundedRectangle(dragging_rr, getDXBrushForColour(c, 255), 6f);
 
-                    ((clsOtherButtons)bb).MoveButton(highlighted_index);
+                    ob.MoveButton(highlighted_index);
                 }
             }
             private System.Drawing.Color adjustTextColourForContrast(System.Drawing.Color textColor, System.Drawing.Color backgroundColor)
