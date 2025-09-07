@@ -210,90 +210,8 @@ namespace Thetis
             comboTXLabelAlign.Text = "Cntr";
             //MW0LGE_21g comboDisplayDriver.Text = "DirectX";
 
-            string sTip =
-            "You can use the following variables anywhere in the text." + System.Environment.NewLine +
-            "%nl%" + System.Environment.NewLine +
-            "%swr%" + System.Environment.NewLine +
-            "%signal_strength%" + System.Environment.NewLine +
-            "%avg_signal_strength%" + System.Environment.NewLine +
-            "%signal_max_bin%" + System.Environment.NewLine +
-            "%pwr%" + System.Environment.NewLine +
-            "%reverse_pwr%" + System.Environment.NewLine +
-            "%mic%" + System.Environment.NewLine +
-            "%mic_pk%" + System.Environment.NewLine +
-            "%adc_pk%" + System.Environment.NewLine +
-            "%adc_av%" + System.Environment.NewLine +
-            "%agc_pk%" + System.Environment.NewLine +
-            "%agc_av%" + System.Environment.NewLine +
-            "%agc_gain%" + System.Environment.NewLine +
-            "%leveler%" + System.Environment.NewLine +
-            "%leveler_pk%" + System.Environment.NewLine +
-            "%lvl_g%" + System.Environment.NewLine +
-            "%alc%" + System.Environment.NewLine +
-            "%alc_pk%" + System.Environment.NewLine +
-            "%alc_g%" + System.Environment.NewLine +
-            "%alc_group%" + System.Environment.NewLine +
-            "%cfc_av%" + System.Environment.NewLine +
-            "%cfc_pk%" + System.Environment.NewLine +
-            "%cfc_g%" + System.Environment.NewLine +
-            "%comp%" + System.Environment.NewLine +
-            "%comp_pk%" + System.Environment.NewLine +
-            "%estimated_pbsnr%" + System.Environment.NewLine +
-            System.Environment.NewLine +
-            "%time_utc%" + System.Environment.NewLine +
-            "%time_loc%" + System.Environment.NewLine +
-            "%time_utc_int%" + System.Environment.NewLine +
-            "%time_loc_int%" + System.Environment.NewLine +
-            "%date_utc%" + System.Environment.NewLine +
-            "%date_loc%" + System.Environment.NewLine +
-            "%date_utc_int%" + System.Environment.NewLine +
-            "%date_loc_int%" + System.Environment.NewLine +
-            "%vfoa%" + System.Environment.NewLine +
-            "%vfob%" + System.Environment.NewLine +
-            "%vfoasub%" + System.Environment.NewLine +
-            "%vfoa_double%" + System.Environment.NewLine +
-            "%vfob_double%" + System.Environment.NewLine +
-            "%vfoasub_double%" + System.Environment.NewLine +
-            "%band_vfoa%" + System.Environment.NewLine +
-            "%band_vfob%" + System.Environment.NewLine +
-            "%band_vfoasub%" + System.Environment.NewLine +
-            "%mode_vfoa%" + System.Environment.NewLine +
-            "%mode_vfob%" + System.Environment.NewLine +
-            "%subrx%" + System.Environment.NewLine +
-            "%filter_vfoa%" + System.Environment.NewLine +
-            "%filter_vfob%" + System.Environment.NewLine +
-            "%filter_vfoa_name%" + System.Environment.NewLine +
-            "%filter_vfob_name%" + System.Environment.NewLine +
-            "%split%" + System.Environment.NewLine +
-            "%qso_time%" + System.Environment.NewLine +
-            "%qso_time_short%" + System.Environment.NewLine +
-            "%qso_time_int%" + System.Environment.NewLine +
-            "%tb_qso_time%" + System.Environment.NewLine +
-            "%tb_qso_time_short%" + System.Environment.NewLine +
-            "%tb_qso_time_int%" + System.Environment.NewLine +
-            "%volts%" + System.Environment.NewLine +
-            "%amps%" + System.Environment.NewLine +
-            "%mox%" + System.Environment.NewLine +
-            "%cfc%" + System.Environment.NewLine +
-            "%comp%" + System.Environment.NewLine +
-            "%lev%" + System.Environment.NewLine +
-            "%rx2%" + System.Environment.NewLine +
-            "%rxn%" + System.Environment.NewLine +
-            "%nr%" + System.Environment.NewLine +
-            "%tx_eq%" + System.Environment.NewLine +
-            "%bandtext_vfoa%" + System.Environment.NewLine +
-            "%bandtext_vfob%" + System.Environment.NewLine +
-            "%precis=1%" + System.Environment.NewLine +
-            "%nf%" + System.Environment.NewLine +
-            "%tune_step%" + System.Environment.NewLine +
-            "%pa_profile%" + System.Environment.NewLine +
-            "%discord_general=0%" + System.Environment.NewLine +
-            "%discord_bot=0%";// + System.Environment.NewLine +
-
-            toolTip1.SetToolTip(pbTextOverlay_variables, sTip);
-
             //MW0LGE_21h
-            sTip =
+            string sTip =
             "The feedback gain loop attempts to keep the sample buffer about � full." + System.Environment.NewLine +
             "This gives the maximum amount of margin before an overflow or underflow will occur." + System.Environment.NewLine +
             "If the gain is too high, the loop will respond too fast and strongly and we may " + System.Environment.NewLine +
@@ -35671,6 +35589,28 @@ namespace Thetis
                 chkContainerShowRX.Checked = true;
                 chkContainerShowTX.Checked = true;
             }
+        }
+
+        private void btnTextOverlayVarPicker_Click(object sender, EventArgs e)
+        {
+            string var = showVarPickerForClipboard();
+        }
+        private string showVarPickerForClipboard()
+        {
+            frmVariablePicker f = new frmVariablePicker();
+            f.Init(0, Guid.Empty, "", true);
+            DialogResult dr = f.ShowDialog(this);
+            if (dr == DialogResult.OK)
+            {
+                Clipboard.SetText(f.Variable);
+                return f.Variable;
+            }
+            return "";
+        }
+
+        private void btnLedIndicatorVarPicker_Click(object sender, EventArgs e)
+        {
+            string var = showVarPickerForClipboard();
         }
     }
 

@@ -213,6 +213,7 @@ namespace Thetis
         STACK_U,
         STACK_D,
         NF,
+        WAVE_RECORD,
 
         _MACRO_0,
         _MACRO_1,
@@ -651,6 +652,7 @@ namespace Thetis
             (OtherButtonId.VOX_M1,         5, 6, "VOX-", "", "", "Decrease vox level"),
             (OtherButtonId.LEVELER,        5, 7, "Leveler", "", "", "Leveler on/off"),
             (OtherButtonId.PHASE_ROT,      5, 8, "PhaRot", "", "", "Phase rotator on/off"),
+            (OtherButtonId.WAVE_RECORD,    5, 9, "Record", "stop", "record", "Wave record"),
             (OtherButtonId.INFO_TEXT,     -1, -1, "AGC", "", "", ""),
             (OtherButtonId.SPLITTER,      -1, -1, "", "", "", ""),
             (OtherButtonId.AGC_FIXED,      6, 0, "FIX", "", "", "Fixed agc"),

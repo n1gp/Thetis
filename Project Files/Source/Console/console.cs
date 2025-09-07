@@ -46400,6 +46400,7 @@ namespace Thetis
         public delegate void PSAChanged(int rx, bool old_state, bool new_state);
         public delegate void QuickRecordChanged(int rx, bool old_state, bool new_state);
         public delegate void QuickPlayChanged(int rx, bool old_state, bool new_state);
+        public delegate void WaveRecordChanged(int rx, bool old_state, bool new_state);
         public delegate void ANFChanged(int rx, bool old_state, bool new_state);
         public delegate void SNBChanged(int rx, bool old_state, bool new_state);
         public delegate void VACEnabledChanged(int rx, bool old_state, bool new_state);
@@ -46535,6 +46536,7 @@ namespace Thetis
         public PSAChanged PSAChangedHandlers;
         public QuickRecordChanged QuickRecordChangedHandlers;
         public QuickPlayChanged QuickPlayChangedHandlers;
+        public WaveRecordChanged WaveRecordChangedHandlers;
         public ANFChanged ANFChangedHandlers;
         public SNBChanged SNBChangedHandlers;
         public VACEnabledChanged VACEnabledChangedHandlers;
@@ -52702,6 +52704,7 @@ namespace Thetis
                 case OtherButtonId.PS_A: PSA = !PSA; break;
                 case OtherButtonId.REC: QuickRec = !QuickRec; break;
                 case OtherButtonId.PLAY: QuickPlay = !QuickPlay; break;
+                case OtherButtonId.WAVE_RECORD: WaveRecord = !WaveRecord; break;
                 case OtherButtonId.NR: incrementNR(rx); break;
                 case OtherButtonId.ANF: SetANF(rx, !GetANF(rx)); break;
                 case OtherButtonId.NB:
@@ -53179,6 +53182,7 @@ namespace Thetis
                 case OtherButtonId.PS_A: return PSA;
                 case OtherButtonId.REC: return QuickRec;
                 case OtherButtonId.PLAY: return QuickPlay;
+                case OtherButtonId.WAVE_RECORD: return WaveRecord;
                 case OtherButtonId.NR: return GetSelectedNR(rx) != 0;
                 case OtherButtonId.ANF: return GetANF(rx);
                 case OtherButtonId.NB: return GetSelectedNB(rx) != 0;
@@ -53391,6 +53395,23 @@ namespace Thetis
                 }
             }
             return ret;
+        }
+        public bool WaveRecord
+        {
+            get
+            {
+                if (WaveForm == null || WaveForm.IsDisposed)
+                    WaveForm = new WaveControl(this);
+
+                return WaveForm.Recording;
+            }
+            set
+            {
+                if (WaveForm == null || WaveForm.IsDisposed)
+                    WaveForm = new WaveControl(this);
+
+                WaveForm.Recording = value;
+            }
         }
         public int GetSelectedNB(int rx)
         {

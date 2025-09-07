@@ -3841,7 +3841,6 @@
             this.nudWebImage_update_interval = new System.Windows.Forms.NumericUpDownTS();
             this.nudWebImage_width_scale = new System.Windows.Forms.NumericUpDownTS();
             this.btnTextOverlay_copyfonts = new System.Windows.Forms.ButtonTS();
-            this.pbTextOverlay_variables = new System.Windows.Forms.PictureBox();
             this.clrbtnTextOverlay_PanelBackgroundTX = new Thetis.ColorButton();
             this.clrbtnTextOverlay_TextBackColour2 = new Thetis.ColorButton();
             this.clrbtnTextOverlay_TextBackColour1 = new Thetis.ColorButton();
@@ -3886,7 +3885,6 @@
             this.chkLed_notx_false = new System.Windows.Forms.CheckBoxTS();
             this.chkLed_notx_true = new System.Windows.Forms.CheckBoxTS();
             this.btnLedIndicator_copy_truefalse_colours = new System.Windows.Forms.ButtonTS();
-            this.pbLedIndicator_condition_tips = new System.Windows.Forms.PictureBox();
             this.clrbtnLedIndicator_PanelBackgroundTX = new Thetis.ColorButton();
             this.clrbtnLedIndicator_false = new Thetis.ColorButton();
             this.clrbtnLedIndicator_true = new Thetis.ColorButton();
@@ -4044,6 +4042,7 @@
             this.chkWebImage_fade_rx = new System.Windows.Forms.CheckBoxTS();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.grpTextOverlay = new System.Windows.Forms.GroupBoxTS();
+            this.btnTextOverlayVarPicker = new System.Windows.Forms.ButtonTS();
             this.lblTextOverlay_panelbackgroundTX = new System.Windows.Forms.LabelTS();
             this.labelTS202 = new System.Windows.Forms.LabelTS();
             this.labelTS201 = new System.Windows.Forms.LabelTS();
@@ -4114,6 +4113,7 @@
             this.chkBandButtons_fade_rx = new System.Windows.Forms.CheckBoxTS();
             this.tabPage8 = new System.Windows.Forms.TabPage();
             this.grpLedIndicator = new System.Windows.Forms.GroupBoxTS();
+            this.btnLedIndicatorVarPicker = new System.Windows.Forms.ButtonTS();
             this.labelTS482 = new System.Windows.Forms.LabelTS();
             this.labelTS287 = new System.Windows.Forms.LabelTS();
             this.radLed_light_pulsate = new System.Windows.Forms.RadioButtonTS();
@@ -5311,7 +5311,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_vertical_ratio)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWebImage_update_interval)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWebImage_width_scale)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTextOverlay_variables)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_TXyOffset)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_TXxOffset)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_RXyOffset)).BeginInit();
@@ -5329,7 +5328,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudBandButtons_border)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudBandButtons_columns)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_UpdateInterval)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbLedIndicator_condition_tips)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_ySize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_xSize)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_yOffset)).BeginInit();
@@ -61472,17 +61470,6 @@
             this.btnTextOverlay_copyfonts.UseVisualStyleBackColor = true;
             this.btnTextOverlay_copyfonts.Click += new System.EventHandler(this.btnTextOverlay_copyfonts_Click);
             // 
-            // pbTextOverlay_variables
-            // 
-            this.pbTextOverlay_variables.Image = ((System.Drawing.Image)(resources.GetObject("pbTextOverlay_variables.Image")));
-            this.pbTextOverlay_variables.Location = new System.Drawing.Point(297, 100);
-            this.pbTextOverlay_variables.Name = "pbTextOverlay_variables";
-            this.pbTextOverlay_variables.Size = new System.Drawing.Size(20, 20);
-            this.pbTextOverlay_variables.TabIndex = 164;
-            this.pbTextOverlay_variables.TabStop = false;
-            this.toolTip1.SetToolTip(this.pbTextOverlay_variables, "Click for info");
-            this.pbTextOverlay_variables.Click += new System.EventHandler(this.pbTextOverlay_variables_Click);
-            // 
             // clrbtnTextOverlay_PanelBackgroundTX
             // 
             this.clrbtnTextOverlay_PanelBackgroundTX.Automatic = "Automatic";
@@ -62397,18 +62384,6 @@
             this.toolTip1.SetToolTip(this.btnLedIndicator_copy_truefalse_colours, "Copy the colours from TRUE to FALSE");
             this.btnLedIndicator_copy_truefalse_colours.UseVisualStyleBackColor = true;
             this.btnLedIndicator_copy_truefalse_colours.Click += new System.EventHandler(this.btnLedIndicator_copy_truefalse_colours_Click);
-            // 
-            // pbLedIndicator_condition_tips
-            // 
-            this.pbLedIndicator_condition_tips.Image = ((System.Drawing.Image)(resources.GetObject("pbLedIndicator_condition_tips.Image")));
-            this.pbLedIndicator_condition_tips.Location = new System.Drawing.Point(297, 100);
-            this.pbLedIndicator_condition_tips.Name = "pbLedIndicator_condition_tips";
-            this.pbLedIndicator_condition_tips.Size = new System.Drawing.Size(20, 20);
-            this.pbLedIndicator_condition_tips.TabIndex = 164;
-            this.pbLedIndicator_condition_tips.TabStop = false;
-            this.toolTip1.SetToolTip(this.pbLedIndicator_condition_tips, "You can create code based conditions.\r\neg.\r\n%swr% > 1.5\r\n%variable% == 2\r\n%variab" +
-        "le% == \"Hello\"\r\n%pwr% > 15\r\n%variable1% == %variable2%\r\n%pwr% <= 10\r\n%mox% == \"M" +
-        "OX\" && %swr% > 3.0");
             // 
             // clrbtnLedIndicator_PanelBackgroundTX
             // 
@@ -64858,12 +64833,12 @@
             // 
             // grpTextOverlay
             // 
+            this.grpTextOverlay.Controls.Add(this.btnTextOverlayVarPicker);
             this.grpTextOverlay.Controls.Add(this.txtTextOverlay_tx_on_led_4char);
             this.grpTextOverlay.Controls.Add(this.chkTextOverlay_tx_on_led);
             this.grpTextOverlay.Controls.Add(this.txtTextOverlay_rx_on_led_4char);
             this.grpTextOverlay.Controls.Add(this.chkTextOverlay_rx_on_led);
             this.grpTextOverlay.Controls.Add(this.btnTextOverlay_copyfonts);
-            this.grpTextOverlay.Controls.Add(this.pbTextOverlay_variables);
             this.grpTextOverlay.Controls.Add(this.lblTextOverlay_panelbackgroundTX);
             this.grpTextOverlay.Controls.Add(this.clrbtnTextOverlay_PanelBackgroundTX);
             this.grpTextOverlay.Controls.Add(this.labelTS202);
@@ -64905,6 +64880,19 @@
             this.grpTextOverlay.TabStop = false;
             this.grpTextOverlay.Text = "Text Overlay";
             this.grpTextOverlay.Visible = false;
+            // 
+            // btnTextOverlayVarPicker
+            // 
+            this.btnTextOverlayVarPicker.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnTextOverlayVarPicker.Image = null;
+            this.btnTextOverlayVarPicker.Location = new System.Drawing.Point(289, 98);
+            this.btnTextOverlayVarPicker.Name = "btnTextOverlayVarPicker";
+            this.btnTextOverlayVarPicker.Selectable = true;
+            this.btnTextOverlayVarPicker.Size = new System.Drawing.Size(28, 28);
+            this.btnTextOverlayVarPicker.TabIndex = 170;
+            this.btnTextOverlayVarPicker.Text = "%";
+            this.btnTextOverlayVarPicker.UseVisualStyleBackColor = true;
+            this.btnTextOverlayVarPicker.Click += new System.EventHandler(this.btnTextOverlayVarPicker_Click);
             // 
             // lblTextOverlay_panelbackgroundTX
             // 
@@ -65725,6 +65713,7 @@
             // 
             // grpLedIndicator
             // 
+            this.grpLedIndicator.Controls.Add(this.btnLedIndicatorVarPicker);
             this.grpLedIndicator.Controls.Add(this.chkLed_process_when_hidden);
             this.grpLedIndicator.Controls.Add(this.btnLedIndicator_4char_copy);
             this.grpLedIndicator.Controls.Add(this.labelTS482);
@@ -65741,7 +65730,6 @@
             this.grpLedIndicator.Controls.Add(this.lblLed_Error);
             this.grpLedIndicator.Controls.Add(this.lblLed_Valid);
             this.grpLedIndicator.Controls.Add(this.btnLedIndicator_copy_truefalse_colours);
-            this.grpLedIndicator.Controls.Add(this.pbLedIndicator_condition_tips);
             this.grpLedIndicator.Controls.Add(this.lblLedIndicator_panelbackgroundTX);
             this.grpLedIndicator.Controls.Add(this.clrbtnLedIndicator_PanelBackgroundTX);
             this.grpLedIndicator.Controls.Add(this.labelTS219);
@@ -65775,6 +65763,19 @@
             this.grpLedIndicator.TabStop = false;
             this.grpLedIndicator.Text = "Led Indicator";
             this.grpLedIndicator.Visible = false;
+            // 
+            // btnLedIndicatorVarPicker
+            // 
+            this.btnLedIndicatorVarPicker.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnLedIndicatorVarPicker.Image = null;
+            this.btnLedIndicatorVarPicker.Location = new System.Drawing.Point(289, 98);
+            this.btnLedIndicatorVarPicker.Name = "btnLedIndicatorVarPicker";
+            this.btnLedIndicatorVarPicker.Selectable = true;
+            this.btnLedIndicatorVarPicker.Size = new System.Drawing.Size(28, 28);
+            this.btnLedIndicatorVarPicker.TabIndex = 181;
+            this.btnLedIndicatorVarPicker.Text = "%";
+            this.btnLedIndicatorVarPicker.UseVisualStyleBackColor = true;
+            this.btnLedIndicatorVarPicker.Click += new System.EventHandler(this.btnLedIndicatorVarPicker_Click);
             // 
             // labelTS482
             // 
@@ -70231,7 +70232,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_vertical_ratio)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWebImage_update_interval)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudWebImage_width_scale)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbTextOverlay_variables)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_TXyOffset)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_TXxOffset)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudTextOverlay_RXyOffset)).EndInit();
@@ -70249,7 +70249,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudBandButtons_border)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudBandButtons_columns)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_UpdateInterval)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pbLedIndicator_condition_tips)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_ySize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_xSize)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudLedIndicator_yOffset)).EndInit();
@@ -74021,7 +74020,6 @@
         private CheckBoxTS chkTextOverlay_textback1;
         private ColorButton clrbtnTextOverlay_TextBackColour2;
         private ColorButton clrbtnTextOverlay_TextBackColour1;
-        private PictureBox pbTextOverlay_variables;
         private TabPage tpMultiMetersIO;
         private GroupBoxTS groupBoxTS39;
         private ButtonTS btnMMIO_network_add_tcpip;
@@ -74116,7 +74114,6 @@
         private TextBoxTS txtRotator_4charID;
         private GroupBoxTS grpLedIndicator;
         private ButtonTS btnLedIndicator_copy_truefalse_colours;
-        private PictureBox pbLedIndicator_condition_tips;
         private LabelTS lblLedIndicator_panelbackgroundTX;
         private ColorButton clrbtnLedIndicator_PanelBackgroundTX;
         private LabelTS labelTS219;
@@ -74712,5 +74709,7 @@
         private ButtonTS btnContainer_load;
         private CheckBoxTS chkLed_process_when_hidden;
         private ButtonTS btnRecoverContainer;
+        private ButtonTS btnTextOverlayVarPicker;
+        private ButtonTS btnLedIndicatorVarPicker;
     }
 }

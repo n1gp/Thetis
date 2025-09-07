@@ -432,6 +432,18 @@ namespace Thetis
         }
         //
 
+        public static List<string> CatVariables()
+        {
+            List<string> list = new List<string>();
+
+            foreach(KeyValuePair<string, string> kvp in _cat_variables)
+            {
+                list.Add(kvp.Key);
+            }
+
+            return list;
+        }
+
         //cat queue
         private static void OnCatQmessage(int queue_index, Guid guid, ScriptCommand sc)
         {
@@ -697,6 +709,8 @@ namespace Thetis
 
         internal class CustomReadings
         {
+            private HashSet<string> _all_readings_text;
+            private HashSet<Reading> _all_readings;
             private ConcurrentDictionary<Reading, float> _readings_values;
             private ConcurrentDictionary<string, object> _readings_text_objects;
             private int _rx;
@@ -704,8 +718,100 @@ namespace Thetis
             public CustomReadings(int rx)
             {
                 _rx = rx;
+                _all_readings = new HashSet<Reading>();
+                _all_readings_text = new HashSet<string>();
                 _readings_values = new ConcurrentDictionary<Reading, float>();
                 _readings_text_objects = new ConcurrentDictionary<string, object>();
+
+                setupReadings();
+            }
+            private void setupReadings()
+            {
+                // reading
+                _all_readings.Add(Reading.SWR);
+                _all_readings.Add(Reading.SIGNAL_STRENGTH);
+                _all_readings.Add(Reading.AVG_SIGNAL_STRENGTH);
+                ////sub rx
+                //_all_readings.Add(Reading.SUB_SIGNAL_STRENGTH);
+                //_all_readings.Add(Reading.SUB_AVG_SIGNAL_STRENGTH);
+                ////
+                _all_readings.Add(Reading.PWR);
+                _all_readings.Add(Reading.REVERSE_PWR);
+                _all_readings.Add(Reading.MIC);
+                _all_readings.Add(Reading.MIC_PK);
+                _all_readings.Add(Reading.ADC_PK);
+                _all_readings.Add(Reading.ADC_AV);
+                _all_readings.Add(Reading.AGC_PK);
+                _all_readings.Add(Reading.AGC_AV);
+                _all_readings.Add(Reading.AGC_GAIN);
+                _all_readings.Add(Reading.LEVELER);
+                _all_readings.Add(Reading.LEVELER_PK);
+                _all_readings.Add(Reading.LVL_G);
+                _all_readings.Add(Reading.ALC);
+                _all_readings.Add(Reading.ALC_PK);
+                _all_readings.Add(Reading.ALC_G);
+                _all_readings.Add(Reading.ALC_GROUP);
+                _all_readings.Add(Reading.CFC_AV);
+                _all_readings.Add(Reading.CFC_PK);
+                _all_readings.Add(Reading.CFC_G);
+                _all_readings.Add(Reading.COMP);
+                _all_readings.Add(Reading.COMP_PK);
+                _all_readings.Add(Reading.ESTIMATED_PBSNR);
+                _all_readings.Add(Reading.VOLTS);
+                _all_readings.Add(Reading.AMPS);
+                _all_readings.Add(Reading.SIGNAL_MAX_BIN);
+
+                // text
+                _all_readings_text.Add("time_utc");
+                _all_readings_text.Add("time_utc_int");
+                _all_readings_text.Add("time_loc");
+                _all_readings_text.Add("time_loc_int");
+                _all_readings_text.Add("date_utc");
+                _all_readings_text.Add("date_utc_int");
+                _all_readings_text.Add("date_loc");
+                _all_readings_text.Add("date_loc_int");
+                _all_readings_text.Add("vfoa");
+                _all_readings_text.Add("vfob");
+                _all_readings_text.Add("vfoasub");
+                _all_readings_text.Add("vfoa_double");
+                _all_readings_text.Add("vfob_double");
+                _all_readings_text.Add("vfoasub_double");
+                _all_readings_text.Add("band_vfoa");
+                _all_readings_text.Add("band_vfob");
+                _all_readings_text.Add("band_vfoasub");
+                _all_readings_text.Add("mode_vfoa");
+                _all_readings_text.Add("mode_vfob");
+                _all_readings_text.Add("subrx");
+                _all_readings_text.Add("filter_vfoa");
+                _all_readings_text.Add("filter_vfob");
+                _all_readings_text.Add("filter_vfoa_name");
+                _all_readings_text.Add("filter_vfob_name");
+                _all_readings_text.Add("split");
+                _all_readings_text.Add("qso_time");
+                _all_readings_text.Add("qso_time_short");
+                _all_readings_text.Add("qso_time_int");
+                _all_readings_text.Add("tb_qso_time");
+                _all_readings_text.Add("tb_qso_time_short");
+                _all_readings_text.Add("tb_qso_time_int");
+                _all_readings_text.Add("mox");
+                _all_readings_text.Add("cfc");
+                _all_readings_text.Add("comp");
+                _all_readings_text.Add("lev");
+                _all_readings_text.Add("rx2");
+                _all_readings_text.Add("rxn");
+                _all_readings_text.Add("nr");
+                _all_readings_text.Add("tx_eq");
+                _all_readings_text.Add("bandtext_vfoa");
+                _all_readings_text.Add("bandtext_vfob");
+                _all_readings_text.Add("nf");
+                _all_readings_text.Add("tune_step");
+                _all_readings_text.Add("pa_profile");
+                _all_readings_text.Add("bw_vfoa");
+                _all_readings_text.Add("bw_vfob");
+                _all_readings_text.Add("bw_tx");
+                _all_readings_text.Add("on");
+                _all_readings_text.Add("discord_general");
+                _all_readings_text.Add("discord_bot");
             }
             private string formatNumber(double number)
             {
@@ -800,58 +906,72 @@ namespace Thetis
             }
             public bool IsCustomString(string custom)
             {
-                // these are strings that are not related to readings such as SWR ADC etc
-                switch (custom)
+                bool ret = _all_readings_text.Contains(custom);
+
+                if (custom.StartsWith("discord_"))
                 {
-                    case "time_utc":
-                    case "time_utc_int":
-                    case "time_loc":
-                    case "time_loc_int":
-                    case "date_utc":
-                    case "date_utc_int":
-                    case "date_loc":
-                    case "date_loc_int":
-                    case "vfoa":
-                    case "vfob":
-                    case "vfoasub":
-                    case "vfoa_double":
-                    case "vfob_double":
-                    case "vfoasub_double":
-                    case "band_vfoa":
-                    case "band_vfob":
-                    case "band_vfoasub":
-                    case "mode_vfoa":
-                    case "mode_vfob":
-                    case "subrx":
-                    case "filter_vfoa":
-                    case "filter_vfob":
-                    case "filter_vfoa_name":
-                    case "filter_vfob_name":
-                    case "split":
-                    case "qso_time":
-                    case "qso_time_short":
-                    case "qso_time_int":
-                    case "tb_qso_time":
-                    case "tb_qso_time_short":
-                    case "tb_qso_time_int":
-                    case "mox":
-                    case "cfc":
-                    case "comp":
-                    case "lev":
-                    case "rx2":
-                    case "rxn":
-                    case "nr":
-                    case "tx_eq":
-                    case "bandtext_vfoa":
-                    case "bandtext_vfob":
-                    case "nf":
-                    case "tune_step":
-                    case "pa_profile":
-                    case string c1 when c1.StartsWith("discord_general"):
-                    case string c2 when c2.StartsWith("discord_bot"):
-                        return true;
+                    ret |= custom.Contains("general"); // needed as this custom could also be discord_general=
+                    ret |= custom.Contains("bot"); // needed as this custom could also be discord_bot=
                 }
-                return false;
+
+                return ret;
+
+                //// these are strings that are not related to readings such as SWR ADC etc
+                //switch (custom)
+                //{
+                //    case "time_utc":
+                //    case "time_utc_int":
+                //    case "time_loc":
+                //    case "time_loc_int":
+                //    case "date_utc":
+                //    case "date_utc_int":
+                //    case "date_loc":
+                //    case "date_loc_int":
+                //    case "vfoa":
+                //    case "vfob":
+                //    case "vfoasub":
+                //    case "vfoa_double":
+                //    case "vfob_double":
+                //    case "vfoasub_double":
+                //    case "band_vfoa":
+                //    case "band_vfob":
+                //    case "band_vfoasub":
+                //    case "mode_vfoa":
+                //    case "mode_vfob":
+                //    case "subrx":
+                //    case "filter_vfoa":
+                //    case "filter_vfob":
+                //    case "filter_vfoa_name":
+                //    case "filter_vfob_name":
+                //    case "split":
+                //    case "qso_time":
+                //    case "qso_time_short":
+                //    case "qso_time_int":
+                //    case "tb_qso_time":
+                //    case "tb_qso_time_short":
+                //    case "tb_qso_time_int":
+                //    case "mox":
+                //    case "cfc":
+                //    case "comp":
+                //    case "lev":
+                //    case "rx2":
+                //    case "rxn":
+                //    case "nr":
+                //    case "tx_eq":
+                //    case "bandtext_vfoa":
+                //    case "bandtext_vfob":
+                //    case "nf":
+                //    case "tune_step":
+                //    case "pa_profile":
+                //    case "bw_vfoa":
+                //    case "bw_vfob":
+                //    case "bw_tx":
+                //    case "on":
+                //    case string c1 when c1.StartsWith("discord_general"):
+                //    case string c2 when c2.StartsWith("discord_bot"):
+                //        return true;
+                //}
+                //return false;
             }
             public object GetReading(string reading, clsMeter owningMeter)
             {
@@ -1045,6 +1165,40 @@ namespace Thetis
                     case "pa_profile":
                         returnPAProfile(key);
                         break;
+                    case "bw_vfoa":
+                        if (owningMeter.RX != 1)
+                        {
+                            _readings_text_objects[key] = 0; // there is no vfoa for rx2
+                        }
+                        else
+                        {
+                            _readings_text_objects[key] = Math.Abs(owningMeter.FilterVfoAhigh - owningMeter.FilterVfoAlow).ToString();
+                        }
+                        break;
+                    case "bw_vfob":
+                        if (owningMeter.RX == 1 && owningMeter.RX2Enabled)
+                        {
+                            if (owningMeter.Split && owningMeter.IsVfoASub)
+                            {
+                                //vfoa subrx and split is on
+                                _readings_text_objects[key] = Math.Abs(owningMeter.FilterVfoBhigh - owningMeter.FilterVfoBlow).ToString();
+                            }
+                            else
+                            {
+                                _readings_text_objects[key] = 0; // vfoB belongs to rx2 when rx2 enabled
+                            }
+                        }
+                        else
+                        {
+                            _readings_text_objects[key] = Math.Abs(owningMeter.FilterVfoBhigh - owningMeter.FilterVfoBlow).ToString();
+                        }
+                        break;
+                    case "bw_tx":
+                        _readings_text_objects[key] = Math.Abs(owningMeter.TXFilterHigh - owningMeter.TXFilterLow).ToString();
+                        break;
+                    case "on":
+                        _readings_text_objects[key] = owningMeter.Power ? "ON" : "OFF";
+                        break;
                     case string c1 when c1.StartsWith("discord_general"):
                         {
                             int part = getIntPart(key, "discord_general");
@@ -1056,7 +1210,7 @@ namespace Thetis
                             int part = getIntPart(key, "discord_bot");
                             _readings_text_objects[key] = ThetisBotDiscord.GetMessagesString(1297325528336044144, part, false);
                         }
-                        break;
+                        break;                    
                 }
 
                 if (_readings_text_objects.ContainsKey(key))
@@ -1111,88 +1265,101 @@ namespace Thetis
             }
             public void UpdateReadings(string text)
             {
-                //add readings required
-                addReading(Reading.SWR, text);
-                addReading(Reading.SIGNAL_STRENGTH, text);
-                addReading(Reading.AVG_SIGNAL_STRENGTH, text);
-                ////sub rx
-                //addReading(Reading.SUB_SIGNAL_STRENGTH, text);
-                //addReading(Reading.SUB_AVG_SIGNAL_STRENGTH, text);
-                ////
-                addReading(Reading.PWR, text);
-                addReading(Reading.REVERSE_PWR, text);
-                addReading(Reading.MIC, text);
-                addReading(Reading.MIC_PK, text);
-                addReading(Reading.ADC_PK, text);
-                addReading(Reading.ADC_AV, text);
-                addReading(Reading.AGC_PK, text);
-                addReading(Reading.AGC_AV, text);
-                addReading(Reading.AGC_GAIN, text);
-                addReading(Reading.LEVELER, text);
-                addReading(Reading.LEVELER_PK, text);
-                addReading(Reading.LVL_G, text);
-                addReading(Reading.ALC, text);
-                addReading(Reading.ALC_PK, text);
-                addReading(Reading.ALC_G, text);
-                addReading(Reading.ALC_GROUP, text);
-                addReading(Reading.CFC_AV, text);
-                addReading(Reading.CFC_PK, text);
-                addReading(Reading.CFC_G, text);
-                addReading(Reading.COMP, text);
-                addReading(Reading.COMP_PK, text);
-                addReading(Reading.ESTIMATED_PBSNR, text);
-                addReading(Reading.VOLTS, text);
-                addReading(Reading.AMPS, text);
-                addReading(Reading.SIGNAL_MAX_BIN, text);
+                foreach(Reading r in _all_readings)
+                {
+                    addReading(r, text);
+                }
+                foreach (string tr in _all_readings_text)
+                {
+                    addReadingText(tr, text);
+                }
 
-                addReadingText("time_utc", text);
-                addReadingText("time_loc", text);
-                addReadingText("date_utc", text);
-                addReadingText("date_loc", text);
-                addReadingText("time_utc_int", text);
-                addReadingText("time_loc_int", text);
-                addReadingText("date_utc_int", text);
-                addReadingText("date_loc_int", text);
-                addReadingText("vfoa", text);
-                addReadingText("vfob", text);
-                addReadingText("vfoasub", text);
-                addReadingText("vfoa_double", text);
-                addReadingText("vfob_double", text);
-                addReadingText("vfoasub_double", text);
-                addReadingText("band_vfoa", text);
-                addReadingText("band_vfob", text);
-                addReadingText("band_vfoasub", text);
-                addReadingText("mode_vfoa", text);
-                addReadingText("mode_vfob", text);
-                addReadingText("subrx", text);
-                addReadingText("filter_vfoa", text);
-                addReadingText("filter_vfob", text);
-                addReadingText("filter_vfoa_name", text);
-                addReadingText("filter_vfob_name", text);
-                addReadingText("split", text);
-                addReadingText("qso_time", text);
-                addReadingText("qso_time_short", text);
-                addReadingText("qso_time_int", text);
-                addReadingText("tb_qso_time", text);
-                addReadingText("tb_qso_time_short", text);
-                addReadingText("tb_qso_time_int", text);
-                addReadingText("mox", text);
-                addReadingText("cfc", text);
-                addReadingText("comp", text);
-                addReadingText("lev", text);
-                addReadingText("rx2", text);
-                addReadingText("rxn", text);
-                addReadingText("nr", text);
-                addReadingText("tx_eq", text);
-                addReadingText("bandtext_vfoa", text);
-                addReadingText("bandtext_vfob", text);
-                addReadingText("nf", text);
-                addReadingText("tune_step", text);
-                addReadingText("pa_profile", text);
-                addReadingText("discord_general", text);
-                addReadingText("discord_general=", text);
-                addReadingText("discord_bot", text);
-                addReadingText("discord_bot=", text);
+                ////add readings required
+                //addReading(Reading.SWR, text);
+                //addReading(Reading.SIGNAL_STRENGTH, text);
+                //addReading(Reading.AVG_SIGNAL_STRENGTH, text);
+                //////sub rx
+                ////addReading(Reading.SUB_SIGNAL_STRENGTH, text);
+                ////addReading(Reading.SUB_AVG_SIGNAL_STRENGTH, text);
+                //////
+                //addReading(Reading.PWR, text);
+                //addReading(Reading.REVERSE_PWR, text);
+                //addReading(Reading.MIC, text);
+                //addReading(Reading.MIC_PK, text);
+                //addReading(Reading.ADC_PK, text);
+                //addReading(Reading.ADC_AV, text);
+                //addReading(Reading.AGC_PK, text);
+                //addReading(Reading.AGC_AV, text);
+                //addReading(Reading.AGC_GAIN, text);
+                //addReading(Reading.LEVELER, text);
+                //addReading(Reading.LEVELER_PK, text);
+                //addReading(Reading.LVL_G, text);
+                //addReading(Reading.ALC, text);
+                //addReading(Reading.ALC_PK, text);
+                //addReading(Reading.ALC_G, text);
+                //addReading(Reading.ALC_GROUP, text);
+                //addReading(Reading.CFC_AV, text);
+                //addReading(Reading.CFC_PK, text);
+                //addReading(Reading.CFC_G, text);
+                //addReading(Reading.COMP, text);
+                //addReading(Reading.COMP_PK, text);
+                //addReading(Reading.ESTIMATED_PBSNR, text);
+                //addReading(Reading.VOLTS, text);
+                //addReading(Reading.AMPS, text);
+                //addReading(Reading.SIGNAL_MAX_BIN, text);
+
+                //addReadingText("time_utc", text);
+                //addReadingText("time_loc", text);
+                //addReadingText("date_utc", text);
+                //addReadingText("date_loc", text);
+                //addReadingText("time_utc_int", text);
+                //addReadingText("time_loc_int", text);
+                //addReadingText("date_utc_int", text);
+                //addReadingText("date_loc_int", text);
+                //addReadingText("vfoa", text);
+                //addReadingText("vfob", text);
+                //addReadingText("vfoasub", text);
+                //addReadingText("vfoa_double", text);
+                //addReadingText("vfob_double", text);
+                //addReadingText("vfoasub_double", text);
+                //addReadingText("band_vfoa", text);
+                //addReadingText("band_vfob", text);
+                //addReadingText("band_vfoasub", text);
+                //addReadingText("mode_vfoa", text);
+                //addReadingText("mode_vfob", text);
+                //addReadingText("subrx", text);
+                //addReadingText("filter_vfoa", text);
+                //addReadingText("filter_vfob", text);
+                //addReadingText("filter_vfoa_name", text);
+                //addReadingText("filter_vfob_name", text);
+                //addReadingText("split", text);
+                //addReadingText("qso_time", text);
+                //addReadingText("qso_time_short", text);
+                //addReadingText("qso_time_int", text);
+                //addReadingText("tb_qso_time", text);
+                //addReadingText("tb_qso_time_short", text);
+                //addReadingText("tb_qso_time_int", text);
+                //addReadingText("mox", text);
+                //addReadingText("cfc", text);
+                //addReadingText("comp", text);
+                //addReadingText("lev", text);
+                //addReadingText("rx2", text);
+                //addReadingText("rxn", text);
+                //addReadingText("nr", text);
+                //addReadingText("tx_eq", text);
+                //addReadingText("bandtext_vfoa", text);
+                //addReadingText("bandtext_vfob", text);
+                //addReadingText("nf", text);
+                //addReadingText("tune_step", text);
+                //addReadingText("pa_profile", text);
+                //addReadingText("bw_vfoa", text);
+                //addReadingText("bw_vfob", text);
+                //addReadingText("bw_tx", text);
+                //addReadingText("on", text);
+                //addReadingText("discord_general", text);
+                //addReadingText("discord_general=", text);
+                //addReadingText("discord_bot", text);
+                //addReadingText("discord_bot=", text);
             }
             private void addReading(Reading reading, string text)
             {
@@ -1201,6 +1368,43 @@ namespace Thetis
             private void addReadingText(string reading, string text)
             {
                 if (!_readings_text_objects.ContainsKey(reading) && text.Contains("%" + reading + "%", StringComparison.OrdinalIgnoreCase)) _readings_text_objects.TryAdd(reading, "");
+            }
+            public List<string> GetAvailableReadings()
+            {
+                List<string> list = new List<string>();
+
+                // regular readings, stuch as %SWR% etc
+                List<string> tmp = new List<string>();
+                foreach (Reading r in _all_readings)
+                {
+                    tmp.Add(r.ToString().ToUpper());
+                }
+                tmp.Sort();
+                list.AddRange(tmp);
+
+                // text, stuch as %nf% etc
+                tmp.Clear();
+                foreach (string tr in _all_readings_text)
+                {
+                    string stmp;
+                    if (tr.StartsWith("discord_bot", StringComparison.OrdinalIgnoreCase) ||
+                       tr.StartsWith("discord_general", StringComparison.OrdinalIgnoreCase))                       
+                    {
+                        stmp = tr + "=0"; // add =0 to these for help purposes
+                    }
+                    else
+                    {
+                        stmp = tr;
+                    }
+                    
+                    tmp.Add(stmp.ToLower());
+                }
+                tmp.Add("precis=1"); // this is handled outside of these readings
+
+                tmp.Sort();
+                list.AddRange(tmp);
+
+                return list;
             }
         }
         public class clsIGSettings
@@ -3386,6 +3590,7 @@ namespace Thetis
             _console.PSAChangedHandlers += OnPSAChanged;
             _console.QuickPlayChangedHandlers += OnQuickPlayChanged;
             _console.QuickRecordChangedHandlers += OnQuickRecordChanged;
+            _console.WaveRecordChangedHandlers += OnWaveRecordChanged;
             _console.ANFChangedHandlers += OnANFChanged;
             _console.SNBChangedHandlers += OnSNBChanged;
             _console.AVGChangedHandlers += OnAVGChanged;
@@ -3493,6 +3698,7 @@ namespace Thetis
             _console.PSAChangedHandlers -= OnPSAChanged;
             _console.QuickPlayChangedHandlers -= OnQuickPlayChanged;
             _console.QuickRecordChangedHandlers -= OnQuickRecordChanged;
+            _console.WaveRecordChangedHandlers -= OnWaveRecordChanged;
             _console.ANFChangedHandlers -= OnANFChanged;
             _console.SNBChangedHandlers -= OnSNBChanged;
             _console.AVGChangedHandlers -= OnAVGChanged;
@@ -4574,6 +4780,19 @@ namespace Thetis
                     clsMeter m = ms.Value;
 
                     m.QuickRecord = new_state;
+                }
+            }
+        }
+        private static void OnWaveRecordChanged(int rx, bool old_state, bool new_state)
+        {
+            // ignore rx for now
+            lock (_metersLock)
+            {
+                foreach (KeyValuePair<string, clsMeter> ms in _meters)//.Where(o => o.Value.RX == rx))
+                {
+                    clsMeter m = ms.Value;
+
+                    m.WaveRecord = new_state;
                 }
             }
         }
@@ -6947,6 +7166,11 @@ namespace Thetis
                 get { return false; }
                 set { }
             }
+            public virtual bool WaveRecord
+            {
+                get { return false; }
+                set { }
+            }
             public virtual DisplayMode DisplayMode
             {
                 get { return DisplayMode.FIRST; }
@@ -8045,6 +8269,7 @@ namespace Thetis
             public override bool Puresignal { get => base.Puresignal; set => updateOn(OtherButtonId.PS_A, value); }
             public override bool QuickPlay { get => base.QuickPlay; set => updateOn(OtherButtonId.PLAY, value); }
             public override bool QuickRecord { get => base.QuickRecord; set => updateOn(OtherButtonId.REC, value); }
+            public override bool WaveRecord { get => base.WaveRecord; set => updateOn(OtherButtonId.WAVE_RECORD, value); }
             public override bool ANF { get => base.ANF; set => updateOn(OtherButtonId.ANF, value); }
             public override bool SNB { get => base.SNB; set => updateOn(OtherButtonId.SNB, value); }
             public override bool TNFActive { get => base.TNFActive; set => updateOn(OtherButtonId.MNF, value); }
@@ -19386,6 +19611,7 @@ namespace Thetis
             private bool _puresignal;
             private bool _quick_record;
             private bool _quick_play;
+            private bool _wave_record;
             private bool _anf;
             private bool _snb;
             private bool _avg;
@@ -19517,6 +19743,7 @@ namespace Thetis
                 _puresignal = false;
                 _quick_record = false;
                 _quick_play = false;
+                _wave_record = false;
                 _anf = false;
                 _snb = false;
                 _avg = false;
@@ -27033,6 +27260,26 @@ namespace Thetis
                         {
                             clsMeterItem mi = kvp.Value;
                             mi.QuickRecord = _quick_record;
+                        }
+                    }
+                }
+            }
+            public bool WaveRecord
+            {
+                get
+                {
+                    return _wave_record;
+                }
+                set
+                {
+                    _wave_record = value;
+
+                    lock (_meterItemsLock)
+                    {
+                        foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems)
+                        {
+                            clsMeterItem mi = kvp.Value;
+                            mi.WaveRecord = _wave_record;
                         }
                     }
                 }
