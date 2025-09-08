@@ -8120,6 +8120,10 @@ namespace Thetis
             private int _last_draged_to;
             private bool _has_macro_buttons;
 
+            private bool _process_in_update;
+            private Dictionary<OtherButtonId, int> _process_in_update_buttons;
+            private readonly object _process_in_update_buttons_lock = new object();
+
             private short[] _map;
             private readonly object _map_lock = new object();
             private short[] _map_copy;
@@ -8141,6 +8145,9 @@ namespace Thetis
                 _ig = ig;
                 _dragging_index = -1;
                 _last_draged_to = -1;
+
+                _process_in_update = false;
+                _process_in_update_buttons = new Dictionary<OtherButtonId, int>();
 
                 ItemType = MeterItemType.OTHER_BUTTONS;
 
@@ -8728,6 +8735,12 @@ namespace Thetis
 
                 _has_macro_buttons = false;
 
+                lock (_process_in_update_buttons_lock)
+                {
+                    _process_in_update = false; // buttons that rely on power state being on
+                    _process_in_update_buttons.Clear();
+                }
+
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
                 {
@@ -8738,7 +8751,7 @@ namespace Thetis
                    
                     // skip 32nd bit in any group and any that are not defined
                     OtherButtonId id = OtherButtonIdHelpers.BitToID(bit_group, bit);
-                    if (bit == 32 || id == OtherButtonId.UNKNOWN)
+                    if (bit == 32 || id == OtherButtonId.UNKNOWN || !isVisible(bit_group, bit))
                     {
                         SetVisible(1, i, false);
                         continue;
@@ -8746,13 +8759,24 @@ namespace Thetis
 
                     //special states
                     string sText;
-                    bool skip_set_visible = false;
                     bool button_enabled = true;
+                    bool button_visible = isVisible(bit_group, bit);
                     bool macro_button = id >= OtherButtonId._MACRO_0 && id <= OtherButtonId._MACRO_30;
                     int macro = (int)id - (int)OtherButtonId._MACRO_0;
 
                     switch (id)
                     {
+                        case OtherButtonId.MON:
+                        case OtherButtonId.TUN:
+                        case OtherButtonId.TWOTON:
+                            lock (_process_in_update_buttons_lock)
+                            {
+                                _process_in_update = true;
+                                _process_in_update_buttons[id] = i;
+                            }
+                            sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
+                            button_enabled = _owningmeter.Power;
+                            break;
                         case OtherButtonId.NR:
                             int nr = _console.GetSelectedNR(_owningmeter.RX);
                             sText = nr > 1 ? "NR" + nr.ToString() : "NR";
@@ -8776,8 +8800,7 @@ namespace Thetis
                         case OtherButtonId.XPA:
                             sText = OtherButtonIdHelpers.BitToText(bit_group, bit);
                             (bool in_use, bool enabled) = _console.GetXPAStatus();
-                            SetVisible(1, i, in_use && isVisible(bit_group, bit));
-                            skip_set_visible = true;
+                            button_visible = in_use && isVisible(bit_group, bit);
                             break;
                         case OtherButtonId.SQL:
                             switch (_owningmeter.SqlMode)
@@ -8897,9 +8920,9 @@ namespace Thetis
                     SetFontStyle(1, i, GetFontStyle(0, i));
                     SetUseIndicator(1, i, GetUseIndicator(0, i));
                     SetIndicatorWidth(1, i, GetIndicatorWidth(0, i));
-                    SetEnabled(1, i, button_enabled);
 
-                    if(!skip_set_visible) SetVisible(1, i, isVisible(bit_group, bit));//GetVisible(0, i));  // skip if set above
+                    SetEnabled(1, i, button_enabled);
+                    SetVisible(1, i, button_visible);
 
                     //get the state from the console
                     //bool on = _console.GetOtherButtonState(id, _owningmeter.RX);
@@ -9126,6 +9149,8 @@ namespace Thetis
                 int index = base.ButtonIndex;
                 if (index == -1) return;
 
+                if (!GetEnabled(1, index)) return;
+
                 //use map to convert index
                 lock (_map_lock) 
                 {
@@ -9292,7 +9317,7 @@ namespace Thetis
                                 clsLed led = MeterManager.GetLedFrom4Char(settings.LedIndiciatorFourChar);
                                 if(led != null)
                                 {
-                                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID((OtherButtonId)(n + (int)OtherButtonId._MACRO_0));
+                                    (int bit_group, int bit) = OtherButtonIdHelpers.BitFromID((OtherButtonId)((int)OtherButtonId._MACRO_0 + n));
                                     bit = (bit_group * 32) + bit;
 
                                     bool on = led.ConditionResult;
@@ -9311,6 +9336,38 @@ namespace Thetis
                                     SetText(1, bit, sText);
                                 }
                             }
+                        }
+                    }
+                }
+
+                lock (_process_in_update_buttons_lock)
+                {
+                    foreach(KeyValuePair<OtherButtonId, int> kvp in _process_in_update_buttons)
+                    {
+                        bool enabled = GetEnabled(1, kvp.Value);
+
+                        if (enabled != _owningmeter.Power)
+                        {
+                            int i = kvp.Value;
+
+                            System.Drawing.Color text_colour = GetFontColour(0, i);
+                            System.Drawing.Color on_colour = GetOnColour(0, i);
+                            System.Drawing.Color off_colour = GetOffColour(0, i);
+
+                            if (_owningmeter.Power)
+                            {
+                                SetFontColour(1, i, text_colour);
+                                SetOnColour(1, i, on_colour);
+                                SetOffColour(1, i, off_colour);
+                            }
+                            else
+                            {
+                                SetFontColour(1, i, System.Drawing.Color.FromArgb(255, (int)(text_colour.R * 0.3f), (int)(text_colour.G * 0.3f), (int)(text_colour.B * 0.3f)));
+                                SetOnColour(1, i, System.Drawing.Color.FromArgb(255, (int)(on_colour.R * 0.3f), (int)(on_colour.G * 0.3f), (int)(on_colour.B * 0.3f)));
+                                SetOffColour(1, i, System.Drawing.Color.FromArgb(255, (int)(off_colour.R * 0.3f), (int)(off_colour.G * 0.3f), (int)(off_colour.B * 0.3f)));
+                            }
+
+                            SetEnabled(1, i, _owningmeter.Power);
                         }
                     }
                 }
