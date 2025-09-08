@@ -31924,9 +31924,7 @@ namespace Thetis
                 MeterManager.clsIGSettings igs = m.GetSettingsForMeterGroup(mt, mtci.Order);
                 if (igs == null) return;
 
-                lblLed_Error.ForeColor = Color.Red;
-                lblLed_Error.Visible = igs.ShowHistory;
-                lblLed_Valid.Text = igs.ShowType ? "Valid" : "Invalid";
+                lblLed_Valid.Text = "Syntax " + (igs.ShowType ? "Valid" : "Invalid");
                 lblLed_Valid.ForeColor = igs.ShowType ? Color.LimeGreen : Color.Red;
 
                 tmrLedValid.Enabled = true;
@@ -35453,9 +35451,10 @@ namespace Thetis
                         string txt = txt = File.ReadAllText(ofd.FileName, Encoding.UTF8);
 
                         List<string> webimages = new List<string>();
+                        
                         MeterScriptEngine.BeginBatch();
-                        ucMeter ucm = MeterManager.ContainerFromString(txt, webimages);
-                        MeterScriptEngine.EndBatch();
+                        
+                        ucMeter ucm = MeterManager.ContainerFromString(txt, webimages);                        
 
                         if (ucm == null)
                         {
@@ -35463,6 +35462,8 @@ namespace Thetis
                                 "Container file not recognised",
                                 MessageBoxButtons.OK,
                                 MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+
+                            MeterScriptEngine.EndBatch();
 
                             return;
                         }
@@ -35481,6 +35482,9 @@ namespace Thetis
                             if (dr != DialogResult.Yes)
                             {
                                 MeterManager.RemoveMeterContainer(ucm.ID);
+
+                                MeterScriptEngine.EndBatch();
+
                                 return;
                             }
                         }
@@ -35499,6 +35503,8 @@ namespace Thetis
                         MeterManager.FinishSetupAndDisplay(ucm.ID);
 
                         updateMeter2Controls(ucm.ID);
+
+                        MeterScriptEngine.EndBatch();
 
                         btnContainer_save.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
                     }
@@ -35525,12 +35531,13 @@ namespace Thetis
                 string data64 = MeterManager.ContainerToString(cci.ID);
 
                 MeterScriptEngine.BeginBatch();
-                ucMeter ucm = MeterManager.ContainerFromString(data64);
-                MeterScriptEngine.EndBatch();
+                ucMeter ucm = MeterManager.ContainerFromString(data64);                
                 MeterManager.RunRendererDisplay(ucm.ID);
                 MeterManager.FinishSetupAndDisplay(ucm.ID);
 
                 updateMeter2Controls(ucm.ID);
+
+                MeterScriptEngine.EndBatch();
 
                 btnContainer_save.Enabled = MeterManager.TotalMeterContainers < MAX_CONTAINERS;
             }

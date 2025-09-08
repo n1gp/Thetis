@@ -246,7 +246,7 @@ namespace Thetis
             CW
         }
 
-        public static event EventHandler LedIndicatorRemoved;
+        //public static event EventHandler LedIndicatorRemoved;
         public static event EventHandler<string> WebImageRemoved;
         public static event EventHandler<string> ShowWebImageBackground;
 
@@ -390,7 +390,7 @@ namespace Thetis
             _led_readings[0] = new ConcurrentDictionary<string, object>();
             _led_readings[1] = new ConcurrentDictionary<string, object>();
 
-            MeterScriptEngine.start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's            
+            MeterScriptEngine.Start(provide_variables, 100,2); //100ms update, which is enough for leds. Two banks of variables as 2 rx's            
         }
 
         // led variables and script engine callback
@@ -3465,7 +3465,7 @@ namespace Thetis
         {
             _cat_queue_system.stopAll(); // stop the cat queue
 
-            MeterScriptEngine.stop();
+            MeterScriptEngine.Stop();
 
             if (_image_fetcher != null)
                 _image_fetcher.Shutdown();
@@ -6186,6 +6186,7 @@ namespace Thetis
                                     }
                                 }
 
+                                //this first section is 
                                 IEnumerable<KeyValuePair<string, string>> meterIGData = data.Where(o => o.Key.StartsWith("ItemGroupData_", StringComparison.OrdinalIgnoreCase) && o.Value.Contains(old_ucm_id/*m.ID*/));
                                 foreach (KeyValuePair<string, string> kvp in meterIGData)
                                 {
@@ -6209,7 +6210,7 @@ namespace Thetis
                                             bool bIGSok = igs.TryParse2(meterIGSettings.First().Value);
                                             if (bIGSok)
                                             {
-                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, null, ig.Order);
+                                                m.ApplySettingsForMeterGroup(ig.MeterType, igs, null, ig.Order, false, true);
                                             }
 
                                             // TODO: use this to do some mapping?
@@ -18046,7 +18047,7 @@ namespace Thetis
                 if (!Guid.TryParse(ig.ID, out guid)) guid = Guid.NewGuid();
                 _four_char = Common.FourChar("ledindicator", 0, guid);
 
-                _led_id = MeterScriptEngine.register_led();
+                _led_id = MeterScriptEngine.RegisterLed();
 
                 _timer = null;
                 _delay_milliseconds = 1000;
@@ -18109,10 +18110,6 @@ namespace Thetis
                 get { return _notxtrue; }
                 set { _notxtrue = value; }
             }
-            public bool ScriptError
-            {
-                get { return false; } // retained for future use
-            }
             public bool ScriptValid
             {
                 get { return _valid; }
@@ -18158,9 +18155,9 @@ namespace Thetis
 
             public override void Removing()
             {
-                MeterScriptEngine.unregister_led(_led_id);
+                MeterScriptEngine.UnregisterLed(_led_id);
 
-                MeterManager.LedIndicatorRemoved?.Invoke(this, EventArgs.Empty);
+                //MeterManager.LedIndicatorRemoved?.Invoke(this, EventArgs.Empty);
             }
 
             private void onTimerElapsedCondition()
@@ -18178,7 +18175,7 @@ namespace Thetis
 
                 string cond = expand_placeholders(_condition, rx);
 
-                _valid = MeterScriptEngine.set_condition(_led_id, cond);
+                _valid = MeterScriptEngine.SetCondition(_led_id, cond);
 
                 Debug.Print($"COND = [{cond}] = {_valid.ToString()}");
             }
@@ -18312,7 +18309,7 @@ namespace Thetis
                 get { return _pending_condition; }
                 set
                 {
-                    //if (value == _condition) return;
+                    if (value == _condition) return;
 
                     _pending_condition = value;
 
@@ -18409,7 +18406,7 @@ namespace Thetis
                         add_readings();
 
                         _old_result = _result;
-                        _result = MeterScriptEngine.read_result(_led_id);
+                        _result = MeterScriptEngine.ReadResult(_led_id);
                         _led_results.AddOrUpdate(_four_char, _result, (a, b) => _result);
 
                         // mox
@@ -23642,11 +23639,14 @@ namespace Thetis
                     }
                     items.Clear();
 
+                    MeterScriptEngine.BeginBatch(); // removing a led, will cause script to recompile, so if this container has lots of leds,
+                                                    // that can take a while as every led will cause a recompile. Batch that process here.
                     foreach (string id in toRemove)
                     {
                         _meterItems[id].Removing();
                         _meterItems.Remove(id);
                     }
+                    MeterScriptEngine.EndBatch();
                     toRemove.Clear();
 
                     if (bRebuild) Rebuild();
@@ -23879,7 +23879,7 @@ namespace Thetis
                     }
                 }
             }
-            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, List<string> webimages = null, int order = -1, bool from_setup = false)
+            public void ApplySettingsForMeterGroup(MeterType mt, clsIGSettings igs, List<string> webimages = null, int order = -1, bool from_setup_form = false, bool ignore_led_condition = false)
             {
                 lock (_meterItemsLock)
                 {
@@ -24326,10 +24326,13 @@ namespace Thetis
                                             if (igs.UpdateInterval < 50) igs.UpdateInterval = 100; // when it hasnt been set
                                             led.UpdateInterval = igs.UpdateInterval;
 
-                                            if(from_setup)
-                                                led.Condition = igs.Text1;
-                                            else
-                                                led.ConditionLoad = igs.Text1;
+                                            if (!ignore_led_condition)
+                                            {
+                                                if (from_setup_form)
+                                                    led.Condition = igs.Text1;
+                                                else
+                                                    led.ConditionLoad = igs.Text1;
+                                            }
 
                                             led.Padding = igs.SpacerPadding;
 
@@ -25499,7 +25502,6 @@ namespace Thetis
 
                                             igs.SpacerPadding = led.Padding;
 
-                                            igs.ShowHistory = led.ScriptError;
                                             igs.ShowType = led.ScriptValid;
 
                                             igs.PeakHold = led.ShowTrue;
@@ -26450,6 +26452,8 @@ namespace Thetis
 
                 // itterate through all _meterItems that are text overlay or leds, and set text1/2 and condition to itself to update the customreadings
                 // we dont worry that we might be leaving some cusom readings behind if the rx number changes, this will be cleared next restart
+                bool engine_in_batch = MeterScriptEngine.IsInBatch;
+
                 lock (_meterItemsLock)
                 {
                     foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.TEXT_OVERLAY || o.Value.ItemType == clsMeterItem.MeterItemType.LED))
@@ -26465,10 +26469,13 @@ namespace Thetis
                                 }
                                 break;
                             case clsMeterItem.MeterItemType.LED:
-                                clsLed l = kvp.Value as clsLed;
-                                if(l != null)
+                                if (!engine_in_batch)
                                 {
-                                    l.Condition = l.Condition;
+                                    clsLed l = kvp.Value as clsLed;
+                                    if (l != null)
+                                    {
+                                        l.Condition = l.Condition;
+                                    }
                                 }
                                 break;
                         }

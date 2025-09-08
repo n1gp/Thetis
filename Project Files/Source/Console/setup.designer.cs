@@ -4121,7 +4121,6 @@
             this.radLed_light_on_off = new System.Windows.Forms.RadioButtonTS();
             this.chkLed_show_false = new System.Windows.Forms.CheckBoxTS();
             this.chkLed_show_true = new System.Windows.Forms.CheckBoxTS();
-            this.lblLed_Error = new System.Windows.Forms.LabelTS();
             this.lblLed_Valid = new System.Windows.Forms.LabelTS();
             this.lblLedIndicator_panelbackgroundTX = new System.Windows.Forms.LabelTS();
             this.labelTS219 = new System.Windows.Forms.LabelTS();
@@ -65727,7 +65726,6 @@
             this.grpLedIndicator.Controls.Add(this.radLed_light_on_off);
             this.grpLedIndicator.Controls.Add(this.chkLed_show_false);
             this.grpLedIndicator.Controls.Add(this.chkLed_show_true);
-            this.grpLedIndicator.Controls.Add(this.lblLed_Error);
             this.grpLedIndicator.Controls.Add(this.lblLed_Valid);
             this.grpLedIndicator.Controls.Add(this.btnLedIndicator_copy_truefalse_colours);
             this.grpLedIndicator.Controls.Add(this.lblLedIndicator_panelbackgroundTX);
@@ -65860,26 +65858,15 @@
             this.chkLed_show_true.UseVisualStyleBackColor = true;
             this.chkLed_show_true.CheckedChanged += new System.EventHandler(this.chkLed_show_true_CheckedChanged);
             // 
-            // lblLed_Error
-            // 
-            this.lblLed_Error.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblLed_Error.Image = null;
-            this.lblLed_Error.Location = new System.Drawing.Point(271, 174);
-            this.lblLed_Error.Name = "lblLed_Error";
-            this.lblLed_Error.Size = new System.Drawing.Size(46, 13);
-            this.lblLed_Error.TabIndex = 167;
-            this.lblLed_Error.Text = "error";
-            this.lblLed_Error.TextAlign = System.Drawing.ContentAlignment.TopRight;
-            // 
             // lblLed_Valid
             // 
             this.lblLed_Valid.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLed_Valid.Image = null;
-            this.lblLed_Valid.Location = new System.Drawing.Point(271, 159);
+            this.lblLed_Valid.Location = new System.Drawing.Point(215, 151);
             this.lblLed_Valid.Name = "lblLed_Valid";
-            this.lblLed_Valid.Size = new System.Drawing.Size(46, 15);
+            this.lblLed_Valid.Size = new System.Drawing.Size(104, 15);
             this.lblLed_Valid.TabIndex = 166;
-            this.lblLed_Valid.Text = "valid";
+            this.lblLed_Valid.Text = "Syntax Invalid";
             this.lblLed_Valid.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // lblLedIndicator_panelbackgroundTX
@@ -74140,7 +74127,6 @@
         private ColorButton clrbtnLedIndicator_PanelBackground;
         private CheckBoxTS chkLedIndicator_FadeOnTX;
         private CheckBoxTS chkLedIndicator_FadeOnRX;
-        private LabelTS lblLed_Error;
         private LabelTS lblLed_Valid;
         private CheckBoxTS chkAndrG2Panel;
         private ColumnHeader colType;
