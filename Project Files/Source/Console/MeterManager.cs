@@ -9224,7 +9224,7 @@ namespace Thetis
                             Guid guid = MultiMeterIO.GuidfromFourChar(settings.MMICFourChar[n]);
                             if(guid != Guid.Empty)
                             {
-                                bool state = !GetOn(1, index);
+                                bool state = GetOn(1, index);
                                 if (state)
                                 {
                                     _text_overlay_to_use_parser.Text1 = settings.MMIOMessageON[n];
