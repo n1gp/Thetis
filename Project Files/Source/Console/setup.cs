@@ -27250,6 +27250,7 @@ namespace Thetis
                     {
                         clrbtnButonBox_fontcolour.Visible = mt != MeterType.ANTENNA_BUTTONS;
                         chkButtonBox_use_icons.Visible = mt == MeterType.OTHER_BUTTONS;
+                        btnOtherButtons_reset_layout.Visible = mt == MeterType.OTHER_BUTTONS;
 
                         grpBandButtons.Parent = grpMultiMeterHolder;
                         grpBandButtons.Location = loc;
