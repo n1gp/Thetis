@@ -8766,7 +8766,7 @@ namespace Thetis
 
                     switch (id)
                     {
-                        case OtherButtonId.MON:
+                        case OtherButtonId.MOX:
                         case OtherButtonId.TUN:
                         case OtherButtonId.TWOTON:
                             lock (_process_in_update_buttons_lock)
