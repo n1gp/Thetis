@@ -5055,7 +5055,7 @@ namespace Thetis
 
             general_settings.Add(OtherButtonId.NF, _console.GetGeneralSetting(m.RX, OtherButtonId.NF));
 
-            m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.UNKNOWN, _old_state = false, _new_state = false, _settings = general_settings };
+            m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.INIT, _old_state = false, _new_state = false, _settings = general_settings };
             //
             m.SqlMode = _console.GetSqlMode(m.RX);
             m.CWXShown = _console.CWXForm.IsShown;
@@ -8416,7 +8416,17 @@ namespace Thetis
                 get => base.GeneralSettings;
                 set
                 {
-                    if (value._setting == OtherButtonId.UNKNOWN || !value._settings.ContainsKey(value._setting)) return;
+                    if (value._setting == OtherButtonId.INIT)
+                    {
+                        // special case, only called with init from initConsoleData. Need to setup all
+                        foreach(KeyValuePair<OtherButtonId, bool> kvp in value._settings)
+                        {
+                            updateOn(kvp.Key, kvp.Value);
+                        }
+                        return;
+                    }
+
+                    if (!value._settings.ContainsKey(value._setting)) return;
                     updateOn(value._setting, value._settings[value._setting]);
                 }
             }

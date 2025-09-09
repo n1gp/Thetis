@@ -250,7 +250,9 @@ namespace Thetis
         INFO_TEXT = 998,
         SPLITTER = 999,
 
-        UNKNOWN = 1000
+        INIT = 1000,
+
+        UNKNOWN = 2000
     }
 
     [Serializable]

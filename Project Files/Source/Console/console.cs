@@ -53918,7 +53918,7 @@ namespace Thetis
                         switch (rx)
                         {
                             case 1:
-                                if(!IsSetupFormNull) return SetupForm.RX1EnableAtt;
+                                if (!IsSetupFormNull) return SetupForm.RX1EnableAtt;
                                 break;
                             case 2:
                                 if (!IsSetupFormNull) return SetupForm.RX2EnableAtt;
