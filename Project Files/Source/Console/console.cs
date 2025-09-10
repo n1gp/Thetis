@@ -32777,15 +32777,14 @@ namespace Thetis
             else
                 FWCDDSFreq = CentreFrequency;
 
-            if (chkVFOSync.Checked) //MW0LGE_21k9  //[2.10.1.0] MW0LGE not used anymore
+            if (chkVFOSync.Checked)
             {
-                if (!initializing && RX2Enabled) // MW0LGE_21a
-                {
-                    if (RX2DSPMode != RX1DSPMode) RX2DSPMode = RX1DSPMode; // MW0LGE only set if different
-                    if (RX2Filter != RX1Filter) RX2Filter = RX1Filter; // MW0LGE only set if different
-                }
-                if (VFOBFreq != VFOAFreq) VFOBFreq = VFOAFreq; // MW0LGE_21k9 we only want to do if different, but we always want to align the filters.
-                                                               // Moved after the mode change due to freq change occuring which prevented mode change
+                //if (!initializing && RX2Enabled) // MW0LGE_21a
+                //{
+                //    if (RX2DSPMode != RX1DSPMode) RX2DSPMode = RX1DSPMode; // MW0LGE only set if different
+                //    if (RX2Filter != RX1Filter) RX2Filter = RX1Filter; // MW0LGE only set if different
+                //}
+                if (VFOBFreq != VFOAFreq) VFOBFreq = VFOAFreq;                                                              
             }
 
             if (small_lsd)
@@ -33791,15 +33790,14 @@ namespace Thetis
             }
 
 
-            if (chkVFOSync.Checked) //MW0LGE_21k9
+            if (chkVFOSync.Checked)
             {
-                if (!initializing && RX2Enabled) // MW0LGE_21a
-                {
-                    if (RX1DSPMode != RX2DSPMode) RX1DSPMode = RX2DSPMode;
-                    if (RX1Filter != RX2Filter) RX1Filter = RX2Filter;
-                }
-                if (VFOAFreq != VFOBFreq) VFOAFreq = VFOBFreq; // MW0LGE_21k9 we only want to do if different, but we always want to align the filters/
-                                                               // Moved after the mode change due to freq change occuring which prevented mode change
+                //if (!initializing && RX2Enabled) // MW0LGE_21a
+                //{
+                //    if (RX1DSPMode != RX2DSPMode) RX1DSPMode = RX2DSPMode;
+                //    if (RX1Filter != RX2Filter) RX1Filter = RX2Filter;
+                //}
+                if (VFOAFreq != VFOBFreq) VFOAFreq = VFOBFreq;
             }
 
             if (small_lsd)
