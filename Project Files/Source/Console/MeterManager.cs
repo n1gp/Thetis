@@ -5022,6 +5022,7 @@ namespace Thetis
             general_settings.Add(OtherButtonId.PEAK_BLOBS, _console.GetGeneralSetting(m.RX, OtherButtonId.PEAK_BLOBS));
             general_settings.Add(OtherButtonId.CURSOR_INFO, _console.GetGeneralSetting(m.RX, OtherButtonId.CURSOR_INFO));
             general_settings.Add(OtherButtonId.SPOTS, _console.GetGeneralSetting(m.RX, OtherButtonId.SPOTS));
+            general_settings.Add(OtherButtonId.ACTITVE_PEAK, _console.GetGeneralSetting(m.RX, OtherButtonId.ACTITVE_PEAK));
             general_settings.Add(OtherButtonId.FILL_SPECTRUM, _console.GetGeneralSetting(m.RX, OtherButtonId.FILL_SPECTRUM));
             general_settings.Add(OtherButtonId.RIT, _console.GetGeneralSetting(m.RX, OtherButtonId.RIT));
             general_settings.Add(OtherButtonId.XIT, _console.GetGeneralSetting(m.RX, OtherButtonId.XIT));
@@ -8285,7 +8286,7 @@ namespace Thetis
             public override bool SNB { get => base.SNB; set => updateOn(OtherButtonId.SNB, value); }
             public override bool TNFActive { get => base.TNFActive; set => updateOn(OtherButtonId.MNF, value); }
             public override bool AVG { get => base.AVG; set => updateOn(OtherButtonId.AVG, value); }
-            public override bool Peak { get => base.Peak; set => updateOn(OtherButtonId.PEAK, value); }
+            public override bool Peak { get => base.Peak; set => updateOn(OtherButtonId.PEAK_HOLD, value); }
             public override bool CTUN { get => base.CTUN; set => updateOn(OtherButtonId.CTUN, value); }
             public override bool Vac1 { get => base.Vac1; set => updateOn(OtherButtonId.VAC1, value); }
             public override bool Vac2 { get => base.Vac2; set => updateOn(OtherButtonId.VAC2, value); }

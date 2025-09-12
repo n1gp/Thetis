@@ -19630,11 +19630,37 @@ namespace Thetis
             set { chkPeakBlobsEnabled.Checked = value; }
         }
 
+        public bool GetActivePeakHoldsEnabledRX(int rx) 
+        {
+            switch (rx)
+            {
+                case 1:
+                    return chkActivePeakHoldRX1.Checked;
+                case 2:
+                    return chkActivePeakHoldRX2.Checked;
+                default:
+                    return false;
+            }
+        }
+        public void SetActivePeakHoldsEnabledRX(int rx, bool enabled)
+        {
+            switch (rx)
+            {
+                case 1:
+                    chkActivePeakHoldRX1.Checked = enabled;
+                    break;
+                case 2:
+                    chkActivePeakHoldRX2.Checked = enabled;
+                    break;
+                default:
+                    break;
+            }
+        }
         public bool ActivePeakHoldsEnabled
         {
             get
             {
-                return chkActivePeakHoldRX1.Checked || (chkActivePeakHoldRX2.Checked && console.RX2Enabled);
+                return GetActivePeakHoldsEnabledRX(1) || (GetActivePeakHoldsEnabledRX(2) && console.RX2Enabled);
             }
             set
             {
@@ -20915,7 +20941,8 @@ namespace Thetis
             DISPRX2_Tab,
             SpotTCI,
             OPTIONS2_Tab,
-            PA_Tab
+            PA_Tab,
+            HWSET_Tab
         }
         public void ShowSetupTab(SetupTab eTab)
         {
@@ -20925,6 +20952,10 @@ namespace Thetis
 
             switch (eTab)
             {
+                case SetupTab.HWSET_Tab:
+                    TabSetup.SelectedIndex = 0;
+                    TabGeneral.SelectedIndex = 1; // dither/random/hw sample rate
+                    break;
                 case SetupTab.ALCAGC_Tab:
                     TabSetup.SelectedIndex = 3;
                     TabDSP.SelectedIndex = 2; // select AGC/ALC tab
@@ -21124,6 +21155,8 @@ namespace Thetis
             Display.SpectralPeakHoldRX1 = chkActivePeakHoldRX1.Checked;
             //
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.ActivePeaks, chkActivePeakHoldRX1.Checked || (console.RX2Enabled && chkActivePeakHoldRX2.Checked));
+
+            console.SetGeneralSetting(1, OtherButtonId.ACTITVE_PEAK, chkActivePeakHoldRX1.Checked);
         }
 
         private void udActivePeakHoldDurationRX1_ValueChanged(object sender, EventArgs e)
@@ -21144,6 +21177,8 @@ namespace Thetis
             Display.SpectralPeakHoldRX2 = chkActivePeakHoldRX2.Checked;
 
             console.SetupInfoBarButton(ucInfoBar.ActionTypes.ActivePeaks, chkActivePeakHoldRX1.Checked || (console.RX2Enabled && chkActivePeakHoldRX2.Checked));
+
+            console.SetGeneralSetting(2, OtherButtonId.ACTITVE_PEAK, chkActivePeakHoldRX2.Checked);
         }
 
         private void udActivePeakHoldDurationRX2_ValueChanged(object sender, EventArgs e)

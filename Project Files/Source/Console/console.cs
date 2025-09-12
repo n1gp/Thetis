@@ -52686,10 +52686,20 @@ namespace Thetis
         {
             get { return _busy_doing_otherbutton_action; }
         }
-        public void DoOtherButtonAction(int rx, OtherButtonId id, MouseButtons button)
+        public void DoOtherButtonAction(int rx, OtherButtonId id, MouseButtons button, bool force = false)
         {
-            if (_busy_doing_otherbutton_action) return;
+            if (_busy_doing_otherbutton_action && !force) return;
             _busy_doing_otherbutton_action = true;
+
+            if(button == MouseButtons.Right)
+            {
+                if (handleDoOtherButtonActionRightClick(rx, id))
+                {
+                    _busy_doing_otherbutton_action = false;
+                    return;
+                }
+            }
+
             switch (id)
             {
                 case OtherButtonId.POWER: PowerOn = !PowerOn; break;
@@ -52728,7 +52738,7 @@ namespace Thetis
                 case OtherButtonId.IF_TO_V: btnIFtoVFO_Click(this, EventArgs.Empty); break; // no rx2
                 case OtherButtonId.SWAP_AB: btnVFOSwap_Click(this, EventArgs.Empty); break; // no rx2
                 case OtherButtonId.AVG: SetAVG(rx, !GetAVG(rx)); break;
-                case OtherButtonId.PEAK: SetPeak(rx, !GetPeak(rx)); break;
+                case OtherButtonId.PEAK_HOLD: SetPeak(rx, !GetPeak(rx)); break;
                 case OtherButtonId.CTUN: SetCTUN(rx, !GetCTUN(rx)); break;
                 case OtherButtonId.VAC1: if (!IsSetupFormNull) { SetupForm.VACEnable = !SetupForm.VACEnable; } break;
                 case OtherButtonId.VAC2: if (!IsSetupFormNull) { SetupForm.VAC2Enable = !SetupForm.VAC2Enable; } break;
@@ -52813,6 +52823,7 @@ namespace Thetis
                 case OtherButtonId.PEAK_BLOBS: DoGeneralSettingAction(rx, OtherButtonId.PEAK_BLOBS, !GetGeneralSetting(rx, OtherButtonId.PEAK_BLOBS)); break;
                 case OtherButtonId.CURSOR_INFO: DoGeneralSettingAction(rx, OtherButtonId.CURSOR_INFO, !GetGeneralSetting(rx, OtherButtonId.CURSOR_INFO)); break;
                 case OtherButtonId.SPOTS: DoGeneralSettingAction(rx, OtherButtonId.SPOTS, !GetGeneralSetting(rx, OtherButtonId.SPOTS)); break;
+                case OtherButtonId.ACTITVE_PEAK: DoGeneralSettingAction(rx, OtherButtonId.ACTITVE_PEAK, !GetGeneralSetting(rx, OtherButtonId.ACTITVE_PEAK)); break;
                 case OtherButtonId.FILL_SPECTRUM: DoGeneralSettingAction(rx, OtherButtonId.FILL_SPECTRUM, !GetGeneralSetting(rx, OtherButtonId.FILL_SPECTRUM)); break;
                 case OtherButtonId.RIT: DoGeneralSettingAction(rx, OtherButtonId.RIT, !GetGeneralSetting(rx, OtherButtonId.RIT)); break;
                 case OtherButtonId.XIT: DoGeneralSettingAction(rx, OtherButtonId.XIT, !GetGeneralSetting(rx, OtherButtonId.XIT)); break;
@@ -52927,6 +52938,127 @@ namespace Thetis
             }
 
             _busy_doing_otherbutton_action = false;
+        }
+        private bool handleDoOtherButtonActionRightClick(int rx, OtherButtonId id)
+        {
+            bool ret = true;
+            switch (id)
+            {
+                case OtherButtonId.NR:
+                case OtherButtonId.NR1:
+                case OtherButtonId.NR2:
+                case OtherButtonId.NR3:
+                case OtherButtonId.NR4:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.NR_Tab);
+                    break;
+                case OtherButtonId.NB:
+                case OtherButtonId.NB1:
+                case OtherButtonId.NB2:
+                case OtherButtonId.SNB:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.NB_Tab);
+                    break;
+                case OtherButtonId.VAC1:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.VAC1_Tab);
+                    break;
+                case OtherButtonId.VAC2:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.VAC2_Tab);
+                    break;
+                case OtherButtonId.MNF:
+                case OtherButtonId.MNF_PLUS:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.MNF_Tab);
+                    break;
+                case OtherButtonId.VOX:
+                case OtherButtonId.VOX_P1:
+                case OtherButtonId.VOX_M1:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.VOXDE_Tab);
+                    break;
+                case OtherButtonId.CFC:
+                case OtherButtonId.CFC_EQ:
+                case OtherButtonId.PHASE_ROT:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.CFC_Tab);
+                    break;
+                case OtherButtonId.ATT_0:
+                case OtherButtonId.ATT_10:
+                case OtherButtonId.ATT_20:
+                case OtherButtonId.ATT_30:
+                case OtherButtonId.ATT_40:
+                case OtherButtonId.ATT_50:
+                case OtherButtonId.ATT_STEP:
+                case OtherButtonId.ATT_P1:
+                case OtherButtonId.ATT_M1:
+                case OtherButtonId.AGC_FIXED:
+                case OtherButtonId.AGC_LONG:
+                case OtherButtonId.AGC_SLOW:
+                case OtherButtonId.AGC_MEDIUM:
+                case OtherButtonId.AGC_FAST:
+                case OtherButtonId.AGC_CUSTOM:
+                case OtherButtonId.AGC_AUTO:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.ALCAGC_Tab);
+                    break;
+                case OtherButtonId.TWOTON:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.TEST_Tab);
+                    break;
+                case OtherButtonId.MOX:
+                case OtherButtonId.TUN:                    
+                case OtherButtonId.DRIVE_0:
+                case OtherButtonId.DRIVE_P5:
+                case OtherButtonId.DRIVE_M5:
+                case OtherButtonId.TUN_0:
+                case OtherButtonId.TUNE_P5:
+                case OtherButtonId.TUNE_M5:
+                case OtherButtonId.MIC:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.Transmit_Tab);
+                    break;
+                case OtherButtonId.SQL:
+                case OtherButtonId.SQL_P5:
+                case OtherButtonId.SQL_M5:
+                case OtherButtonId.SQL_SQL:
+                case OtherButtonId.SQL_VSQL:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.AM_Tab);
+                    break;
+                case OtherButtonId.SPLT:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.OPTIONS2_Tab);
+                    break;
+                case OtherButtonId.SPOTS:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.SpotTCI);
+                    break;
+                case OtherButtonId.INFO_TEXT:
+                case OtherButtonId.PEAK_BLOBS:
+                case OtherButtonId.ACTITVE_PEAK:
+                case OtherButtonId.FILL_SPECTRUM:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.DISPGEN_Tab);
+                    break;
+                case OtherButtonId.LEVELER:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.ALCAGC_Tab);
+                    break;
+                case OtherButtonId.RX_EQ:
+                case OtherButtonId.TX_EQ:
+                    DoOtherButtonAction(rx, OtherButtonId.FORM_EQ, MouseButtons.Left, true);
+                    break;
+                case OtherButtonId.PS_A:
+                    DoOtherButtonAction(rx, OtherButtonId.FORM_LINEARITY, MouseButtons.Left, true);
+                    break;
+                case OtherButtonId.XPA:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.OC_Tab);
+                    break;
+                case OtherButtonId.WAVE_RECORD:
+                    DoOtherButtonAction(rx, OtherButtonId.FORM_WAVE, MouseButtons.Left, true);
+                    break;
+                case OtherButtonId.DITHER:
+                case OtherButtonId.RANDOM:
+                case OtherButtonId.SR_48000:
+                case OtherButtonId.SR_96000:
+                case OtherButtonId.SR_192000:
+                case OtherButtonId.SR_384000:
+                case OtherButtonId.SR_768000:
+                case OtherButtonId.SR_1536000:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.HWSET_Tab);
+                    break;
+                default:
+                    ret = false;
+                    break;
+            }
+            return ret;
         }
         public void SetNFEnabled(int rx, bool state)
         {
@@ -53188,7 +53320,7 @@ namespace Thetis
                 case OtherButtonId.MNF: return GetMNF(rx);
                 case OtherButtonId.SPLT: return GetSplit(rx);
                 case OtherButtonId.AVG: return GetAVG(rx);
-                case OtherButtonId.PEAK: return GetPeak(rx);
+                case OtherButtonId.PEAK_HOLD: return GetPeak(rx);
                 case OtherButtonId.CTUN: return GetCTUN(rx);
                 case OtherButtonId.VAC1: if (!IsSetupFormNull) { return SetupForm.VACEnable; } else { return false; }
                 case OtherButtonId.VAC2: if (!IsSetupFormNull) { return SetupForm.VAC2Enable; } else { return false; }
@@ -53244,6 +53376,7 @@ namespace Thetis
                 case OtherButtonId.PEAK_BLOBS: return GetGeneralSetting(rx, OtherButtonId.PEAK_BLOBS);
                 case OtherButtonId.CURSOR_INFO: return GetGeneralSetting(rx, OtherButtonId.CURSOR_INFO);
                 case OtherButtonId.SPOTS: return GetGeneralSetting(rx, OtherButtonId.SPOTS);
+                case OtherButtonId.ACTITVE_PEAK: return GetGeneralSetting(rx, OtherButtonId.ACTITVE_PEAK);
                 case OtherButtonId.FILL_SPECTRUM: return GetGeneralSetting(rx, OtherButtonId.FILL_SPECTRUM);
                 case OtherButtonId.RIT: return GetGeneralSetting(rx, OtherButtonId.RIT);
                 case OtherButtonId.XIT: return GetGeneralSetting(rx, OtherButtonId.XIT);
@@ -53891,6 +54024,9 @@ namespace Thetis
                 case OtherButtonId.SPOTS:
                     if (!IsSetupFormNull) return SetupForm.ShowTCISpots;
                     break;
+                case OtherButtonId.ACTITVE_PEAK:
+                    if (!IsSetupFormNull) return SetupForm.GetActivePeakHoldsEnabledRX(rx);
+                    break;
                 case OtherButtonId.FILL_SPECTRUM:
                     if (!IsSetupFormNull) return SetupForm.DisplayPanFill;
                     break;
@@ -53973,7 +54109,7 @@ namespace Thetis
             SetGeneralSetting(0, OtherButtonId.LOCK_A, GetGeneralSetting(tmp_rx, OtherButtonId.LOCK_A));
             SetGeneralSetting(0, OtherButtonId.LOCK_B, GetGeneralSetting(tmp_rx, OtherButtonId.LOCK_B));
 
-            // per meter here
+            // per rx here
             int start = rx == 0 ? 1 : rx;
             int end = rx == 0 ? 2 : rx;
             for (int n = start; n <= end; n++)
@@ -53987,6 +54123,7 @@ namespace Thetis
 
                 setATTGeneralSetting(n);
                 SetGeneralSetting(n, OtherButtonId.NF, GetGeneralSetting(n, OtherButtonId.NF));
+                SetGeneralSetting(n, OtherButtonId.ACTITVE_PEAK, GetGeneralSetting(tmp_rx, OtherButtonId.ACTITVE_PEAK));
             }
 
             // last
@@ -54065,6 +54202,9 @@ namespace Thetis
                     return true;
                 case OtherButtonId.SPOTS:
                     if (!IsSetupFormNull) SetupForm.ShowTCISpots = state;
+                    return true;
+                case OtherButtonId.ACTITVE_PEAK:
+                    if (!IsSetupFormNull) SetupForm.SetActivePeakHoldsEnabledRX(rx, state);
                     return true;
                 case OtherButtonId.FILL_SPECTRUM:
                     if (!IsSetupFormNull) SetupForm.DisplayPanFill = state;
