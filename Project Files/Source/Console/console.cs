@@ -54795,6 +54795,7 @@ namespace Thetis
             switch (rx)
             {
                 case 1:
+                    if (newFilter == Filter.F8 || newFilter == Filter.F9 || newFilter == Filter.F10) break; // rx2 does not have these filters
                     RX2Filter = newFilter;
                     break;
                 case 2:
