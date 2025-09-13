@@ -2848,6 +2848,9 @@ namespace Thetis
             chkPreventSleep_CheckedChanged(this, e);
             chkPreventScreenSaver_CheckedChanged(this, e);
 
+            //options3 tab
+            chkVFOsync_settings_changed(this, e);
+
             // auto start tab
             updateAutoLaunchControls();
 
@@ -20941,6 +20944,7 @@ namespace Thetis
             DISPRX2_Tab,
             SpotTCI,
             OPTIONS2_Tab,
+            OPTIONS3_Tab,
             PA_Tab,
             HWSET_Tab
         }
@@ -21034,6 +21038,11 @@ namespace Thetis
                     TabSetup.SelectedIndex = 0; // general
                     TabGeneral.SelectedIndex = 2; // options
                     TabOptions.SelectedIndex = 1; // options2
+                    break;
+                case SetupTab.OPTIONS3_Tab:
+                    TabSetup.SelectedIndex = 0; // general
+                    TabGeneral.SelectedIndex = 2; // options
+                    TabOptions.SelectedIndex = 2; // options3
                     break;
                 case SetupTab.PA_Tab:
                     TabSetup.SelectedIndex = 5; // pa
@@ -35650,6 +35659,33 @@ namespace Thetis
         private void btnLedIndicatorVarPicker_Click(object sender, EventArgs e)
         {
             string var = showVarPickerForClipboard();
+        }
+
+        private bool _ignore_vfo_sync_settings = false;
+        private void chkVFOsync_settings_changed(object sender, EventArgs e)
+        {
+            if (initializing || console == null || _ignore_vfo_sync_settings) return;
+
+            CheckBox cb = sender as CheckBox;
+            if (cb != null) // will be null when called from ForceAllEvents
+            {                
+                if (!cb.Checked)
+                {
+                    //one must always be selected
+                    bool any_selected = chkVFOsync_freq.Checked || chkVFOsync_mode.Checked || chkVFOsync_filter.Checked;
+                    if (!any_selected)
+                    {
+                        _ignore_vfo_sync_settings = true;
+                        cb.Checked = true;
+                        _ignore_vfo_sync_settings = false;
+                        return;
+                    }
+                }
+            }
+
+            console.VFOsyncFrequency = chkVFOsync_freq.Checked;
+            console.VFOsyncMode = chkVFOsync_mode.Checked;
+            console.VFOsyncFilter = chkVFOsync_filter.Checked;
         }
     }
 

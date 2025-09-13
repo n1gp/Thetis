@@ -32777,15 +32777,15 @@ namespace Thetis
             else
                 FWCDDSFreq = CentreFrequency;
 
-            if (chkVFOSync.Checked)
-            {
-                //if (!initializing && RX2Enabled) // MW0LGE_21a
-                //{
-                //    if (RX2DSPMode != RX1DSPMode) RX2DSPMode = RX1DSPMode; // MW0LGE only set if different
-                //    if (RX2Filter != RX1Filter) RX2Filter = RX1Filter; // MW0LGE only set if different
-                //}
-                if (VFOBFreq != VFOAFreq) VFOBFreq = VFOAFreq;                                                              
-            }
+            //if (chkVFOSync.Checked)
+            //{
+            //    //if (!initializing && RX2Enabled) // MW0LGE_21a
+            //    //{
+            //    //    if (RX2DSPMode != RX1DSPMode) RX2DSPMode = RX1DSPMode; // MW0LGE only set if different
+            //    //    if (RX2Filter != RX1Filter) RX2Filter = RX1Filter; // MW0LGE only set if different
+            //    //}
+            //    if (VFOBFreq != VFOAFreq) VFOBFreq = VFOAFreq;                                                              
+            //}
 
             if (small_lsd)
             {
@@ -33790,15 +33790,15 @@ namespace Thetis
             }
 
 
-            if (chkVFOSync.Checked)
-            {
-                //if (!initializing && RX2Enabled) // MW0LGE_21a
-                //{
-                //    if (RX1DSPMode != RX2DSPMode) RX1DSPMode = RX2DSPMode;
-                //    if (RX1Filter != RX2Filter) RX1Filter = RX2Filter;
-                //}
-                if (VFOAFreq != VFOBFreq) VFOAFreq = VFOBFreq;
-            }
+            //if (chkVFOSync.Checked)
+            //{
+            //    //if (!initializing && RX2Enabled) // MW0LGE_21a
+            //    //{
+            //    //    if (RX1DSPMode != RX2DSPMode) RX1DSPMode = RX2DSPMode;
+            //    //    if (RX1Filter != RX2Filter) RX1Filter = RX2Filter;
+            //    //}
+            //    if (VFOAFreq != VFOBFreq) VFOAFreq = VFOBFreq;
+            //}
 
             if (small_lsd)
             {
@@ -45874,6 +45874,10 @@ namespace Thetis
         #endregion
 
         //-- RIGHT click on control shows related setup page // refactored
+        private void chkVFOSync_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (IsRightButton(e)) SetupForm.ShowSetupTab(Setup.SetupTab.OPTIONS3_Tab);
+        }
         private void chkNR_MouseDown(object sender, MouseEventArgs e)
         {
             if (IsRightButton(e)) SetupForm.ShowSetupTab(Setup.SetupTab.NR_Tab);
@@ -46841,6 +46845,9 @@ namespace Thetis
         }
         private void OnFilterChanged(int rx, Filter oldFilter, Filter newFilter, Band band, int low, int high, string sName)
         {
+            //vfosync
+            handleVfoSyncFilter(rx, newFilter, low, high);
+
             if (m_bSetBandRunning) return;
             if (rx != 1) return;
             if (!BandStackManager.Ready) return;
@@ -47111,6 +47118,9 @@ namespace Thetis
             //recover the stepindex.
             updateStepIndexForMode(rx, newMode);
 
+            //vfosync
+            handleVfoSyncMode(rx, newMode);
+
             if (m_bSetBandRunning) return;
             if (rx != 1) return;
             if (!BandStackManager.Ready) return;
@@ -47142,6 +47152,8 @@ namespace Thetis
 
             //max bin display
             if (_display_max_bin_enabled[rx-1] && rx == 1) setupDisplayMaxBinDetect(rx, false, true);
+
+            handleVfoSyncFrequency(rx, newFreq, false);
         }
         private void OnVFOBFrequencyChangeHandler(Band oldBand, Band newBand, DSPMode oldMode, DSPMode newMode, Filter oldFilter, Filter newFilter, double oldFreq, double newFreq, double oldCentreF, double newCentreF, bool oldCTUN, bool newCTUN, int oldZoomSlider, int newZoomSlider, double offset, int rx)
         {
@@ -47157,6 +47169,8 @@ namespace Thetis
 
             //max bin display
             if (_display_max_bin_enabled[rx - 1] && rx == 2) setupDisplayMaxBinDetect(rx, false, true);
+
+            handleVfoSyncFrequency(rx, newFreq, true);
         }
 
         private void OnMoxChangeHandler(int rx, bool oldMox, bool newMox)
@@ -53024,9 +53038,17 @@ namespace Thetis
                     break;
                 case OtherButtonId.INFO_TEXT:
                 case OtherButtonId.PEAK_BLOBS:
-                case OtherButtonId.ACTITVE_PEAK:
                 case OtherButtonId.FILL_SPECTRUM:
                     SetupForm.ShowSetupTab(Setup.SetupTab.DISPGEN_Tab);
+                    break;
+                case OtherButtonId.ACTITVE_PEAK:
+                    switch (rx)
+                    {
+                        case 1:
+                            SetupForm.ShowSetupTab(Setup.SetupTab.DISPRX1_Tab); break;
+                        case 2:
+                            SetupForm.ShowSetupTab(Setup.SetupTab.DISPRX2_Tab); break;
+                    }
                     break;
                 case OtherButtonId.LEVELER:
                     SetupForm.ShowSetupTab(Setup.SetupTab.ALCAGC_Tab);
@@ -53053,6 +53075,9 @@ namespace Thetis
                 case OtherButtonId.SR_768000:
                 case OtherButtonId.SR_1536000:
                     SetupForm.ShowSetupTab(Setup.SetupTab.HWSET_Tab);
+                    break;
+                case OtherButtonId.VFO_SYNC:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.OPTIONS3_Tab);
                     break;
                 default:
                     ret = false;
@@ -54692,6 +54717,93 @@ namespace Thetis
                         break;
                 }
             }
+        }
+        //
+
+        private bool _vfo_sync_frequency = false;
+        private bool _vfo_sync_mode = false;
+        private bool _vfo_sync_filter = false;
+        public bool VFOsyncFrequency
+        {
+            get { return _vfo_sync_frequency; }
+            set { _vfo_sync_frequency = value; }
+        }
+        public bool VFOsyncMode
+        {
+            get { return _vfo_sync_mode; }
+            set { _vfo_sync_mode = value; }
+        }
+        public bool VFOsyncFilter
+        {
+            get { return _vfo_sync_filter; }
+            set { _vfo_sync_filter = value; }
+        }
+        private bool _prevent_vsync_frequency_update = false;
+        private void handleVfoSyncFrequency(int rx, double frequency, bool vfoB)
+        {
+            if (!VFOSync) return;
+            if (!_vfo_sync_frequency || _prevent_vsync_frequency_update) return;
+            _prevent_vsync_frequency_update = true;
+
+            switch (rx)
+            {
+                case 1:
+                    if(vfoB)
+                        VFOAFreq = VFOBFreq;
+                    else
+                        VFOBFreq = VFOAFreq;
+                    break;
+                case 2:
+                    if (vfoB)
+                    {
+                        VFOAFreq = VFOBFreq; //vfob will always be chaning for rx2
+                    }
+                    break;
+            }
+
+            _prevent_vsync_frequency_update = false;
+        }
+        private bool _prevent_vsync_mode_update = false;
+        private void handleVfoSyncMode(int rx, DSPMode mode)
+        {
+            if (!VFOSync) return;
+            if (!_vfo_sync_mode || _prevent_vsync_mode_update) return;
+            _prevent_vsync_mode_update = true;
+            _prevent_vsync_filter_update = true; // prevent filter from syncing when changing mode
+
+            switch (rx)
+            {
+                case 1:
+                    RX2DSPMode = mode;
+                    break;
+                case 2:
+                    RX1DSPMode = mode;
+                    break;
+            }
+
+            _prevent_vsync_filter_update = false;
+            _prevent_vsync_mode_update = false;
+        }
+        private bool _prevent_vsync_filter_update = false;
+        private void handleVfoSyncFilter(int rx, Filter newFilter, int low, int high)
+        {
+            if (!VFOSync || newFilter == Filter.VAR1 || newFilter == Filter.VAR2) return;
+            if (!_vfo_sync_filter || _prevent_vsync_filter_update) return;
+            _prevent_vsync_filter_update = true;
+            _prevent_vsync_mode_update = true; // prevent mode syncing when filter changes, which is unlikely from a filter change
+
+            switch (rx)
+            {
+                case 1:
+                    RX2Filter = newFilter;
+                    break;
+                case 2:
+                    RX1Filter = newFilter;
+                    break;
+            }
+
+            _prevent_vsync_mode_update = false;
+            _prevent_vsync_filter_update = false;
         }
     }
 

@@ -4334,6 +4334,11 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
+            this.tpOptions3 = new System.Windows.Forms.TabPage();
+            this.groupBoxTS57 = new System.Windows.Forms.GroupBoxTS();
+            this.chkVFOsync_freq = new System.Windows.Forms.CheckBoxTS();
+            this.chkVFOsync_mode = new System.Windows.Forms.CheckBoxTS();
+            this.chkVFOsync_filter = new System.Windows.Forms.CheckBoxTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -5429,6 +5434,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS35)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS36)).BeginInit();
             this.panelTS4.SuspendLayout();
+            this.tpOptions3.SuspendLayout();
+            this.groupBoxTS57.SuspendLayout();
             this.SuspendLayout();
             // 
             // tpAlexAntCtrl
@@ -9165,6 +9172,7 @@
             // 
             this.tcOptions.Controls.Add(this.tpOptions1);
             this.tcOptions.Controls.Add(this.tpOptions2);
+            this.tcOptions.Controls.Add(this.tpOptions3);
             this.tcOptions.Controls.Add(this.tpOptionsStartUp);
             this.tcOptions.Dock = System.Windows.Forms.DockStyle.Fill;
             this.tcOptions.Location = new System.Drawing.Point(0, 0);
@@ -69005,6 +69013,66 @@
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
             // 
+            // tpOptions3
+            // 
+            this.tpOptions3.BackColor = System.Drawing.SystemColors.Control;
+            this.tpOptions3.Controls.Add(this.groupBoxTS57);
+            this.tpOptions3.Location = new System.Drawing.Point(4, 22);
+            this.tpOptions3.Name = "tpOptions3";
+            this.tpOptions3.Size = new System.Drawing.Size(716, 384);
+            this.tpOptions3.TabIndex = 3;
+            this.tpOptions3.Text = "Options-3";
+            // 
+            // groupBoxTS57
+            // 
+            this.groupBoxTS57.Controls.Add(this.chkVFOsync_filter);
+            this.groupBoxTS57.Controls.Add(this.chkVFOsync_mode);
+            this.groupBoxTS57.Controls.Add(this.chkVFOsync_freq);
+            this.groupBoxTS57.Location = new System.Drawing.Point(8, 8);
+            this.groupBoxTS57.Name = "groupBoxTS57";
+            this.groupBoxTS57.Size = new System.Drawing.Size(190, 99);
+            this.groupBoxTS57.TabIndex = 32;
+            this.groupBoxTS57.TabStop = false;
+            this.groupBoxTS57.Text = "VFOsync will";
+            // 
+            // chkVFOsync_freq
+            // 
+            this.chkVFOsync_freq.AutoSize = true;
+            this.chkVFOsync_freq.Checked = true;
+            this.chkVFOsync_freq.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkVFOsync_freq.Image = null;
+            this.chkVFOsync_freq.Location = new System.Drawing.Point(14, 23);
+            this.chkVFOsync_freq.Name = "chkVFOsync_freq";
+            this.chkVFOsync_freq.Size = new System.Drawing.Size(98, 17);
+            this.chkVFOsync_freq.TabIndex = 0;
+            this.chkVFOsync_freq.Text = "sync frequency";
+            this.chkVFOsync_freq.UseVisualStyleBackColor = true;
+            this.chkVFOsync_freq.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
+            // 
+            // chkVFOsync_mode
+            // 
+            this.chkVFOsync_mode.AutoSize = true;
+            this.chkVFOsync_mode.Image = null;
+            this.chkVFOsync_mode.Location = new System.Drawing.Point(14, 46);
+            this.chkVFOsync_mode.Name = "chkVFOsync_mode";
+            this.chkVFOsync_mode.Size = new System.Drawing.Size(77, 17);
+            this.chkVFOsync_mode.TabIndex = 1;
+            this.chkVFOsync_mode.Text = "sync mode";
+            this.chkVFOsync_mode.UseVisualStyleBackColor = true;
+            this.chkVFOsync_mode.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
+            // 
+            // chkVFOsync_filter
+            // 
+            this.chkVFOsync_filter.AutoSize = true;
+            this.chkVFOsync_filter.Image = null;
+            this.chkVFOsync_filter.Location = new System.Drawing.Point(14, 69);
+            this.chkVFOsync_filter.Name = "chkVFOsync_filter";
+            this.chkVFOsync_filter.Size = new System.Drawing.Size(146, 17);
+            this.chkVFOsync_filter.TabIndex = 2;
+            this.chkVFOsync_filter.Text = "sync filter if not var1/var2";
+            this.chkVFOsync_filter.UseVisualStyleBackColor = true;
+            this.chkVFOsync_filter.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
+            // 
             // Setup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -70360,6 +70428,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS36)).EndInit();
             this.panelTS4.ResumeLayout(false);
             this.panelTS4.PerformLayout();
+            this.tpOptions3.ResumeLayout(false);
+            this.groupBoxTS57.ResumeLayout(false);
+            this.groupBoxTS57.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -74697,5 +74768,10 @@
         private ButtonTS btnRecoverContainer;
         private ButtonTS btnTextOverlayVarPicker;
         private ButtonTS btnLedIndicatorVarPicker;
+        private TabPage tpOptions3;
+        private GroupBoxTS groupBoxTS57;
+        private CheckBoxTS chkVFOsync_filter;
+        private CheckBoxTS chkVFOsync_mode;
+        private CheckBoxTS chkVFOsync_freq;
     }
 }
