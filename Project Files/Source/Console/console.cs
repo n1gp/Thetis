@@ -18231,6 +18231,8 @@ namespace Thetis
             get { return rx1_filter; }
             set
             {
+                if (_mode_changed_via_vsync) return;
+
                 RadioButtonTS r = null;
                 switch (value)
                 {
@@ -18296,6 +18298,8 @@ namespace Thetis
             get { return rx2_filter; }
             set
             {
+                if (_mode_changed_via_vsync) return;
+
                 RadioButtonTS r = null;
                 switch (value)
                 {
@@ -46846,7 +46850,7 @@ namespace Thetis
         private void OnFilterChanged(int rx, Filter oldFilter, Filter newFilter, Band band, int low, int high, string sName)
         {
             //vfosync
-            handleVfoSyncFilter(rx, newFilter, low, high);
+            handleVfoSyncFilter(rx, newFilter);
 
             if (m_bSetBandRunning) return;
             if (rx != 1) return;
@@ -54738,59 +54742,80 @@ namespace Thetis
             get { return _vfo_sync_filter; }
             set { _vfo_sync_filter = value; }
         }
-        private bool _prevent_vsync_frequency_update = false;
+        private bool _prevent_vsync_updates = false; // to prevent recursive updates
         private void handleVfoSyncFrequency(int rx, double frequency, bool vfoB)
         {
             if (!VFOSync) return;
-            if (!_vfo_sync_frequency || _prevent_vsync_frequency_update) return;
-            _prevent_vsync_frequency_update = true;
+            if (!_vfo_sync_frequency || _prevent_vsync_updates) return;
+            _prevent_vsync_updates = true;
 
             switch (rx)
             {
                 case 1:
-                    if(vfoB)
+                    if (vfoB)
+                    {
                         VFOAFreq = VFOBFreq;
+                    }
                     else
+                    {
                         VFOBFreq = VFOAFreq;
+                    }
+
+                    _prevent_vsync_updates = false;
+                    handleVfoSyncMode(1, RX1DSPMode);
                     break;
                 case 2:
                     if (vfoB)
                     {
-                        VFOAFreq = VFOBFreq; //vfob will always be chaning for rx2
+                        VFOAFreq = VFOBFreq; //vfob will always be changing for rx2
+                        _prevent_vsync_updates = false;
+                        handleVfoSyncMode(2, RX2DSPMode);
                     }
                     break;
             }
 
-            _prevent_vsync_frequency_update = false;
+            _prevent_vsync_updates = false;
         }
-        private bool _prevent_vsync_mode_update = false;
+        private bool _mode_changed_via_vsync = false; // used to prevent filter changes happening when mode is changed due to vsync, we will sync filters ourselves
         private void handleVfoSyncMode(int rx, DSPMode mode)
         {
             if (!VFOSync) return;
-            if (!_vfo_sync_mode || _prevent_vsync_mode_update) return;
-            _prevent_vsync_mode_update = true;
-            _prevent_vsync_filter_update = true; // prevent filter from syncing when changing mode
+            if (!_vfo_sync_mode || _prevent_vsync_updates) return;
+            _prevent_vsync_updates = true;
+            _mode_changed_via_vsync = _vfo_sync_filter; //prevent filter changes happening when mode is changed if we are syncing filters
 
             switch (rx)
             {
                 case 1:
                     RX2DSPMode = mode;
+                    if (_mode_changed_via_vsync)
+                    {
+                        // update filter?
+                        _mode_changed_via_vsync = false;
+                        _prevent_vsync_updates = false;
+                        handleVfoSyncFilter(1, RX1Filter);
+                    }
                     break;
                 case 2:
                     RX1DSPMode = mode;
+                    if (_mode_changed_via_vsync)
+                    {
+                        // update filter?
+                        _mode_changed_via_vsync = false;
+                        _prevent_vsync_updates = false;
+                        handleVfoSyncFilter(2, RX2Filter);
+                    }
                     break;
             }
 
-            _prevent_vsync_filter_update = false;
-            _prevent_vsync_mode_update = false;
+            _mode_changed_via_vsync = false;
+            _prevent_vsync_updates = false;
         }
-        private bool _prevent_vsync_filter_update = false;
-        private void handleVfoSyncFilter(int rx, Filter newFilter, int low, int high)
+        private void handleVfoSyncFilter(int rx, Filter newFilter)
         {
             if (!VFOSync || newFilter == Filter.VAR1 || newFilter == Filter.VAR2) return;
-            if (!_vfo_sync_filter || _prevent_vsync_filter_update) return;
-            _prevent_vsync_filter_update = true;
-            _prevent_vsync_mode_update = true; // prevent mode syncing when filter changes, which is unlikely from a filter change
+            if (!_vfo_sync_filter || _prevent_vsync_updates) return;
+            _prevent_vsync_updates = true;
 
             switch (rx)
             {
@@ -54803,8 +54828,7 @@ namespace Thetis
                     break;
             }
 
-            _prevent_vsync_mode_update = false;
-            _prevent_vsync_filter_update = false;
+            _prevent_vsync_updates = false;
         }
     }
 
