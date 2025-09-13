@@ -54782,7 +54782,7 @@ namespace Thetis
             if (!VFOSync) return;
             if (!_vfo_sync_mode || _prevent_vsync_updates) return;
             _prevent_vsync_updates = true;
-            _mode_changed_via_vsync = _vfo_sync_filter; //prevent filter changes happening when mode is changed if we are syncing filters
+            _mode_changed_via_vsync = _vfo_sync_filter; //prevent filter changes happening when mode is changed if we are syncing filters. Used in RX1Filter and RX2Filter
 
             switch (rx)
             {
