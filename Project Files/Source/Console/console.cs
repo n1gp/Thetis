@@ -74,9 +74,6 @@ namespace Thetis
     using System.Windows.Forms;
     using System.Xml.Linq;
     using System.Collections.Concurrent;
-    using System.Management;
-    using System.Runtime.CompilerServices;
-    using System.Reflection.Metadata;
 
     public partial class Console : Form
     {
