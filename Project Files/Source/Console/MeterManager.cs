@@ -9160,13 +9160,13 @@ namespace Thetis
                 int index = base.ButtonIndex;
                 if (index == -1) return;
 
-                if (!GetEnabled(1, index)) return;
-
                 //use map to convert index
                 lock (_map_lock) 
                 {
                     index = _map[index];
                 }
+
+                if (!GetEnabled(1, index)) return;
 
                 int bit = index % 32;
                 int bit_group = index / 32;

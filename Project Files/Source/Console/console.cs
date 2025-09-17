@@ -924,7 +924,7 @@ namespace Thetis
             Splash.CloseForm();									// End splash screen            
 
             Common.FadeIn(this);
-
+            
             txtVFOAFreq_LostFocus(this, EventArgs.Empty);
             txtVFOBFreq_LostFocus(this, EventArgs.Empty);
             chkSquelch_CheckStateChanged(this, EventArgs.Empty);
@@ -52964,6 +52964,7 @@ namespace Thetis
                 case OtherButtonId.NR2:
                 case OtherButtonId.NR3:
                 case OtherButtonId.NR4:
+                case OtherButtonId.ANF:
                     SetupForm.ShowSetupTab(Setup.SetupTab.NR_Tab);
                     break;
                 case OtherButtonId.NB:

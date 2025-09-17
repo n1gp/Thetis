@@ -1153,6 +1153,8 @@ namespace Thetis
 
             return true; // IP and port are valid
         }
+
+        // serilisation for any object type
         public static string SerializeToBase64<T>(T obj)
         {
             using (MemoryStream memoryStream = new MemoryStream())
@@ -1179,6 +1181,7 @@ namespace Thetis
             }
         }
         //
+
         public static bool HasArg(string[] args, string arg)
         {
             if (args == null || args.Length < 1 || string.IsNullOrEmpty(arg)) return false;
@@ -1846,10 +1849,12 @@ namespace Thetis
         //
 
         //string compress
-        public static string Compress_gzip(string input)
+        public static string Compress_gzip(string uncompressed_input)
         {
-            if (input == null) return null;
-            byte[] input_bytes = Encoding.UTF8.GetBytes(input);
+            if (string.IsNullOrEmpty(uncompressed_input)) return null;
+
+            byte[] input_bytes = Encoding.UTF8.GetBytes(uncompressed_input);
+
             using (MemoryStream output_stream = new MemoryStream())
             {
                 using (GZipStream gzip = new GZipStream(output_stream, CompressionLevel.Optimal, true))
@@ -1858,20 +1863,23 @@ namespace Thetis
                 }
                 byte[] compressed_bytes = output_stream.ToArray();
                 string base64 = Convert.ToBase64String(compressed_bytes);
-                string base64url = base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
-                return base64url;
+                string result = base64.Replace('+', '-').Replace('/', '_').TrimEnd('=');
+                return result;
             }
         }
 
-        public static string Decompress_gzip(string base64url)
+        public static string Decompress_gzip(string compressed_input)
         {
-            if (base64url == null) return null;
-            string base64 = base64url.Replace('-', '+').Replace('_', '/');
+            if (string.IsNullOrEmpty(compressed_input)) return null;
+
+            string base64 = compressed_input.Replace('-', '+').Replace('_', '/');
             int pad = base64.Length % 4;
             if (pad == 2) base64 += "==";
             else if (pad == 3) base64 += "=";
             else if (pad == 1) throw new FormatException("Invalid Base64URL length");
+
             byte[] compressed_bytes = Convert.FromBase64String(base64);
+
             using (MemoryStream input_stream = new MemoryStream(compressed_bytes))
             using (GZipStream gzip = new GZipStream(input_stream, CompressionMode.Decompress))
             using (MemoryStream decompressed_stream = new MemoryStream())
