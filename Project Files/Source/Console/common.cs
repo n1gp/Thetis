@@ -259,7 +259,8 @@ namespace Thetis
 				}
 			}
 
-			c.Invalidate();
+			//c.Invalidate();
+            c.Refresh();
 		}
 		#endregion
 		#region WindowDropShadow

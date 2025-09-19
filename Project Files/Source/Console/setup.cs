@@ -193,6 +193,8 @@ namespace Thetis
             setup_comboWebImage_noaa();
             //
 
+            moveButtonBoxSettings();
+
             SetupDSPWarnings(false, false, false, false, false, false); // hide everything
 
             comboGeneralProcessPriority.Text = "Normal";
@@ -1784,7 +1786,7 @@ namespace Thetis
             addToIgnore(ref ignoreList, grpTextOverlay);
             addToIgnore(ref ignoreList, grpMeterItemClockSettings);
             addToIgnore(ref ignoreList, grpMeterItemSpacerSettings);
-            addToIgnore(ref ignoreList, grpBandButtons);
+            addToIgnore(ref ignoreList, grpButtonBox);
             addToIgnore(ref ignoreList, ucTunestepOptionsGrid_buttons);
             addToIgnore(ref ignoreList, pnlButtonBox_antenna_toggles);
             addToIgnore(ref ignoreList, grpLedIndicator);
@@ -2684,7 +2686,7 @@ namespace Thetis
             clrbtnBandBackground_Changed(this, e);
             clrbtnVFOBackground_Changed(this, e);
 
-            chkLegacyMeters_CheckedChanged(this, e);
+            chkHideLegacyMeters_CheckedChanged(this, e);
 
             chkJoinBandEdges_CheckedChanged(this, e);
             chkShowFrequencyNumbers_CheckedChanged(this, e);
@@ -27206,25 +27208,52 @@ namespace Thetis
         {
             updateMeterType();
         }
-        private void setupMMSettingsGroupBoxes(MeterType mt)
+        private void moveButtonBoxSettings()
+        {
+            //move the buttonbox settings
+            //used just after init to move things where the should be
+            //so that finder can at least show items/gadget tab
+            setupMMSettingsGroupBoxes(MeterType.VFO_DISPLAY, false);
+            setupMMSettingsGroupBoxes(MeterType.CLOCK, false);
+            setupMMSettingsGroupBoxes(MeterType.SPACER, false);
+            setupMMSettingsGroupBoxes(MeterType.FILTER_DISPLAY, false);
+            setupMMSettingsGroupBoxes(MeterType.TEXT_OVERLAY, false);
+            setupMMSettingsGroupBoxes(MeterType.DATA_OUT, false);
+            setupMMSettingsGroupBoxes(MeterType.ROTATOR, false);
+            setupMMSettingsGroupBoxes(MeterType.LED, false);
+            setupMMSettingsGroupBoxes(MeterType.DIAL_DISPLAY, false);
+            setupMMSettingsGroupBoxes(MeterType.WEB_IMAGE, false);
+            setupMMSettingsGroupBoxes(MeterType.OTHER_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.TUNESTEP_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.ANTENNA_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.FILTER_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.MODE_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.BAND_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.DISCORD_BUTTONS, false);
+            setupMMSettingsGroupBoxes(MeterType.HISTORY, false);
+        }
+        private void setupMMSettingsGroupBoxes(MeterType mt, bool all = true)
         {
             // grpMeterItemSettings defines the x,y used by all
             Point loc = grpMeterItemSettings.Location;
 
-            grpMeterItemSettings.Visible = false;
-            grpMeterItemClockSettings.Visible = false;
-            grpMeterItemVfoDisplaySettings.Visible = false;
-            grpMeterItemSpacerSettings.Visible = false;
-            grpTextOverlay.Visible = false;
-            grpMeterItemDataOutNode.Visible = false;
-            grpMeterItemRotator.Visible = false;
-            grpLedIndicator.Visible = false;
-            grpWebImage.Visible = false;
-            grpBandButtons.Visible = false;
-            pnlButtonBox_antenna_toggles.Visible = false;
-            grpHistoryItem.Visible = false;
-            grpMeterItemFilterDisplay.Visible = false;
-            grpDialDisplay.Visible = false;
+            if (all)
+            {
+                grpMeterItemSettings.Visible = false;
+                grpMeterItemClockSettings.Visible = false;
+                grpMeterItemVfoDisplaySettings.Visible = false;
+                grpMeterItemSpacerSettings.Visible = false;
+                grpTextOverlay.Visible = false;
+                grpMeterItemDataOutNode.Visible = false;
+                grpMeterItemRotator.Visible = false;
+                grpLedIndicator.Visible = false;
+                grpWebImage.Visible = false;
+                grpButtonBox.Visible = false;
+                pnlButtonBox_antenna_toggles.Visible = false;
+                grpHistoryItem.Visible = false;
+                grpMeterItemFilterDisplay.Visible = false;
+                grpDialDisplay.Visible = false;
+            }
 
             switch (mt)
             {
@@ -27296,23 +27325,23 @@ namespace Thetis
                         chkButtonBox_use_icons.Visible = mt == MeterType.OTHER_BUTTONS;
                         btnOtherButtons_reset_layout.Visible = mt == MeterType.OTHER_BUTTONS;
 
-                        grpBandButtons.Parent = grpMultiMeterHolder;
-                        grpBandButtons.Location = loc;
-                        grpBandButtons.Visible = true;
+                        grpButtonBox.Parent = grpMultiMeterHolder;
+                        grpButtonBox.Location = loc;
+                        grpButtonBox.Visible = true;
 
                         Point pos = new Point(150, 194);
 
                         switch (mt)
                         {
                             case MeterType.ANTENNA_BUTTONS:
-                                pnlButtonBox_antenna_toggles.Parent = grpBandButtons;
+                                pnlButtonBox_antenna_toggles.Parent = grpButtonBox;
                                 pnlButtonBox_antenna_toggles.Location = pos;
                                 pnlButtonBox_antenna_toggles.Visible = true;
                                 ucTunestepOptionsGrid_buttons.Visible = false;
                                 ucOtherButtonsOptionsGrid_buttons.Visible = false;
                                 break;
                             case MeterType.TUNESTEP_BUTTONS:
-                                ucTunestepOptionsGrid_buttons.Parent = grpBandButtons;
+                                ucTunestepOptionsGrid_buttons.Parent = grpButtonBox;
                                 ucTunestepOptionsGrid_buttons.Location = pos;
                                 ucTunestepOptionsGrid_buttons.Visible = true;
                                 pnlButtonBox_antenna_toggles.Visible = false;
@@ -27323,7 +27352,7 @@ namespace Thetis
                                 }
                                 break;
                             case MeterType.OTHER_BUTTONS:
-                                ucOtherButtonsOptionsGrid_buttons.Parent = grpBandButtons;
+                                ucOtherButtonsOptionsGrid_buttons.Parent = grpButtonBox;
                                 ucOtherButtonsOptionsGrid_buttons.Location = pos;
                                 ucOtherButtonsOptionsGrid_buttons.Visible = true;
                                 ucTunestepOptionsGrid_buttons.Visible = false;
@@ -27892,11 +27921,14 @@ namespace Thetis
 
         private void chkLegacyMeters_CheckedChanged(object sender, EventArgs e)
         {
+
+        }
+        private void chkHideLegacyMeters_CheckedChanged(object sender, EventArgs e)
+        {
             if (initializing) return;
 
-            console.UseLegacyMeters = chkLegacyMeters.Checked;
+            console.HideLegacyMeters = chkHideLegacyMeters.Checked;
         }
-
         private void radSpaceBarVFOBTX_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
@@ -34407,7 +34439,7 @@ namespace Thetis
                 console.Pan = (int)_fps_profile_settings["Pan"];
                 console.DisplayModeText = (string)_fps_profile_settings["DisplayModeText"];
                 console.DisplayRX2ModeText = (string)_fps_profile_settings["DisplayRX2ModeText"];
-                chkLegacyMeters.Checked = (bool)_fps_profile_settings["chkLegacyMeters"];
+                chkHideLegacyMeters.Checked = (bool)_fps_profile_settings["chkHideLegacyMeters"];
                 chkLegacyItems_band.Checked = (bool)_fps_profile_settings["chkLegacyItems_band"];
                 chkLegacyItems_mode.Checked = (bool)_fps_profile_settings["chkLegacyItems_mode"];
                 chkLegacyItems_filter.Checked = (bool)_fps_profile_settings["chkLegacyItems_filter"];
@@ -34534,7 +34566,7 @@ namespace Thetis
             _fps_profile_settings.Add("Pan", console.Pan);
             _fps_profile_settings.Add("DisplayModeText", console.DisplayModeText);
             _fps_profile_settings.Add("DisplayRX2ModeText", console.DisplayRX2ModeText);
-            _fps_profile_settings.Add("chkLegacyMeters", chkLegacyMeters.Checked);
+            _fps_profile_settings.Add("chkHideLegacyMeters", chkHideLegacyMeters.Checked);
             _fps_profile_settings.Add("chkLegacyItems_band", chkLegacyItems_band.Checked);
             _fps_profile_settings.Add("chkLegacyItems_mode", chkLegacyItems_mode.Checked);
             _fps_profile_settings.Add("chkLegacyItems_filter", chkLegacyItems_filter.Checked);
@@ -34613,7 +34645,7 @@ namespace Thetis
             console.DisplayRX2ModeText = "Panafall";
             console.ClickTuneDisplay = false;
             console.ClickTuneRX2Display = false;
-            chkLegacyMeters.Checked = true;
+            chkHideLegacyMeters.Checked = false;
             chkLegacyItems_band.Checked = false;
             chkLegacyItems_mode.Checked = false;
             chkLegacyItems_filter.Checked = false;
@@ -34671,7 +34703,7 @@ namespace Thetis
             chkShowRX2NoiseFloor,
             chkAdjustGridMinToNFRX1,
             chkAdjustGridMinToNFRX2,
-            chkLegacyMeters,
+            chkHideLegacyMeters,
             chkLegacyItems_band,
             chkLegacyItems_mode,
             chkLegacyItems_filter,
@@ -34741,7 +34773,7 @@ namespace Thetis
 
             Debug.Print($"FPS profile settings hash : {ret}");
 
-            return ret.Equals("998cafaf3331a9a111366f41ff3ed6ce");
+            return ret.Equals("f8a6fa7f548a43a8c8d7aa6443fe73aa");
         }
 
         private void chkWDSP_cache_impulse_CheckedChanged(object sender, EventArgs e)

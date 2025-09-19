@@ -548,7 +548,7 @@ namespace Thetis
             if(!f.Visible)
                 f.Show();
 
-            f.BringToFront();           
+            f.BringToFront();
 
             selectRequiredTabs(f, c);
 
@@ -557,20 +557,74 @@ namespace Thetis
             lstResults.Focus();
             this.ResumeLayout();
         }
-
         private void selectRequiredTabs(Control parentControl, Control targetControl)
         {
-            Control currentControl = targetControl;
-            while (currentControl != parentControl)
+            if (parentControl == null)
             {
-                currentControl = currentControl.Parent;
-                if (currentControl is TabPage tabPage)
+                return;
+            }
+            if (targetControl == null)
+            {
+                return;
+            }
+
+            List<TabPage> tab_pages = new List<TabPage>();
+            HashSet<TabPage> seen = new HashSet<TabPage>();
+            Control current = targetControl;
+
+            while (current != null && current != parentControl)
+            {
+                TabPage tab_page = current as TabPage;
+                if (tab_page != null)
                 {
-                    if (tabPage.Parent is TabControl tabControl)
+                    if (!seen.Contains(tab_page))
                     {
-                        tabControl.SelectedTab = tabPage;
+                        tab_pages.Add(tab_page);
+                        seen.Add(tab_page);
                     }
                 }
+                current = current.Parent;
+            }
+
+            if (current != parentControl)
+            {
+                return;
+            }
+
+            for (int i = tab_pages.Count - 1; i >= 0; i--)
+            {
+                TabPage tab_page = tab_pages[i];
+                TabControl tab_control = tab_page.Parent as TabControl;
+                if (tab_control != null && tab_control.TabPages.Contains(tab_page))
+                {
+                    tab_control.SelectedTab = tab_page;
+                }
+            }
+
+            parentControl.PerformLayout(); // forces any pending layout to complete, needed as we have been chaning tabs
+
+            List<ScrollableControl> scrollers = new List<ScrollableControl>();
+            Control walker = targetControl.Parent;
+            while (walker != null && walker != parentControl)
+            {
+                ScrollableControl scrollable = walker as ScrollableControl;
+                if (scrollable != null && scrollable.AutoScroll) // we need to gat on this otherwise items in ucOtherButtons are found
+                {
+                    scrollers.Add(scrollable);
+                }
+                walker = walker.Parent;
+            }
+            ScrollableControl parent_scrollable = parentControl as ScrollableControl;
+            if (parent_scrollable != null && parent_scrollable.AutoScroll) // we need to gat on this otherwise items in ucOtherButtons are found
+            {
+                scrollers.Add(parent_scrollable);
+            }
+
+            for (int i = 0; i < scrollers.Count; i++)
+            {
+                ScrollableControl s = scrollers[i];
+                s.ScrollControlIntoView(targetControl);
+                s.Update();
             }
         }
 

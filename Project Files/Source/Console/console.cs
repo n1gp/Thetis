@@ -1429,7 +1429,7 @@ namespace Thetis
                         if (!CheckForOpenProcesses())
                             return;
                     }
-                    catch (Exception)
+                    catch (Exception) { }
                     {
 
                     }
@@ -6461,23 +6461,23 @@ namespace Thetis
                 case DSPMode.SAM:
                 case DSPMode.FM:
                 case DSPMode.SPEC:
-                    retval = (CheckValidTXFreq_Private(r, f + filterLow * 1e-6) &&
-                        CheckValidTXFreq_Private(r, f + filterHigh * 1e-6));
+                    retval = (checkValidTXFreq_local(r, f + filterLow * 1e-6) &&
+                        checkValidTXFreq_local(r, f + filterHigh * 1e-6));
                     break;
                 case DSPMode.CWL:
                 case DSPMode.CWU:
-                    retval = CheckValidTXFreq_Private(r, f);
+                    retval = checkValidTXFreq_local(r, f);
                     break;
                 case DSPMode.DRM:
-                    retval = (CheckValidTXFreq_Private(r, f - 0.012 + filterLow * 1e-6) &&
-                        CheckValidTXFreq_Private(r, f - 0.012 + filterHigh * 1e-6));
+                    retval = (checkValidTXFreq_local(r, f - 0.012 + filterLow * 1e-6) &&
+                        checkValidTXFreq_local(r, f - 0.012 + filterHigh * 1e-6));
                     break;
             }
 
             return retval;
         }
 
-        private bool CheckValidTXFreq_Private(FRSRegion r, double f)
+        private bool checkValidTXFreq_local(FRSRegion r, double f)
         {
             if (extended || tx_xvtr_index > -1)
                 return true;
@@ -25088,7 +25088,7 @@ namespace Thetis
         private async void UpdateMultimeter()
         {
             meter_timer.Start();
-            while (_useLegacyMeters && chkPower.Checked)
+            while (!_hide_legacy_meters && chkPower.Checked)
             {
                 if (!meter_data_ready)
                 {
@@ -25263,7 +25263,7 @@ namespace Thetis
         private async void UpdateRX2Multimeter()
         {
             rx2_meter_timer.Start();
-            while (_useLegacyMeters && chkPower.Checked && rx2_enabled)
+            while (!_hide_legacy_meters && chkPower.Checked && rx2_enabled)
             {
                 if (!rx2_meter_data_ready)
                 {
@@ -28092,7 +28092,7 @@ namespace Thetis
         }
         private void setupLegacyMeterThreads(int rx)
         {
-            if (_useLegacyMeters && chkPower.Checked)
+            if (!_hide_legacy_meters && chkPower.Checked)
             {
                 if (rx == 1 && (multimeter_thread == null || !multimeter_thread.IsAlive))
                 {
@@ -30339,7 +30339,7 @@ namespace Thetis
                     if (!CheckValidTXFreq(current_region, freq, radio.GetDSPTX(0).CurrentDSPMode, chkTUN.Checked))	// out of band
                     {
                         if (_tx_band == Band.B60M && current_region == FRSRegion.US &&
-                            CheckValidTXFreq_Private(current_region, freq) && !extended)
+                            checkValidTXFreq_local(current_region, freq) && !extended)
                         {
                             MessageBox.Show("The transmit filter you have selected exceeds the bandwidth\n" +
                                 "constraints (2.8kHz) for the 60m band in this region.",
@@ -49116,15 +49116,15 @@ namespace Thetis
         {
             get { return _iscollapsed; }
         }
-        private bool _useLegacyMeters = true;
-        public bool UseLegacyMeters
+        private bool _hide_legacy_meters = false;
+        public bool HideLegacyMeters
         {
-            get { return _useLegacyMeters; }
+            get { return _hide_legacy_meters; }
             set { 
-                _useLegacyMeters = value;
+                _hide_legacy_meters = value;
 
                 //start threads if needed, if previously running thread loops will terminate if _useLegacyMeters becomes false
-                if (_useLegacyMeters)
+                if (!_hide_legacy_meters)
                 {
                     setupLegacyMeterThreads(1);
                     setupLegacyMeterThreads(2);
@@ -49132,20 +49132,21 @@ namespace Thetis
 
                 updateLegacyMeterControls(_isexpanded && !_iscollapsed);
 
-                LegacyItemController.HideMeters = !_useLegacyMeters;
+                LegacyItemController.HideMeters = _hide_legacy_meters;
             }
         }
         private void updateLegacyMeterControls(bool expanded)
         {
-            //note: code lines commented with //LM in other functions are now performed here
+            bool visible = !_hide_legacy_meters;
+
             if (expanded)
             {
-                grpMultimeter.Visible = _useLegacyMeters;
-                grpRX2Meter.Visible = _useLegacyMeters;
-                grpMultimeterMenus.Visible = _useLegacyMeters;
-                comboMeterRXMode.Visible = _useLegacyMeters;
-                comboRX2MeterMode.Visible = _useLegacyMeters;
-                comboMeterTXMode.Visible = _useLegacyMeters;
+                grpMultimeter.Visible = visible;
+                grpRX2Meter.Visible = visible;
+                grpMultimeterMenus.Visible = visible;
+                comboMeterRXMode.Visible = visible;
+                comboRX2MeterMode.Visible = visible;
+                comboMeterTXMode.Visible = visible;
             }
             else
             {
@@ -49155,22 +49156,22 @@ namespace Thetis
 
                 if (m_bShowTopControls || _showAndromedaTopControls)
                 {
-                    picMultiMeterDigital.Visible = _useLegacyMeters && ShowRX1;
-                    txtMultiText.Visible = _useLegacyMeters && ShowRX1;
-                    picRX2Meter.Visible = _useLegacyMeters && ShowRX2;
-                    txtRX2Meter.Visible = _useLegacyMeters && ShowRX2;
+                    picMultiMeterDigital.Visible = visible && ShowRX1;
+                    txtMultiText.Visible = visible && ShowRX1;
+                    picRX2Meter.Visible = visible && ShowRX2;
+                    txtRX2Meter.Visible = visible && ShowRX2;
                 }
                 
                 if (m_bShowTopControls)
                 {
                     panelMeterLabels.Visible = false;
-                    comboMeterRXMode.Visible = _useLegacyMeters && ShowRX1;
-                    comboRX2MeterMode.Visible = _useLegacyMeters && ShowRX2;
-                    comboMeterTXMode.Visible = _useLegacyMeters;
+                    comboMeterRXMode.Visible = visible && ShowRX1;
+                    comboRX2MeterMode.Visible = visible && ShowRX2;
+                    comboMeterTXMode.Visible = visible;
                 }
                 else if (_showAndromedaTopControls)
                 {
-                    panelMeterLabels.Visible = _useLegacyMeters;
+                    panelMeterLabels.Visible = visible;
                     comboMeterRXMode.Visible = false;
                     comboRX2MeterMode.Visible = false;
                     comboMeterTXMode.Visible = false;
@@ -49684,9 +49685,12 @@ namespace Thetis
                                         WorkingDirectory = Path.GetDirectoryName(fileOnly)                                        
                                     };
 
-                                    Process p = Process.Start(startInfo);                                    
-                                    //if(!p.HasExited) 
+                                    Process p = Process.Start(startInfo);
+                                    if (p != null)
+                                    {
+                                        //if(!p.HasExited) 
                                         _started_processes.Add(p);
+                                    }
                                 }
                             }
                         }
