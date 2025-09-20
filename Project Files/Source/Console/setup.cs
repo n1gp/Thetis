@@ -35747,6 +35747,18 @@ namespace Thetis
                 lblN1MM_ids_warning.Visible = false;
             }
 
+            if (string.IsNullOrWhiteSpace(txtN1MM_ID_RX_1.Text) || string.IsNullOrWhiteSpace(txtN1MM_ID_RX_2.Text))
+            {
+                // cant be empty
+                lblN1MM_ids_warning.Text = "ID's can not be empty";
+                lblN1MM_ids_warning.Visible = true;
+                return;
+            }
+            else
+            {
+                lblN1MM_ids_warning.Visible = false;
+            }
+
             TextBoxTS text_box = sender as TextBoxTS;
             if (text_box == null) return;
 
