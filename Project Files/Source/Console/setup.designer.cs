@@ -433,6 +433,7 @@
             this.chkAutoLaunchTryToClose = new System.Windows.Forms.CheckBoxTS();
             this.chkAutoLaunchNoStartIfRunning = new System.Windows.Forms.CheckBoxTS();
             this.grpAutoLaunchFiles = new System.Windows.Forms.GroupBoxTS();
+            this.labelTS483 = new System.Windows.Forms.LabelTS();
             this.btnAutoLaunchSelectFile_9 = new System.Windows.Forms.ButtonTS();
             this.txtAutoLaunchFile_9 = new System.Windows.Forms.TextBoxTS();
             this.chkAutoLaunch_9 = new System.Windows.Forms.CheckBoxTS();
@@ -3593,6 +3594,10 @@
             this.btnDefaultBindPortForTCPIPCat = new System.Windows.Forms.ButtonTS();
             this.txtTCPIPCATServerBindIPPort = new System.Windows.Forms.TextBoxTS();
             this.groupBoxTS16 = new System.Windows.Forms.GroupBoxTS();
+            this.lblN1MM_ids_warning = new System.Windows.Forms.LabelTS();
+            this.labelTS643 = new System.Windows.Forms.LabelTS();
+            this.txtN1MM_ID_RX_2 = new System.Windows.Forms.TextBoxTS();
+            this.txtN1MM_ID_RX_1 = new System.Windows.Forms.TextBoxTS();
             this.btnIPv4N1MM = new System.Windows.Forms.ButtonTS();
             this.btnN1MMDefault = new System.Windows.Forms.ButtonTS();
             this.labelTS90 = new System.Windows.Forms.LabelTS();
@@ -4339,7 +4344,6 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
-            this.labelTS483 = new System.Windows.Forms.LabelTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -11399,6 +11403,17 @@
             this.grpAutoLaunchFiles.TabIndex = 36;
             this.grpAutoLaunchFiles.TabStop = false;
             this.grpAutoLaunchFiles.Text = "Auto Launch At Start Up";
+            // 
+            // labelTS483
+            // 
+            this.labelTS483.AutoSize = true;
+            this.labelTS483.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.labelTS483.Image = null;
+            this.labelTS483.Location = new System.Drawing.Point(10, 280);
+            this.labelTS483.Name = "labelTS483";
+            this.labelTS483.Size = new System.Drawing.Size(309, 12);
+            this.labelTS483.TabIndex = 50;
+            this.labelTS483.Text = "Note: holding ALT at startup will prevent these from starting";
             // 
             // btnAutoLaunchSelectFile_9
             // 
@@ -57751,6 +57766,10 @@
             // 
             // groupBoxTS16
             // 
+            this.groupBoxTS16.Controls.Add(this.lblN1MM_ids_warning);
+            this.groupBoxTS16.Controls.Add(this.labelTS643);
+            this.groupBoxTS16.Controls.Add(this.txtN1MM_ID_RX_2);
+            this.groupBoxTS16.Controls.Add(this.txtN1MM_ID_RX_1);
             this.groupBoxTS16.Controls.Add(this.btnIPv4N1MM);
             this.groupBoxTS16.Controls.Add(this.btnN1MMDefault);
             this.groupBoxTS16.Controls.Add(this.labelTS90);
@@ -57768,6 +57787,51 @@
             this.groupBoxTS16.TabIndex = 57;
             this.groupBoxTS16.TabStop = false;
             this.groupBoxTS16.Text = "N1MM+ WaterfallBandmap";
+            // 
+            // lblN1MM_ids_warning
+            // 
+            this.lblN1MM_ids_warning.AutoSize = true;
+            this.lblN1MM_ids_warning.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.lblN1MM_ids_warning.ForeColor = System.Drawing.Color.Red;
+            this.lblN1MM_ids_warning.Image = null;
+            this.lblN1MM_ids_warning.Location = new System.Drawing.Point(166, 119);
+            this.lblN1MM_ids_warning.Name = "lblN1MM_ids_warning";
+            this.lblN1MM_ids_warning.Size = new System.Drawing.Size(149, 13);
+            this.lblN1MM_ids_warning.TabIndex = 75;
+            this.lblN1MM_ids_warning.Text = "ID\'s can not be the same";
+            this.lblN1MM_ids_warning.Visible = false;
+            // 
+            // labelTS643
+            // 
+            this.labelTS643.AutoSize = true;
+            this.labelTS643.Image = null;
+            this.labelTS643.Location = new System.Drawing.Point(157, 13);
+            this.labelTS643.Name = "labelTS643";
+            this.labelTS643.Size = new System.Drawing.Size(18, 13);
+            this.labelTS643.TabIndex = 74;
+            this.labelTS643.Text = "ID";
+            // 
+            // txtN1MM_ID_RX_2
+            // 
+            this.txtN1MM_ID_RX_2.Location = new System.Drawing.Point(111, 51);
+            this.txtN1MM_ID_RX_2.MaxLength = 32;
+            this.txtN1MM_ID_RX_2.Name = "txtN1MM_ID_RX_2";
+            this.txtN1MM_ID_RX_2.Size = new System.Drawing.Size(110, 20);
+            this.txtN1MM_ID_RX_2.TabIndex = 73;
+            this.txtN1MM_ID_RX_2.Text = "Thetis_2";
+            this.toolTip1.SetToolTip(this.txtN1MM_ID_RX_2, "The unique ID for RX2 data");
+            this.txtN1MM_ID_RX_2.TextChanged += new System.EventHandler(this.txtN1MM_RXn_ID_TextChanged);
+            // 
+            // txtN1MM_ID_RX_1
+            // 
+            this.txtN1MM_ID_RX_1.Location = new System.Drawing.Point(111, 28);
+            this.txtN1MM_ID_RX_1.MaxLength = 32;
+            this.txtN1MM_ID_RX_1.Name = "txtN1MM_ID_RX_1";
+            this.txtN1MM_ID_RX_1.Size = new System.Drawing.Size(110, 20);
+            this.txtN1MM_ID_RX_1.TabIndex = 72;
+            this.txtN1MM_ID_RX_1.Text = "Thetis_1";
+            this.toolTip1.SetToolTip(this.txtN1MM_ID_RX_1, "The unique ID for RX1 data");
+            this.txtN1MM_ID_RX_1.TextChanged += new System.EventHandler(this.txtN1MM_RXn_ID_TextChanged);
             // 
             // btnIPv4N1MM
             // 
@@ -57837,7 +57901,7 @@
             // 
             this.labelTS89.AutoSize = true;
             this.labelTS89.Image = null;
-            this.labelTS89.Location = new System.Drawing.Point(152, 12);
+            this.labelTS89.Location = new System.Drawing.Point(228, 12);
             this.labelTS89.Name = "labelTS89";
             this.labelTS89.Size = new System.Drawing.Size(56, 13);
             this.labelTS89.TabIndex = 6;
@@ -57851,7 +57915,7 @@
             0,
             0,
             131072});
-            this.udN1MMRX2Scaling.Location = new System.Drawing.Point(155, 53);
+            this.udN1MMRX2Scaling.Location = new System.Drawing.Point(227, 51);
             this.udN1MMRX2Scaling.Maximum = new decimal(new int[] {
             5,
             0,
@@ -57881,7 +57945,7 @@
             0,
             0,
             131072});
-            this.udN1MMRX1Scaling.Location = new System.Drawing.Point(155, 30);
+            this.udN1MMRX1Scaling.Location = new System.Drawing.Point(227, 28);
             this.udN1MMRX1Scaling.Maximum = new decimal(new int[] {
             5,
             0,
@@ -69073,17 +69137,6 @@
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
             // 
-            // labelTS483
-            // 
-            this.labelTS483.AutoSize = true;
-            this.labelTS483.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.labelTS483.Image = null;
-            this.labelTS483.Location = new System.Drawing.Point(10, 280);
-            this.labelTS483.Name = "labelTS483";
-            this.labelTS483.Size = new System.Drawing.Size(309, 12);
-            this.labelTS483.TabIndex = 50;
-            this.labelTS483.Text = "Note: holding ALT at startup will prevent these from starting";
-            // 
             // Setup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -74785,5 +74838,9 @@
         private CheckBoxTS chkVFOsync_freq;
         private CheckBoxTS chkHideLegacyMeters;
         private LabelTS labelTS483;
+        private LabelTS labelTS643;
+        private TextBoxTS txtN1MM_ID_RX_2;
+        private TextBoxTS txtN1MM_ID_RX_1;
+        private LabelTS lblN1MM_ids_warning;
     }
 }

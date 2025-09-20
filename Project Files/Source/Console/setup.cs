@@ -2739,7 +2739,7 @@ namespace Thetis
             //MW0GLE [2.10.3.6_dev4]
             chkKWAI_CheckedChanged(this, e);
 
-            //MW0LGE_21d n1mm
+            //MW0LGE_21d n1mm            
             chkN1MMEnableRX1_CheckedChanged(this, e);
             chkN1MMEnableRX2_CheckedChanged(this, e);
             txtN1MMSendTo_TextChanged(this, e);
@@ -21397,19 +21397,24 @@ namespace Thetis
         {
             showRegionBandstackWarning(true);
         }
-
+        
         private void chkN1MMEnableRX1_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
 
+            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_1, EventArgs.Empty);
+
             N1MM.SetEnabled(1, chkN1MMEnableRX1.Checked);
             udN1MMRX1Scaling.Enabled = chkN1MMEnableRX1.Checked;
+            txtN1MM_ID_RX_1.Enabled = chkN1MMEnableRX1.Checked;
 
             N1MM.Resize(1);
 
             stopStartN1MMSpectrum();
 
             console.UpdateStatusBarStatusIcons(StatusBarIconGroup.N1MM);
+
+            _old_n1mm_state[0] = chkN1MMEnableRX1.Checked;
         }
 
         private void stopStartN1MMSpectrum()
@@ -21427,14 +21432,19 @@ namespace Thetis
         {
             if (initializing) return;
 
+            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_2, EventArgs.Empty);
+
             N1MM.SetEnabled(2, chkN1MMEnableRX2.Checked);
             udN1MMRX2Scaling.Enabled = chkN1MMEnableRX2.Checked;
+            txtN1MM_ID_RX_2.Enabled = chkN1MMEnableRX2.Checked;
 
             N1MM.Resize(2);
 
             stopStartN1MMSpectrum();
 
             console.UpdateStatusBarStatusIcons(StatusBarIconGroup.N1MM);
+
+            _old_n1mm_state[1] = chkN1MMEnableRX2.Checked;
         }
 
         private void txtN1MMSendTo_TextChanged(object sender, EventArgs e)
@@ -35718,6 +35728,57 @@ namespace Thetis
             console.VFOsyncFrequency = chkVFOsync_freq.Checked;
             console.VFOsyncMode = chkVFOsync_mode.Checked;
             console.VFOsyncFilter = chkVFOsync_filter.Checked;
+        }
+
+        private bool[] _old_n1mm_state = new bool[2] { false, false };
+        private void txtN1MM_RXn_ID_TextChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+
+            if (txtN1MM_ID_RX_1.Text.ToLower() == txtN1MM_ID_RX_2.Text.ToLower())
+            {
+                // cant be the same
+                lblN1MM_ids_warning.Text = "ID's can not be the same";
+                lblN1MM_ids_warning.Visible = true;
+                return; 
+            }
+            else
+            {
+                lblN1MM_ids_warning.Visible = false;
+            }
+
+            TextBoxTS text_box = sender as TextBoxTS;
+            if (text_box == null) return;
+
+            string control_name = text_box.Name;
+            int last_underscore = control_name.LastIndexOf('_');
+            if (last_underscore < 0 || last_underscore >= control_name.Length - 1) return;
+
+            string number_text = control_name.Substring(last_underscore + 1);
+            if (!int.TryParse(number_text, out int rx)) return;
+
+            bool bOn = false;
+            switch (rx)
+            {
+                case 1:
+                    bOn = chkN1MMEnableRX1.Checked;
+                    break;
+                case 2:
+                    bOn = chkN1MMEnableRX2.Checked;
+                    break;
+            }
+
+            if(_old_n1mm_state[rx - 1] && bOn && N1MM.GetID(rx) != text_box.Text)
+            {
+                lblN1MM_ids_warning.Text = "Toggle off/on to use";
+                lblN1MM_ids_warning.Visible = true;
+                return;
+            }
+            else
+            {
+                lblN1MM_ids_warning.Visible = false;
+                if(bOn) N1MM.SetID(rx, text_box.Text);
+            }
         }
     }
 
