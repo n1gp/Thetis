@@ -415,6 +415,7 @@
     <Compile Include="clsImgeFetcher.cs" />
     <Compile Include="clsLegacyItemController.cs" />
     <Compile Include="clsMeterScriptEngine.cs" />
+    <Compile Include="clsSingleInstance.cs" />
     <Compile Include="clsThetisSkinService.cs" />
     <Compile Include="clsTouchHandler.cs" />
     <Compile Include="frmAbout.cs">

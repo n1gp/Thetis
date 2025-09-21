@@ -21402,7 +21402,7 @@ namespace Thetis
         {
             if (initializing) return;
 
-            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_1, EventArgs.Empty);
+            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_1, EventArgs.Empty); // note, _old_n1mm_state will be previous state when this is called
 
             N1MM.SetEnabled(1, chkN1MMEnableRX1.Checked);
             udN1MMRX1Scaling.Enabled = chkN1MMEnableRX1.Checked;
@@ -21432,7 +21432,7 @@ namespace Thetis
         {
             if (initializing) return;
 
-            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_2, EventArgs.Empty);
+            txtN1MM_RXn_ID_TextChanged(txtN1MM_ID_RX_2, EventArgs.Empty); // note, _old_n1mm_state will be previous state when this is called
 
             N1MM.SetEnabled(2, chkN1MMEnableRX2.Checked);
             udN1MMRX2Scaling.Enabled = chkN1MMEnableRX2.Checked;

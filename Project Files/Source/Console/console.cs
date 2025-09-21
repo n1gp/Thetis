@@ -1424,15 +1424,16 @@ namespace Thetis
 
                 if (!Common.HasArg(args, "-noinstancewarn"))
                 {
-                    try
-                    {
-                        if (!CheckForOpenProcesses())
-                            return;
-                    }
-                    catch (Exception) { }
-                    {
+                    //try
+                    //{
+                    //    if (!CheckForOpenProcesses())
+                    //        return;
+                    //}
+                    //catch (Exception) { }
+                    //{
 
-                    }
+                    //}
+                    if (!SingleInstance.CheckAndPrompt()) return;
                 }
 
                 Common.SetLogPath(app_data_path); // init the logger MW0LGE
@@ -2685,6 +2686,9 @@ namespace Thetis
             shutdownLogStringToPath("Before Win32.TimeEndPeriod(1)");
             Win32.TimeEndPeriod(1); // return to previous timing precision
             Thread.Sleep(100);
+
+            shutdownLogStringToPath("Before SingleInstance.release");
+            SingleInstance.Release();
 
             shutdownLogStringToPath("Leaving ExitConsole()");
         }
@@ -6394,36 +6398,36 @@ namespace Thetis
         //    return watts;
         //}
 
-        private static bool CheckForOpenProcesses()
-        {
-            // find all open Thetis processes
-            Process[] p = Process.GetProcessesByName("Thetis");
-            if (p.Length > 1)
-            {
-                int tries = 0;
-                while (tries < 10 && p.Length > 1)
-                {
-                    Thread.Sleep(100);
-                    tries++;
+        //private static bool CheckForOpenProcesses()
+        //{
+        //    // find all open Thetis processes
+        //    Process[] p = Process.GetProcessesByName("Thetis");
+        //    if (p.Length > 1)
+        //    {
+        //        int tries = 0;
+        //        while (tries < 10 && p.Length > 1)
+        //        {
+        //            Thread.Sleep(100);
+        //            tries++;
 
-                    p = Process.GetProcessesByName("Thetis");
-                }
-            }
+        //            p = Process.GetProcessesByName("Thetis");
+        //        }
+        //    }
 
-            if (p.Length > 1)
-            {
-                DialogResult dr = MessageBox.Show("There are other Thetis instances running.\n" +
-                    "Are you sure you want to continue?",
-                    "Continue?",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
-                if (dr == DialogResult.No)
-                {
-                    return false;
-                }
-            }
-            return true;
-        }
+        //    if (p.Length > 1)
+        //    {
+        //        DialogResult dr = MessageBox.Show("There are other Thetis instances running.\n" +
+        //            "Are you sure you want to continue?",
+        //            "Continue?",
+        //            MessageBoxButtons.YesNo,
+        //            MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+        //        if (dr == DialogResult.No)
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    return true;
+        //}
 
         //public int VersionTextToInt(string version)	// takes a version string like "1.0.6" 
         //{											// and converts it to an int like 010006.
