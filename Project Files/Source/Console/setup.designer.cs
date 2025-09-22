@@ -3749,6 +3749,7 @@
             this.chkDiscordEnabled = new System.Windows.Forms.CheckBoxTS();
             this.tpTests = new System.Windows.Forms.TabPage();
             this.groupBoxTS30 = new System.Windows.Forms.GroupBoxTS();
+            this.chkShowStartupLog = new System.Windows.Forms.CheckBoxTS();
             this.btnFormLocationHelper = new System.Windows.Forms.ButtonTS();
             this.btnFPSProfile = new System.Windows.Forms.ButtonTS();
             this.btnShowSeqLog = new System.Windows.Forms.ButtonTS();
@@ -59784,6 +59785,7 @@
             // 
             // groupBoxTS30
             // 
+            this.groupBoxTS30.Controls.Add(this.chkShowStartupLog);
             this.groupBoxTS30.Controls.Add(this.btnFormLocationHelper);
             this.groupBoxTS30.Controls.Add(this.btnFPSProfile);
             this.groupBoxTS30.Controls.Add(this.btnShowSeqLog);
@@ -59791,18 +59793,30 @@
             this.groupBoxTS30.Controls.Add(this.chkShowControlDebug);
             this.groupBoxTS30.Location = new System.Drawing.Point(11, 340);
             this.groupBoxTS30.Name = "groupBoxTS30";
-            this.groupBoxTS30.Size = new System.Drawing.Size(463, 82);
+            this.groupBoxTS30.Size = new System.Drawing.Size(545, 82);
             this.groupBoxTS30.TabIndex = 120;
             this.groupBoxTS30.TabStop = false;
             this.groupBoxTS30.Text = "Debug";
             // 
+            // chkShowStartupLog
+            // 
+            this.chkShowStartupLog.Image = null;
+            this.chkShowStartupLog.Location = new System.Drawing.Point(211, 17);
+            this.chkShowStartupLog.Name = "chkShowStartupLog";
+            this.chkShowStartupLog.Size = new System.Drawing.Size(130, 24);
+            this.chkShowStartupLog.TabIndex = 122;
+            this.chkShowStartupLog.Text = "Show Startup Log";
+            this.toolTip1.SetToolTip(this.chkShowStartupLog, "Show the control name that is being hovered over with the mouse as debug in the s" +
+        "pectrum display area");
+            this.chkShowStartupLog.CheckedChanged += new System.EventHandler(this.chkShowStartupLog_CheckedChanged);
+            // 
             // btnFormLocationHelper
             // 
             this.btnFormLocationHelper.Image = null;
-            this.btnFormLocationHelper.Location = new System.Drawing.Point(343, 19);
+            this.btnFormLocationHelper.Location = new System.Drawing.Point(446, 19);
             this.btnFormLocationHelper.Name = "btnFormLocationHelper";
             this.btnFormLocationHelper.Selectable = true;
-            this.btnFormLocationHelper.Size = new System.Drawing.Size(110, 52);
+            this.btnFormLocationHelper.Size = new System.Drawing.Size(93, 52);
             this.btnFormLocationHelper.TabIndex = 121;
             this.btnFormLocationHelper.Text = "Reposition Forms";
             this.toolTip1.SetToolTip(this.btnFormLocationHelper, "Use this if you have lost a form off screen somewhere");
@@ -59812,10 +59826,10 @@
             // btnFPSProfile
             // 
             this.btnFPSProfile.Image = null;
-            this.btnFPSProfile.Location = new System.Drawing.Point(227, 19);
+            this.btnFPSProfile.Location = new System.Drawing.Point(347, 18);
             this.btnFPSProfile.Name = "btnFPSProfile";
             this.btnFPSProfile.Selectable = true;
-            this.btnFPSProfile.Size = new System.Drawing.Size(109, 52);
+            this.btnFPSProfile.Size = new System.Drawing.Size(93, 52);
             this.btnFPSProfile.TabIndex = 120;
             this.btnFPSProfile.Text = "FPS Profile";
             this.btnFPSProfile.UseVisualStyleBackColor = true;
@@ -74842,5 +74856,6 @@
         private TextBoxTS txtN1MM_ID_RX_2;
         private TextBoxTS txtN1MM_ID_RX_1;
         private LabelTS lblN1MM_ids_warning;
+        private CheckBoxTS chkShowStartupLog;
     }
 }

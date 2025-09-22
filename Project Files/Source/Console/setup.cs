@@ -101,6 +101,7 @@ namespace Thetis
 
         public Setup(Console c)
         {
+            LogTool.AddLogEntry("      Setup init components...", "INITCOMPSETUP");
             InitializeComponent();            
 
             _original_pnlP1_adcs_location = pnlP1_adcs.Location;
@@ -113,10 +114,13 @@ namespace Thetis
             console = c;
             this.Owner = c;
 
+            LogTool.Completed("INITCOMPSETUP");            
+
             //everything here moved to AfterConstructor, which is called during singleton instance // G7KLJ's idea/implementation
         }
         internal void AfterConstructor()
         {
+            LogTool.AddLogEntry("      Setup setup controls...", "SETUP_CONT");
             Splash.SetStatus("Setting up controls");
 
             //[2.10.3.9]MW0LGE atempt to get the model as soon as possile, before the getoptions, so that everything that relies on it at least has a chance
@@ -386,7 +390,9 @@ namespace Thetis
             defaultLinearGradients(true, true, false);
             defaultLinearGradients(true, true, true);
 
+            LogTool.AddLogEntry("        Setup getting options...", "GETOPTIONS");
             getOptions();
+            LogTool.Completed("GETOPTIONS");
 
             selectSkin();
 
@@ -397,7 +403,7 @@ namespace Thetis
 
             //MW0LGE_21j
             console.RepositionExternalPAButton(CheckForAnyExternalPACheckBoxes());
-
+            
             if (comboDSPPhoneRXBuf.SelectedIndex < 0 || comboDSPPhoneRXBuf.SelectedIndex >= comboDSPPhoneRXBuf.Items.Count)
                 comboDSPPhoneRXBuf.SelectedIndex = comboDSPPhoneRXBuf.Items.Count - 1;
             if (comboDSPPhoneTXBuf.SelectedIndex < 0 || comboDSPPhoneTXBuf.SelectedIndex >= comboDSPPhoneTXBuf.Items.Count)
@@ -409,6 +415,7 @@ namespace Thetis
             if (comboDSPDigTXBuf.SelectedIndex < 0 || comboDSPDigTXBuf.SelectedIndex >= comboDSPDigTXBuf.Items.Count)
                 comboDSPDigTXBuf.SelectedIndex = comboDSPDigTXBuf.Items.Count - 1;
 
+            LogTool.AddLogEntry("        Setup serial ports...", "SERIAL");
             if (comboCATPort.SelectedIndex < 0)
             {
                 if (comboCATPort.Items.Count > 0)
@@ -486,6 +493,7 @@ namespace Thetis
                     chkEnableGanymede.Enabled = false;
                 }
             }
+            LogTool.Completed("SERIAL");
 
             cmboSigGenRXMode.Text = "Radio";
             cmboSigGenTXMode.Text = "Radio";
@@ -548,6 +556,7 @@ namespace Thetis
 
             chkConsoleDarkModeTitleBar.Visible = Common.IsWindows10OrGreater(); //MW0LGE [2.9.0.8]
 
+            LogTool.AddLogEntry("        Setup applying settings...", "FORCEALL");
             ForceAllEvents();
 
             //model known, update anything that might have been initialsed without this being known
@@ -577,10 +586,13 @@ namespace Thetis
             tbDataFillAlpha_tx_Scroll(this, e);
             initializing = false;
 
+            LogTool.Completed("FORCEALL");
+
             for (int i = 0; i < 2; i++)
                 for (int j = 0; j < 2; j++)
                     console.radio.GetDSPRX(i, j).Update = true;
 
+            LogTool.AddLogEntry("        Setup DSP...", "SETUPDSP");
             console.DeferUpdateDSP = true;  //MW0LGE_21k9d need to set this again as it gets undone in load txprofile in ForceAllEvents (ForceTXProfile)
             comboDSPPhoneRXBuf_SelectedIndexChanged(this, EventArgs.Empty);
             comboDSPPhoneTXBuf_SelectedIndexChanged(this, EventArgs.Empty);
@@ -608,6 +620,8 @@ namespace Thetis
             console.specRX.GetSpecRX(0).Update = true;
             console.specRX.GetSpecRX(1).Update = true;
 
+            LogTool.Completed("SETUPDSP");
+
             btnRX2PBsnr.Enabled = console.RX2Enabled; //MW0LGE [2.9.0.7]
 
             //MW0LGE_21e
@@ -622,7 +636,9 @@ namespace Thetis
                 AllowFreqBroadcast = false;
 
             //MW0LGE_21h
-            updateNetworkThrottleCheckBox();            
+            updateNetworkThrottleCheckBox();
+
+            LogTool.Completed("SETUP_CONT");
         }
         private bool _bAddedDelegates = false;
         private void addDelegates()
@@ -2315,6 +2331,7 @@ namespace Thetis
             chkShowControlDebug_CheckedChanged(this, e);
             udTestIMDPower_ValueChanged(this, e); //MW0LGE_22b
             setupTuneAnd2ToneRadios(); //MW0LGE_22b
+            chkShowStartupLog_CheckedChanged(this, e);
 
             // Display Tab
             udDisplayDecimation_ValueChanged(this, e);
@@ -35791,6 +35808,13 @@ namespace Thetis
                 lblN1MM_ids_warning.Visible = false;
                 if(bOn) N1MM.SetID(rx, text_box.Text);
             }
+        }
+
+        private void chkShowStartupLog_CheckedChanged(object sender, EventArgs e)
+        {
+            if(initializing) return;
+            LogTool.SetRegistryShow(chkShowStartupLog.Checked);
+            if(chkShowStartupLog.Checked) LogTool.ShowLog();
         }
     }
 
