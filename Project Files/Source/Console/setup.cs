@@ -415,6 +415,19 @@ namespace Thetis
             if (comboDSPDigTXBuf.SelectedIndex < 0 || comboDSPDigTXBuf.SelectedIndex >= comboDSPDigTXBuf.Items.Count)
                 comboDSPDigTXBuf.SelectedIndex = comboDSPDigTXBuf.Items.Count - 1;
 
+            cmboSigGenRXMode.Text = "Radio";
+            cmboSigGenTXMode.Text = "Radio";
+
+            if (comboAudioDriver2.SelectedIndex < 0 &&
+                comboAudioDriver2.Items.Count > 0)
+                comboAudioDriver2.SelectedIndex = 0;
+
+            if (comboAudioDriver3.SelectedIndex < 0 &&
+                comboAudioDriver3.Items.Count > 0)
+                comboAudioDriver3.SelectedIndex = 0;
+
+            comboAudioBuffer1_SelectedIndexChanged(this, EventArgs.Empty);
+
             LogTool.AddLogEntry("        Setup serial ports...", "SERIAL");
             if (comboCATPort.SelectedIndex < 0)
             {
@@ -492,21 +505,21 @@ namespace Thetis
                     chkEnableGanymede.Checked = false;
                     chkEnableGanymede.Enabled = false;
                 }
-            }
-            LogTool.Completed("SERIAL");
+            }            
 
-            cmboSigGenRXMode.Text = "Radio";
-            cmboSigGenTXMode.Text = "Radio";
+            //moved above
+            //cmboSigGenRXMode.Text = "Radio";
+            //cmboSigGenTXMode.Text = "Radio";
 
-            if (comboAudioDriver2.SelectedIndex < 0 &&
-                comboAudioDriver2.Items.Count > 0)
-                comboAudioDriver2.SelectedIndex = 0;
+            //if (comboAudioDriver2.SelectedIndex < 0 &&
+            //    comboAudioDriver2.Items.Count > 0)
+            //    comboAudioDriver2.SelectedIndex = 0;
 
-            if (comboAudioDriver3.SelectedIndex < 0 &&
-                comboAudioDriver3.Items.Count > 0)
-                comboAudioDriver3.SelectedIndex = 0;
+            //if (comboAudioDriver3.SelectedIndex < 0 &&
+            //    comboAudioDriver3.Items.Count > 0)
+            //    comboAudioDriver3.SelectedIndex = 0;
 
-            comboAudioBuffer1_SelectedIndexChanged(this, EventArgs.Empty);
+            //comboAudioBuffer1_SelectedIndexChanged(this, EventArgs.Empty);
 
             initializing = false;
 
@@ -554,10 +567,12 @@ namespace Thetis
 
             comboKeyerConnSecondary_SelectedIndexChanged(this, EventArgs.Empty);
 
+            LogTool.Completed("SERIAL");
+
             chkConsoleDarkModeTitleBar.Visible = Common.IsWindows10OrGreater(); //MW0LGE [2.9.0.8]
 
             LogTool.AddLogEntry("        Setup applying settings...", "FORCEALL");
-            ForceAllEvents();
+            ForceAllEvents();            
 
             //model known, update anything that might have been initialsed without this being known
             if (console.psform != null) console.psform.UpdateWarningSetPk();
@@ -581,6 +596,7 @@ namespace Thetis
             chkAlexPresent_CheckedChanged(this, e);
             chkApolloPresent_CheckedChanged(this, e);
             chkAlexAntCtrl_CheckedChanged(this, e);
+
             initializing = true; //MW0LGE_21d stop the lg from notifying changed events
             TbDataFillAlpha_Scroll(this, e);
             tbDataFillAlpha_tx_Scroll(this, e);
@@ -592,8 +608,6 @@ namespace Thetis
                 for (int j = 0; j < 2; j++)
                     console.radio.GetDSPRX(i, j).Update = true;
 
-            LogTool.AddLogEntry("        Setup DSP...", "SETUPDSP");
-            console.DeferUpdateDSP = true;  //MW0LGE_21k9d need to set this again as it gets undone in load txprofile in ForceAllEvents (ForceTXProfile)
             comboDSPPhoneRXBuf_SelectedIndexChanged(this, EventArgs.Empty);
             comboDSPPhoneTXBuf_SelectedIndexChanged(this, EventArgs.Empty);
             comboDSPFMRXBuf_SelectedIndexChanged(this, EventArgs.Empty);
@@ -615,12 +629,11 @@ namespace Thetis
             comboDSPCWRXFiltType_SelectedIndexChanged(this, EventArgs.Empty);
             comboDSPDigRXFiltType_SelectedIndexChanged(this, EventArgs.Empty);
             comboDSPDigTXFiltType_SelectedIndexChanged(this, EventArgs.Empty);
+
             console.DeferUpdateDSP = false;  //MW0LGE_21k9d
 
             console.specRX.GetSpecRX(0).Update = true;
             console.specRX.GetSpecRX(1).Update = true;
-
-            LogTool.Completed("SETUPDSP");
 
             btnRX2PBsnr.Enabled = console.RX2Enabled; //MW0LGE [2.9.0.7]
 
@@ -630,10 +643,7 @@ namespace Thetis
 
             chkHighlightTXProfileSaveItems.Checked = false;
 
-            if (chkKWAI.Checked)
-                AllowFreqBroadcast = true;
-            else
-                AllowFreqBroadcast = false;
+            AllowFreqBroadcast = chkKWAI.Checked;
 
             //MW0LGE_21h
             updateNetworkThrottleCheckBox();
@@ -2597,7 +2607,9 @@ namespace Thetis
             chkLimitExtAmpOnOverload_CheckedChanged(this, e);
             chkSaveTXProfileOnExit_CheckedChanged(this, e);
             chkRecoverPAProfileFromTXProfile_CheckedChanged(this, e);
+            bool old_defer = console.DeferUpdateDSP;
             ForceTXProfileUpdate();
+            console.DeferUpdateDSP = old_defer;  //set this again as it gets undone by ForceTXProfile
             chkPulsedTune_CheckedChanged(this, e);
 
             // Keyboard Tab

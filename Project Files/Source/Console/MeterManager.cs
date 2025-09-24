@@ -2387,7 +2387,7 @@ namespace Thetis
         }
 
         //images, used by dxrenderer
-        private static void loadImages()
+        private static void loadImages(bool init = false)
         {
             string sDefaultPath = _openHPSDR_appdatapath;
             string sSkinPath = _current_skin_path;
@@ -2398,12 +2398,13 @@ namespace Thetis
 
             // load
             if (!sDefaultPath.EndsWith("\\")) sDefaultPath += "\\";
-            if (System.IO.Directory.Exists(sDefaultPath))
+            if (Directory.Exists(sDefaultPath))
             {
                 for (int n = 0; n < imageFileNames.Length; n++)
                 {
                     string sSkinFileName = sSkinPath + "\\Meters\\" + imageFileNames[n];
                     string sDefaultFileName = sDefaultPath + "\\Meters\\" + imageFileNames[n];
+
                     for (int i = 0; i < imageFileNameParts.Length; i++)
                     {
                         for (int nn = 0; nn < image_extensions.Length; nn++)
@@ -2411,13 +2412,16 @@ namespace Thetis
                             string image_filname = imageFileNameParts[i] + image_extensions[nn];
                             if (File.Exists(sSkinFileName + image_filname))
                             {
-                                // remove this as it is a meter skin
-                                string sRemove = imageFileNames[n] + imageFileNameParts[i];
-                                removeImageCacheData(sRemove);
-                                foreach (KeyValuePair<string, DXRenderer> kvp in _DXrenderers)
+                                if (!init) // only do this when not initialising
                                 {
-                                    DXRenderer r = kvp.Value;
-                                    r.RemoveDXImage(sRemove);
+                                    // remove this as it is a meter skin
+                                    string sRemove = imageFileNames[n] + imageFileNameParts[i];
+                                    removeImageCacheData(sRemove);
+                                    foreach (KeyValuePair<string, DXRenderer> kvp in _DXrenderers)
+                                    {
+                                        DXRenderer r = kvp.Value;
+                                        r.RemoveDXImage(sRemove);
+                                    }
                                 }
 
                                 loadImage(sSkinFileName + image_filname, true);
@@ -3345,7 +3349,7 @@ namespace Thetis
 
             loadImages();
         }
-        public static void RunRendererDisplay(string sId)
+        public static void RunRendererDisplay(string sId, bool init = false)
         {
             if (!_DXrenderers.ContainsKey(sId)) return;
 
@@ -3353,7 +3357,7 @@ namespace Thetis
 
             r.RunDisplay(); // causes dx to initialise
 
-            loadImages();
+            loadImages(init);
             loadResouceImages();
         }
         public static void RunAllRendererDisplays()
@@ -3362,7 +3366,7 @@ namespace Thetis
 
             foreach (KeyValuePair<string, DXRenderer> kvp in _DXrenderers)
             {
-                RunRendererDisplay(kvp.Key);
+                RunRendererDisplay(kvp.Key, true);
             }
         }
         public static void SetVsync(bool vsync)
