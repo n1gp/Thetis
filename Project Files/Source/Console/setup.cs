@@ -638,6 +638,8 @@ namespace Thetis
             //MW0LGE_21h
             updateNetworkThrottleCheckBox();
 
+            updateShowStartupLogCheckBox();
+
             LogTool.Completed("SETUP_CONT");
         }
         private bool _bAddedDelegates = false;
@@ -1770,8 +1772,12 @@ namespace Thetis
             List<string> sortedList = a.Keys.ToList();
             sortedList.Sort();
 
+            //[2.10.3.12]MW0LGE this is bad, because many radios have tabs removed, alex-2 for example, and in those cases
+            //those controls will never be saved to the database, so when we recover, the count will be less than the number of controls as
+            //this is checked before tabs are removed. A complete recovery is then done, which resets everything to default every
+            //single time. TODO !!!!
             if (a.Count < controls.Count)		// some control values are not in the database
-            {								// so set all of them to the defaults
+            {								    // so set all of them to the defaults
                 InitGeneralTab(recoveryList);
                 InitAudioTab(recoveryList);
                 InitAdvancedAudioTab(recoveryList);
@@ -1784,6 +1790,7 @@ namespace Thetis
             }
 
             if (sortedList.Contains("comboPAProfile")) sortedList.Remove("comboPAProfile"); // this is done after the PA profiles are recovered // MW0LGE_22b
+            if (sortedList.Contains("chkShowStartupLog")) sortedList.Remove("chkShowStartupLog"); // this is done later, and is recovered from the registry
 
             // remove any that will be set by clicking on related item
             List<string> ignoreList = new List<string>();
@@ -2331,7 +2338,6 @@ namespace Thetis
             chkShowControlDebug_CheckedChanged(this, e);
             udTestIMDPower_ValueChanged(this, e); //MW0LGE_22b
             setupTuneAnd2ToneRadios(); //MW0LGE_22b
-            chkShowStartupLog_CheckedChanged(this, e);
 
             // Display Tab
             udDisplayDecimation_ValueChanged(this, e);
@@ -35813,8 +35819,30 @@ namespace Thetis
         private void chkShowStartupLog_CheckedChanged(object sender, EventArgs e)
         {
             if(initializing) return;
-            LogTool.SetRegistryShow(chkShowStartupLog.Checked);
-            if(chkShowStartupLog.Checked) LogTool.ShowLog();
+
+            LogTool.SetRegistryToShow(chkShowStartupLog.Checked);
+
+            if (chkShowStartupLog.Checked)
+            {
+                LogTool.ShowLog();
+            }
+            else
+            {
+                LogTool.HideAndSave();
+            }
+        }
+        private void updateShowStartupLogCheckBox()
+        {
+            bool ok = LogTool.GetRegistryToShow(out bool show);
+
+            if (ok)
+            {
+                chkShowStartupLog.Checked = show;
+            }
+            else
+            {
+                chkShowStartupLog.Visible = false; // hide it if there was a registry issue
+            }
         }
     }
 

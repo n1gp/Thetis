@@ -44,6 +44,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Win32;
 
 namespace Thetis
@@ -85,8 +86,10 @@ namespace Thetis
                 {
                     _form.StartPosition = FormStartPosition.Manual;
                     _form.Location = loc;
+                    Common.ForceFormOnScreen(_form, false, false);
                 }
-                if (readRegistryShow())
+                bool ok = readRegistryShow(out bool show);
+                if (ok && show)
                 {
                     _form.Show();
                     _form.BringToFront();
@@ -196,20 +199,9 @@ namespace Thetis
             ensureForm();
             runOnUiThread(delegate
             {
-                //writeLocation(_form.Location);
                 double secs = (DateTime.UtcNow - _total_start_utc).TotalSeconds;
                 _form.time_label.Text = "Completed in " + secs.ToString("0.0") + "s";
                 _form.close_panel.Visible = true;
-
-                if (readRegistryShow())
-                {
-                    _form.Show();
-                    _form.BringToFront();
-                }
-                else
-                {
-                    _form.Hide();
-                }
             });
         }
 
@@ -223,16 +215,13 @@ namespace Thetis
             });
         }
 
-        public static void PositionForm(Point loc)
-        {
-            if (_form == null || _form.IsDisposed) return;
-            _form.Location = loc;
-            _form.BringToFront();
-        }
-
-        public static void SetRegistryShow(bool show)
+        public static void SetRegistryToShow(bool show)
         {
             writeRegistryShow(show);
+        }
+        public static bool GetRegistryToShow(out bool show)
+        {
+            return readRegistryShow(out show);
         }
 
         static void addCore(string text, string id, bool colour_warn)
@@ -324,16 +313,42 @@ namespace Thetis
             _form.BeginInvoke(a);
         }
 
-        static bool readRegistryShow()
+        static bool readRegistryShow(out bool show)
         {
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(_reg_subkey, false);
-            if (key == null) return false;
-            object o = key.GetValue("ShowLog");
-            key.Close();
-            if (o == null) return false;
-            if (o is int) return (int)o == 1;
-            if (o is string) return string.Equals((string)o, "1", StringComparison.OrdinalIgnoreCase);
-            return false;
+            bool ok = false;
+            show = false;
+
+            try
+            {
+                RegistryKey key = Registry.CurrentUser.OpenSubKey(_reg_subkey, false);
+                if (key != null)
+                {
+                    object o = key.GetValue("ShowLog");
+                    key.Close();
+                    if (o != null)
+                    {
+                        if (o is int)
+                        {
+                            show = (int)o == 1;
+                            ok = true;
+                        }
+                        else if (o is string)
+                        {
+                            show = string.Equals((string)o, "1", StringComparison.OrdinalIgnoreCase);
+                            ok = true;
+                        }
+                    }
+                    else
+                    {
+                        // if key is not there, then we are happy, but do not show
+                        show = false;
+                        ok = true;
+                    }
+                }
+            }
+            catch { };
+
+            return ok;
         }
 
         static void writeRegistryShow(bool show)
@@ -478,7 +493,6 @@ namespace Thetis
                 Resize += delegate { layoutColumns(); centerClose(); };
                 Shown += delegate { layoutColumns(); centerClose(); };
                 close_panel.Resize += delegate { centerClose(); };
-                //VisibleChanged += delegate { if (!Visible) LogTool.writeLocation(Location); };
 
                 Common.DoubleBufferAll(this, true);
 
