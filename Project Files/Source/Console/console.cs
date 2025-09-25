@@ -10896,7 +10896,7 @@ namespace Thetis
 
                     //if (m_bAttontx && _mox) //[2.10.3.6]MW0LGE att_fixes
                     //udRX1StepAttData.Value = value; //[2.10.3.6]MW0LGE att_fixes
-                    udTXStepAttData.Value = value;
+                    udTXStepAttData.Value = _tx_attenuator_data;
 
                     //******Red Pitaya BODGE*******
                     //[2.10.3.9]MW0LGE This is not ideal, but a bodge to get the PedPitaya to TX attenuate correctly
@@ -10911,7 +10911,7 @@ namespace Thetis
                         //}
                         //else
                         //{
-                        udRX1StepAttData.Value = value;
+                        udRX1StepAttData.Value = _tx_attenuator_data;
                         //}
                     }
                     //******END BODGE*******

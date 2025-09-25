@@ -59806,8 +59806,7 @@
             this.chkShowStartupLog.Size = new System.Drawing.Size(130, 24);
             this.chkShowStartupLog.TabIndex = 122;
             this.chkShowStartupLog.Text = "Show Startup Log";
-            this.toolTip1.SetToolTip(this.chkShowStartupLog, "Show the control name that is being hovered over with the mouse as debug in the s" +
-        "pectrum display area");
+            this.toolTip1.SetToolTip(this.chkShowStartupLog, "Show the startup log");
             this.chkShowStartupLog.CheckedChanged += new System.EventHandler(this.chkShowStartupLog_CheckedChanged);
             // 
             // btnFormLocationHelper
