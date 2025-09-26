@@ -2689,7 +2689,7 @@ namespace Thetis
 			}
 			else if(s.Length == parser.nGet)
 			{
-                DSPMode vfoBmode = console.RX2Enabled ? console.RX2DSPMode : console.RX1DSPMode; //[2.10.3.12]MW0LGE might be a good idea to use RX2 mode if RX2 enabled.
+                DSPMode vfoBmode = console.RX2Enabled ? console.RX2DSPMode : console.RX1DSPMode; //[2.10.3.12]MW0LGE as above
                 
 				if (console.SetupForm.RttyOffsetEnabledB &&
 					(vfoBmode == DSPMode.DIGU || vfoBmode == DSPMode.DIGL))
