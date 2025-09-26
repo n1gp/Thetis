@@ -1941,7 +1941,7 @@ namespace Thetis
                 _RX2MeterValues.Add((Reading)n, -200f);
             }
 
-            LogTool.AddLogEntry("    Meter Manger initialising...", "MM");
+            LogTool.AddLogEntry("    Meter Manager initialising...", "MM");
             MeterManager.Init(this, Display.DisplayAdaptor); // needs to be initialised before get state happens
             LogTool.Completed("MM");
 
