@@ -217,79 +217,101 @@ namespace Thetis
                 _workerThreads.Remove(frm.Name);
             }
         }
-        private void getControlList(Control c, ToolTip tt)
+        //
+        private static readonly HashSet<Type> target_types = new HashSet<Type>
         {
-            if (c.Controls.Count > 0)
+            typeof(CheckBoxTS), typeof(CheckBox),
+            typeof(ComboBoxTS), typeof(ComboBox),
+            typeof(NumericUpDownTS), typeof(NumericUpDown),
+            typeof(RadioButtonTS), typeof(RadioButton),
+            typeof(TextBoxTS), typeof(TextBox),
+            typeof(TrackBarTS), typeof(TrackBar),
+            typeof(ColorButton),
+            typeof(ucLGPicker),
+            typeof(RichTextBox),
+            typeof(LabelTS), typeof(Label),
+            typeof(ButtonTS)
+        };
+
+        private static string stripPrefix(string name)
+        {
+            string[] prefixes = new string[] { "clrbtn", "combo", "label", "text", "nud", "lbl", "chk", "rad", "txt", "tb", "ud", "btn" };
+            for (int i = 0; i < prefixes.Length; i++)
             {
-                foreach (Control c2 in c.Controls)
-                    getControlList(c2, tt);
+                string p = prefixes[i];
+                if (name.StartsWith(p, StringComparison.OrdinalIgnoreCase)) return name.Substring(p.Length);
+            }
+            return name;
+        }
+
+        private void getControlList(Control root, ToolTip tt)
+        {
+            HashSet<string> existing_keys;
+            lock (_objLocker)
+            {
+                existing_keys = new HashSet<string>(_searchData.Keys);
             }
 
-            if (c.GetType() == typeof(CheckBoxTS) || c.GetType() == typeof(CheckBox) ||
-                c.GetType() == typeof(ComboBoxTS) || c.GetType() == typeof(ComboBox) ||
-                c.GetType() == typeof(NumericUpDownTS) || c.GetType() == typeof(NumericUpDown) ||
-                c.GetType() == typeof(RadioButtonTS) || c.GetType() == typeof(RadioButton) ||
-                c.GetType() == typeof(TextBoxTS) || c.GetType() == typeof(TextBox) ||
-                c.GetType() == typeof(TrackBarTS) || c.GetType() == typeof(TrackBar) ||
-                c.GetType() == typeof(ColorButton) ||
-                c.GetType() == typeof(ucLGPicker) ||
-                c.GetType() == typeof(RichTextBox) ||
-                c.GetType() == typeof(LabelTS) || c.GetType() == typeof(Label) ||
-                c.GetType() == typeof(ButtonTS)// ||
-                //c.GetType() == typeof(TabControl) ||
-                //c.GetType() == typeof(TabPage)
-                )
-            {
-                string sKey = c.GetFullName();
+            List<SearchData> additions = new List<SearchData>();
+            Stack<Control> stack = new Stack<Control>();
+            stack.Push(root);
 
-                bool bAdd = false;
-                lock (_objLocker)
+            while (stack.Count > 0)
+            {
+                Control c = stack.Pop();
+
+                for (int i = 0; i < c.Controls.Count; i++)
                 {
-                   bAdd = !_searchData.ContainsKey(sKey);
+                    stack.Push(c.Controls[i]);
                 }
 
-                if (bAdd)
-                {                    
-                    string toolTip = "";
-                    if (tt != null)
-                        toolTip = tt.GetToolTip(c).Replace("\n", " ");
+                if (!target_types.Contains(c.GetType())) continue;
 
-                    // pull off some junk from control names
-                    string sShortName = c.Name;
-                    if (sShortName.ToLower().StartsWith("lbl")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("chk")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("rad")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("nud")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("ud")) sShortName = sShortName.Substring(2);
-                    else if (sShortName.ToLower().StartsWith("txt")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("combo")) sShortName = sShortName.Substring(5);
-                    else if (sShortName.ToLower().StartsWith("tb")) sShortName = sShortName.Substring(2);
-                    else if (sShortName.ToLower().StartsWith("text")) sShortName = sShortName.Substring(4);
-                    else if (sShortName.ToLower().StartsWith("btn")) sShortName = sShortName.Substring(3);
-                    else if (sShortName.ToLower().StartsWith("clrbtn")) sShortName = sShortName.Substring(6);
-                    else if (sShortName.ToLower().StartsWith("text")) sShortName = sShortName.Substring(4);
-                    else if (sShortName.ToLower().StartsWith("label")) sShortName = sShortName.Substring(4);
+                string sKey = c.GetFullName();
+                if (existing_keys.Contains(sKey)) continue;
 
-                    SearchData sd = new SearchData()
-                    {
-                        Control = c,
-                        Name = c.Name,
-                        ShortName = sShortName,
-                        Text = c.Text.Replace("\n", " "),
-                        ToolTip = toolTip,
-                        XMLReplacement = _xmlData.ContainsKey(sKey) ? _xmlData[sKey] : "",
-                        FullName = sKey
-                    };
-                    lock (_objLocker)
-                    {
-                        if (!_searchData.ContainsKey(sKey))
-                        {
-                            _searchData.Add(sKey, sd);
-                        }
-                    }
+                string toolTip = "";
+                if (tt != null)
+                {
+                    string t = tt.GetToolTip(c);
+                    if (!string.IsNullOrEmpty(t)) toolTip = t.Replace("\n", " ");
+                }
+
+                string sShortName = stripPrefix(c.Name);
+
+                string text = c.Text;
+                if (!string.IsNullOrEmpty(text) && text.IndexOf('\n') >= 0) text = text.Replace("\n", " ");
+
+                string xml = "";
+                if (_xmlData.ContainsKey(sKey)) xml = _xmlData[sKey];
+
+                SearchData sd = new SearchData()
+                {
+                    Control = c,
+                    Name = c.Name,
+                    ShortName = sShortName,
+                    Text = string.IsNullOrEmpty(text) ? "" : text,
+                    ToolTip = toolTip,
+                    XMLReplacement = xml,
+                    FullName = sKey
+                };
+
+                additions.Add(sd);
+                existing_keys.Add(sKey);
+            }
+
+            if (additions.Count == 0) return;
+
+            lock (_objLocker)
+            {
+                for (int i = 0; i < additions.Count; i++)
+                {
+                    SearchData sd = additions[i];
+                    if (!_searchData.ContainsKey(sd.FullName)) _searchData.Add(sd.FullName, sd);
                 }
             }
         }
+        //
         private bool _ignoreUpdateToList = false;
         private void txtSearch_TextChanged(object sender, EventArgs e)
         {

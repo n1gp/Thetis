@@ -44,13 +44,26 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using Microsoft.CodeAnalysis.Operations;
 using Microsoft.Win32;
 
 namespace Thetis
 {
     public static class LogTool
     {
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong")]
+        static extern IntPtr SetWindowLong32(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr")]
+        static extern IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        static IntPtr setWindowLongAuto(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        {
+            if (Common.Is64Bit) return SetWindowLongPtr64(hWnd, nIndex, dwNewLong);
+            return SetWindowLong32(hWnd, nIndex, dwNewLong);
+        }
+
+        const int GWLP_HWNDPARENT = -8;
+
         struct Entry
         {
             public string base_text;
@@ -71,9 +84,10 @@ namespace Thetis
         [DllImport("user32.dll")]
         static extern bool ShowScrollBar(IntPtr hWnd, int wBar, bool bShow);
 
-        public static void ShowNewLog()
+        public static void ShowNewLog(IntPtr ownerHandle)
         {
             ensureForm();
+            setOwner(ownerHandle);
             runOnUiThreadSync(delegate
             {
                 _form.list.Items.Clear();
@@ -101,13 +115,22 @@ namespace Thetis
             });
         }
 
-        public static void ShowLog()
+        public static void ShowLog(IntPtr ownerHandle)
         {
             ensureForm();
+            setOwner(ownerHandle);
             runOnUiThread(delegate
             {
                 _form.Show();
                 _form.BringToFront();
+            });
+        }
+
+        private static void setOwner(IntPtr ownerHandle)
+        {
+            runOnUiThreadSync(delegate
+            {
+                if (_form.IsHandleCreated) setWindowLongAuto(_form.Handle, GWLP_HWNDPARENT, ownerHandle);
             });
         }
 
@@ -456,7 +479,7 @@ namespace Thetis
                 list.FullRowSelect = true;
                 list.BackColor = Color.Black;
                 list.ForeColor = Color.Lime;
-                list.Font = new Font("Consolas", 10f, FontStyle.Regular);
+                list.Font = new Font("Courier New", 10f, FontStyle.Regular);
                 list.BorderStyle = BorderStyle.None;
                 list.HandleCreated += delegate { hideHorizontalScrollBar(list); };
                 list.SizeChanged += delegate { hideHorizontalScrollBar(list); };
@@ -474,7 +497,7 @@ namespace Thetis
                 time_label.Text = "Completed in 0.0s";
                 time_label.ForeColor = Color.Lime;
                 time_label.BackColor = Color.Black;
-                time_label.Font = new Font("Consolas", 10f, FontStyle.Regular);
+                time_label.Font = new Font("Courier New", 10f, FontStyle.Regular);
                 time_label.Left = 6;
                 time_label.Top = 6;
 

@@ -596,7 +596,7 @@ namespace Thetis
             //#error version
             this.Opacity = 0f; // FadeIn below. Note: console form has 0% set in form designer
 
-            LogTool.ShowNewLog();
+            LogTool.ShowNewLog(this.Handle);
             LogTool.AddLogEntry("Thetis is loading...", "THET", false);
 
             Display.specready = false;
@@ -948,7 +948,7 @@ namespace Thetis
             _frmFinder.GatherSearchData(BandStack2Form, BandStack2Form.ToolTip);
             _frmFinder.GatherSearchData(psform, psform.ToolTip);
             _frmFinder.GatherCATStructData(Application.StartupPath + "\\CATStructs.xml");
-            _frmFinder.WriteXmlFinderFile(AppDataPath); // note: this will only happen if not already there
+            //_frmFinder.WriteXmlFinderFile(AppDataPath); // note: this will only happen if not already there //[2.10.3.12]MW0LGE moved to shutdown
 
             LogTool.Completed("FIND");
 
@@ -2708,6 +2708,9 @@ namespace Thetis
         public void ExitConsole()
         {
             shutdownLogStringToPath("Inside ExitConsole()");
+
+            shutdownLogStringToPath("Before finder WriteXmlFinderFile()");
+            if(_frmFinder != null) _frmFinder.WriteXmlFinderFile(AppDataPath);
 
             shutdownLogStringToPath("Before Midi2Cat.CloseMidi2Cat()");
             if (Midi2Cat != null) Midi2Cat.CloseMidi2Cat();

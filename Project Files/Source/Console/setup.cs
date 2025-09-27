@@ -35836,7 +35836,7 @@ namespace Thetis
 
             if (chkShowStartupLog.Checked)
             {
-                LogTool.ShowLog();
+                if(console != null) LogTool.ShowLog(console.Handle);
             }
             else
             {
