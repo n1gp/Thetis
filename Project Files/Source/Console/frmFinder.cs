@@ -105,7 +105,7 @@ namespace Thetis
             })
             {
                 Name = "Finder Worker Thread for " + frm.Name,
-                Priority = ThreadPriority.Highest,
+                Priority = ThreadPriority.BelowNormal,
                 IsBackground = true,
             };
 

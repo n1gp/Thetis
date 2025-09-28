@@ -29233,10 +29233,15 @@ namespace Thetis
                     }
                     catch (Exception e)
                     {
+                        string msg = "DirectX resizeDX2D() Meter failure\n\nThis can sometimes be caused by other programs 'hooking' into directX," +
+                            "such as GFX card control software (eg, EVGA Precision Xoc). Close down Thetis, quit as many 'system tray'\nand other " +
+                            "things as possible and try again." + e.Message;
+                        if (_device.DeviceRemovedReason == SharpDX.DXGI.ResultCode.DeviceRemoved || _device.DeviceRemovedReason == SharpDX.DXGI.ResultCode.DeviceReset)
+                        {
+                            msg += "\n\nDeviceRemoved or DeviceReset reported by DirectX, this indicates a problem with the graphics device or its driver.\n\nRemoval Code : " + _device.DeviceRemovedReason.Code.ToString();
+                        }
                         ShutdownDX();
-                        MessageBox.Show("DirectX resizeDX() Meter failure\n\nThis can sometimes be caused by other programs 'hooking' into directX," +
-                            "such as GFX card control software (eg, EVGA Precision Xoc). Close down Thetis, quit as many 'system tray' and other\n" +
-                            "things as possible and try again.\n\n" + e.Message, "DirectX", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+                        MessageBox.Show(msg, "DirectX", MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
                         return false;
                     }
                 }

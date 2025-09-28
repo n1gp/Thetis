@@ -376,55 +376,7 @@ namespace Thetis
 
             DB.SaveVars(tablename, control_data);
         }
-        //        public static void SaveForm(Form form, string tablename)
-        //		{
-        //            if (DB.ds == null) return;
 
-        //			ArrayList a = new ArrayList();
-        //			ArrayList temp = new ArrayList();
-
-        //			ControlList(form, ref temp);
-
-        //			foreach(Control c in temp)				// For each control
-        //			{
-        //				if(c.GetType() == typeof(CheckBoxTS))
-        //					a.Add(c.Name+"/"+((CheckBoxTS)c).Checked.ToString());
-        //				else if(c.GetType() == typeof(ComboBoxTS))
-        //				{
-        //					//if(((ComboBox)c).SelectedIndex >= 0)
-        //					a.Add(c.Name+"/"+((ComboBoxTS)c).Text);
-        //				}
-        //				else if(c.GetType() == typeof(NumericUpDownTS))
-        //					a.Add(c.Name+"/"+((NumericUpDownTS)c).Value.ToString());
-        //				else if(c.GetType() == typeof(RadioButtonTS))
-        //					a.Add(c.Name+"/"+((RadioButtonTS)c).Checked.ToString());
-        //				else if(c.GetType() == typeof(TextBoxTS))
-        //					a.Add(c.Name+"/"+((TextBoxTS)c).Text);
-        //				else if(c.GetType() == typeof(TrackBarTS))
-        //					a.Add(c.Name+"/"+((TrackBarTS)c).Value.ToString());
-        //				else if(c.GetType() == typeof(ColorButton))
-        //				{
-        //					Color clr = ((ColorButton)c).Color;
-        //					a.Add(c.Name+"/"+clr.R+"."+clr.G+"."+clr.B+"."+clr.A);
-        //				}
-        //#if(DEBUG)
-        //				else if(c.GetType() == typeof(GroupBox) ||
-        //					c.GetType() == typeof(CheckBoxTS) ||
-        //					c.GetType() == typeof(ComboBox) ||
-        //					c.GetType() == typeof(NumericUpDown) ||
-        //					c.GetType() == typeof(RadioButton) ||
-        //					c.GetType() == typeof(TextBox) ||
-        //					c.GetType() == typeof(TrackBar))
-        //					Debug.WriteLine(form.Name + " -> " + c.Name+" needs to be converted to a Thread Safe control.");
-        //#endif
-        //			}
-        //			a.Add("Top/"+form.Top);
-        //			a.Add("Left/"+form.Left);
-        //			a.Add("Width/"+form.Width);
-        //			a.Add("Height/"+form.Height);
-
-        //			DB.SaveVars(tablename, ref a);		// save the values to the DB
-        //		}
         public static void RestoreForm(Form form, string tablename, bool restore_size)
         {
             if (DB.ds == null) return;
@@ -521,6 +473,9 @@ namespace Thetis
 
         public static (bool resized, bool relocated) ForceFormOnScreen(Form f, bool shrink_to_fit = false, bool keep_on_screen = false)
         {
+            // shrink_to_fit - if form is larger than screen, shrink it to fit
+            // keep_on_screen - if form is off screen, move it to be on screen. Spanning screens is allowed
+
             if (f == null) return (false, false);
 
             (Rectangle newPos, bool resized, bool repositioned) = SafeScreens.EnsureRectangleWithinNearestScreen(null, f, keep_on_screen, true);
@@ -737,43 +692,12 @@ namespace Thetis
         }
 		public static void DoubleBuffered(Control control, bool enabled)
         {
-            // MW0LGE_[2.9.0.6]
-            // not all controls (such as panels) have double buffered property
-            // try to use reflection, so we can keep the base panel
-            //try
-            //{
-            //    control.GetType().InvokeMember("DoubleBuffered",
-            //                    System.Reflection.BindingFlags.SetProperty | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic,
-            //                    null, control, new object[] { enabled });
-            //}
-            //catch
-            //{
-            //}
-
-            //[2.10.3.6]MW0LGE
             // Use reflection to set the protected property DoubleBuffered
             PropertyInfo doubleBufferPropertyInfo = control.GetType().GetProperty("DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
             if (doubleBufferPropertyInfo != null)
             {
                 doubleBufferPropertyInfo.SetValue(control, enabled, null);
             }
-
-            //// Use reflection to call the protected method SetStyle
-            //MethodInfo setStyleMethod = control.GetType().GetMethod("SetStyle", BindingFlags.Instance | BindingFlags.NonPublic);
-            //if (setStyleMethod != null)
-            //{
-            //    setStyleMethod.Invoke(control, new object[] { ControlStyles.OptimizedDoubleBuffer, enabled });
-            //    setStyleMethod.Invoke(control, new object[] { ControlStyles.AllPaintingInWmPaint, enabled });
-            //    //setStyleMethod.Invoke(control, new object[] { ControlStyles.UserPaint, enabled });
-            //    setStyleMethod.Invoke(control, new object[] { ControlStyles.ResizeRedraw, enabled });
-            //}
-
-            //// Apply the style settings to the control
-            //MethodInfo updateStylesMethod = control.GetType().GetMethod("UpdateStyles", BindingFlags.Instance | BindingFlags.NonPublic);
-            //if (updateStylesMethod != null)
-            //{
-            //    updateStylesMethod.Invoke(control, null);
-            //}
         }
 
 		public static int FiveDigitHash(string str)
@@ -1397,77 +1321,7 @@ namespace Thetis
             }
 
             return int.TryParse(lower_comport.Substring(3), out portNumber);
-        }
-
-        private static int getIntersectionArea(Rectangle rect1, Rectangle rect2)
-        {
-            Rectangle intersection = Rectangle.Intersect(rect1, rect2);
-            return intersection.Width > 0 && intersection.Height > 0 ? intersection.Width * intersection.Height : 0;
-        }
-        public static bool EnsureFormIsOnScreen(Form frm, bool entirely_on_screen, bool prioritizeCursorScreen = false)
-        {
-            bool shifted = false;
-            Rectangle formBounds = frm.Bounds;
-
-            if (entirely_on_screen)
-            {
-                Screen targetScreen = null;
-
-                if (prioritizeCursorScreen)
-                {
-                    Screen cursorScreen = Screen.FromPoint(Cursor.Position);
-
-                    Rectangle cursorWorkingArea = cursorScreen.WorkingArea;
-                    Rectangle newBoundsOnCursorScreen = getAdjustedBounds(formBounds, cursorWorkingArea);
-
-                    if (cursorWorkingArea.Contains(newBoundsOnCursorScreen))
-                    {
-                        targetScreen = cursorScreen;
-                    }
-                }
-
-                if (targetScreen == null)
-                {
-                    targetScreen = Screen.AllScreens
-                    .OrderByDescending(screen => getIntersectionArea(screen.WorkingArea, formBounds))
-                    .First();
-                }
-
-                Rectangle targetWorkingArea = targetScreen.WorkingArea;
-
-                int newX = Math.Max(targetWorkingArea.X, Math.Min(formBounds.X, targetWorkingArea.Right - formBounds.Width));
-                int newY = Math.Max(targetWorkingArea.Y, Math.Min(formBounds.Y, targetWorkingArea.Bottom - formBounds.Height));
-
-                shifted = frm.Location.X != newX || frm.Location.Y != newY;
-                frm.Location = new Point(newX, newY);
-            }
-            else
-            {
-                bool isOnScreen = Screen.AllScreens.Any(screen => screen.WorkingArea.IntersectsWith(formBounds));
-
-                if (!isOnScreen)
-                {
-                    Screen primaryScreen = Screen.PrimaryScreen;
-                    Rectangle primaryWorkingArea = primaryScreen.WorkingArea;
-
-                    int newX = Math.Max(primaryWorkingArea.X, Math.Min(formBounds.X, primaryWorkingArea.Right - formBounds.Width));
-                    int newY = Math.Max(primaryWorkingArea.Y, Math.Min(formBounds.Y, primaryWorkingArea.Bottom - formBounds.Height));
-
-                    shifted = frm.Location.X != newX || frm.Location.Y != newY;
-                    frm.Location = new Point(newX, newY);
-                }
-            }
-            return shifted;
-        }
-        private static Rectangle getAdjustedBounds(Rectangle formBounds, Rectangle screenWorkingArea)
-        {
-            int newX = Math.Max(screenWorkingArea.X,
-                Math.Min(formBounds.X, screenWorkingArea.Right - formBounds.Width));
-            int newY = Math.Max(screenWorkingArea.Y,
-                Math.Min(formBounds.Y, screenWorkingArea.Bottom - formBounds.Height));
-
-            return new Rectangle(new Point(newX, newY), formBounds.Size);
-        }
+        }      
 
         //[2.10.3.9]MW0LGE performance related
         [DllImport("kernel32.dll")]
@@ -1737,27 +1591,19 @@ namespace Thetis
             }
         }
 
-        public static bool IsSleepPrevented()
+        public static bool IsSleepPrevented
         {
-            try
+            get
             {
                 return _sleep_prevented;
             }
-            catch
-            {
-                return false;
-            }
         }
 
-        public static bool IsScreenSaverPrevented()
+        public static bool IsScreenSaverPrevented
         {
-            try
+            get
             {
                 return _display_prevented;
-            }
-            catch
-            {
-                return false;
             }
         }
         //
