@@ -15539,8 +15539,6 @@ namespace Thetis
             private float _spec_max;
             private float _spec_raw_min;
             private float _spec_raw_max;
-            //private double _vfoA_freq;
-            //private double _vfoB_freq;
             private int _rx_spec_grid_min;
             private int _rx_spec_grid_max;
             private int _rx_spec_grid_range;
@@ -15607,16 +15605,11 @@ namespace Thetis
                 _ig = item_group;
 
                 _display_mode = DisplayMode.PANAFALL;
-
                 _waterfall_frame_interval = 4; // every 4th frame
-
                 _font_scale = 1f;
-
                 _fill_spec = true;
                 _old_data_index = -1;
-
                 _use_greyscale = true;
-
                 _sideband_mode = false;
                 _show_limits = true;
                 _fixed_rx_zoom = false;
@@ -15626,13 +15619,52 @@ namespace Thetis
                 _sidebands_scale = 0f;
                 _cw_scale = 0f;
                 _others_scale = 0f;
+                _colour = System.Drawing.Color.FromArgb(32, 32, 32);
+                _padding = 0.2f;
+
+                _spec_data = new float[MiniSpec.PIXELS];
+                _spec_data_raw = new float[MiniSpec.PIXELS];
+                _spec_greyscale = new float[MiniSpec.PIXELS];
+
+                _waterfall_rx_colours = new System.Drawing.Color[101];
+                _waterfall_tx_colours = new System.Drawing.Color[101];
+                _dataline_colour = System.Drawing.Color.LimeGreen;
+                _datafill_colour = System.Drawing.Color.LimeGreen;
+                _waterfall_palette = WaterfallPalette.ENHANCED;
+                _waterfall_low_colour = System.Drawing.Color.Black;
+                _text_colour = System.Drawing.Color.White;
+                _number_highlight_colour = System.Drawing.Color.DarkRed;
+                _edges_colour_rx = System.Drawing.Color.Yellow;
+                _edges_colour_tx = System.Drawing.Color.Red;
+                _edge_highlight_colour = System.Drawing.Color.White;
+                _extents_colour = System.Drawing.Color.Gray;
+                _snapline_colour = System.Drawing.Color.Gray;
+                _meterback_colour = System.Drawing.Color.Black;
+                _notch_colour = System.Drawing.Color.Orange;
+                _notchhighligh_colour = System.Drawing.Color.LimeGreen;
+                _snapline_colour = System.Drawing.Color.Gray;
+                _setting_on_colour = System.Drawing.Color.CornflowerBlue;
+                _button_highlight_colour = System.Drawing.Color.Gray;
+
+                _auto_zoom = false;
+                _show_characteristic = false;
+                _characteristic_low = -250.0f;
+                _snap_lines = false;
+                _snap_lines_ignore = false;
+                _mouse_frequency = -1;
+
+                ItemType = MeterItemType.FILTER_DISPLAY;
+                ReadingSource = Reading.NONE;
+                UpdateInterval = 1000 / MiniSpec.FRAME_RATE; // to ms
+
+                Initialise();
+            }
+            public override void Initialise()
+            {
                 _showVfoA = _owningmeter.RX == 1;
 
                 _extent_hz = _owningmeter.FilterMaxWidth;
                 _tx_extent_hz = MiniSpec.TX_BANDWIDTH;
-
-                _colour = System.Drawing.Color.FromArgb(32, 32, 32);
-                _padding = 0.2f;
 
                 _vfoA_low = _owningmeter.FilterVfoAlow;
                 _vfoA_high = _owningmeter.FilterVfoAhigh;
@@ -15640,9 +15672,6 @@ namespace Thetis
                 _vfoB_high = _owningmeter.FilterVfoBhigh;
                 _vfoA_name = _owningmeter.FilterVfoAName;
                 _vfoB_name = _owningmeter.FilterVfoBName;
-
-                //_vfoA_freq = _owningmeter.VfoA;
-                //_vfoB_freq = _owningmeter.VfoB;
 
                 _mnf_selected = false;
                 _mnf_plus_selected = false;
@@ -15654,7 +15683,7 @@ namespace Thetis
                 _notch_selected = false;
                 _notch_highlighted_index = -1;
                 _notch_start_freq = -1;
-
+                 
                 _adjust_low = false;
                 _adjust_high = false;
 
@@ -15670,10 +15699,6 @@ namespace Thetis
                 _tx_high = _owningmeter.TXFilterHigh;
                 //_pa_profile = _owningmeter.PAProfile;
                 _tx_profile = _owningmeter.TXProfile;
-
-                _spec_data = new float[MiniSpec.PIXELS];
-                _spec_data_raw = new float[MiniSpec.PIXELS];
-                _spec_greyscale = new float[MiniSpec.PIXELS];
 
                 _spec_min = -200f;
                 _spec_max = 200f;
@@ -15708,42 +15733,8 @@ namespace Thetis
                 _waterfall_min_agc_rx = 20;
                 _waterfall_min_agc_tx = 20;
 
-                _waterfall_rx_colours = new System.Drawing.Color[101];
                 _waterfall_rx_gradient_ok = false;
-                _waterfall_tx_colours = new System.Drawing.Color[101];
                 _waterfall_tx_gradient_ok = false;
-
-                _dataline_colour = System.Drawing.Color.LimeGreen;
-                _datafill_colour = System.Drawing.Color.LimeGreen;
-                _waterfall_palette = WaterfallPalette.ENHANCED;
-                _waterfall_low_colour = System.Drawing.Color.Black;
-                _text_colour = System.Drawing.Color.White;
-                _number_highlight_colour = System.Drawing.Color.DarkRed;
-                _edges_colour_rx = System.Drawing.Color.Yellow;
-                _edges_colour_tx = System.Drawing.Color.Red;
-                _edge_highlight_colour = System.Drawing.Color.White;
-                _extents_colour = System.Drawing.Color.Gray;
-                _snapline_colour = System.Drawing.Color.Gray;
-                _meterback_colour = System.Drawing.Color.Black;
-                _notch_colour = System.Drawing.Color.Orange;
-                _notchhighligh_colour = System.Drawing.Color.LimeGreen;
-                _snapline_colour = System.Drawing.Color.Gray;
-                _setting_on_colour = System.Drawing.Color.CornflowerBlue;
-                _button_highlight_colour = System.Drawing.Color.Gray;
-
-                _auto_zoom = false;
-                _show_characteristic = false;
-                _characteristic_low = -250.0f;
-                _snap_lines = false;
-                _snap_lines_ignore = false;
-
-                _mouse_frequency = -1;
-
-                ItemType = MeterItemType.FILTER_DISPLAY;
-
-                ReadingSource = Reading.NONE;
-
-                UpdateInterval = 1000 / MiniSpec.FRAME_RATE; // to ms
 
                 buildSpectrumGreyScale(true, true);
 
@@ -26557,7 +26548,8 @@ namespace Thetis
                     foreach (KeyValuePair<string, clsMeterItem> kvp in _meterItems.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.BAND_BUTTONS || 
                                                                                          o.Value.ItemType == clsMeterItem.MeterItemType.FILTER_BUTTONS ||
                                                                                          o.Value.ItemType == clsMeterItem.MeterItemType.MODE_BUTTONS ||
-                                                                                         o.Value.ItemType == clsMeterItem.MeterItemType.OTHER_BUTTONS
+                                                                                         o.Value.ItemType == clsMeterItem.MeterItemType.OTHER_BUTTONS ||
+                                                                                         o.Value.ItemType == clsMeterItem.MeterItemType.FILTER_DISPLAY
                                                                                          ))
                     {
                         kvp.Value.Initialise();
