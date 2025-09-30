@@ -302,7 +302,6 @@ namespace Thetis
             {
                 try
                 {
-                    Application.SetCompatibleTextRenderingDefault(false);
                     _form = new LogForm();
                     _form.CreateControl();
                     IntPtr h = _form.Handle;
