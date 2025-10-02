@@ -381,7 +381,7 @@ void mp_imp (int N, double* fir, double* mpfir, int pfactor, int polarity)
 	{
 		//comment to verify cache operation - comment the following 3 lines if testing of cached vs calculated mpfir is required
 		memcpy(mpfir, imp, N * sizeof(complex)); // need to copy into mpfir  
-		_aligned_free(imp); // free the cache return value as data copied into mpfir as we are done with this
+		_aligned_free(imp); // free the cache return value as data copied into mpfir, we are done with this
 		return;  //comment to verify cache operation
 	}
 	//
