@@ -751,7 +751,7 @@ namespace Thetis
                         if (File.Exists(path + "\\" + "Console" + "\\" + ctrl.Name + sBut + "-" + i.ToString() + pic_file_ext))
                         {
                             Image img = loadImage(path + "\\" + "Console" + "\\" + ctrl.Name + sBut + "-" + i.ToString() + pic_file_ext);
-                            if(img != null) b.ImageList.Images.Add(((ImageState)i).ToString(), );
+                            if(img != null) b.ImageList.Images.Add(((ImageState)i).ToString(), img);
                         }
                     }
                 }
