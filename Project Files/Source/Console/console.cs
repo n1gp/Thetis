@@ -26648,6 +26648,8 @@ namespace Thetis
                     //[2.10.3.6]MW0LGE modifications to use setup config for swr and tune ignore power. Implements #221 (https://github.com/ramdor/Thetis/issues/221)
                     if (alexpresent || apollopresent)
                     {
+                        // open antenna connection dectection, ignored if tuning or 8000 model
+
                         // in following 'if', K2UE recommends not checking open antenna for the 8000 model
                         // if (swrprotection && alex_fwd > 10.0f && (alex_fwd - alex_rev) < 1.0f)
                         //-W2PA Changed to allow 35w - some amplifier tuners need about 30w to reliably start working
@@ -26659,12 +26661,17 @@ namespace Thetis
                             NetworkIO.SWRProtect = 0.01f;
                             chkMOX.Checked = false;
 
-                            MessageBox.Show("Please check your antenna connection.",
-                            "High SWR condition detected",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning,
-                            MessageBoxDefaultButton.Button1,
-                            Common.MB_TOPMOST);
+                            if (this.InvokeRequired)
+                            {
+                                this.Invoke(new MethodInvoker(() =>
+                                {
+                                    checkAntennaWarning();
+                                }));
+                            }
+                            else
+                            {
+                                checkAntennaWarning();
+                            }
 
                             goto end;
                         }
@@ -26785,6 +26792,15 @@ namespace Thetis
             calfwdpower = 0;
             alex_swr = 0;
             average_drivepwr = 0;
+        }
+        private void checkAntennaWarning()
+        {
+            MessageBox.Show("Please check your antenna connection.",
+            "High SWR condition detected",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning,
+            MessageBoxDefaultButton.Button1,
+            Common.MB_TOPMOST);
         }
 
         private float _swrProtectionLimit = 2.0f;
