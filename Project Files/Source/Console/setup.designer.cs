@@ -425,6 +425,10 @@
             this.chkQSOTimerEnabled = new System.Windows.Forms.CheckBoxTS();
             this.tpOptions3 = new System.Windows.Forms.TabPage();
             this.groupBoxTS57 = new System.Windows.Forms.GroupBoxTS();
+            this.groupBoxTS58 = new System.Windows.Forms.GroupBoxTS();
+            this.radVFOSYNC_nothing = new System.Windows.Forms.RadioButtonTS();
+            this.radVFOSYNC_ab = new System.Windows.Forms.RadioButtonTS();
+            this.radVFOSYNC_ba = new System.Windows.Forms.RadioButtonTS();
             this.chkVFOsync_filter = new System.Windows.Forms.CheckBoxTS();
             this.chkVFOsync_mode = new System.Windows.Forms.CheckBoxTS();
             this.chkVFOsync_freq = new System.Windows.Forms.CheckBoxTS();
@@ -4345,10 +4349,6 @@
             this.panelTS4 = new System.Windows.Forms.PanelTS();
             this.radioButtonTS5 = new System.Windows.Forms.RadioButtonTS();
             this.radioButtonTS6 = new System.Windows.Forms.RadioButtonTS();
-            this.radVFOSYNC_ab = new System.Windows.Forms.RadioButtonTS();
-            this.radVFOSYNC_ba = new System.Windows.Forms.RadioButtonTS();
-            this.groupBoxTS58 = new System.Windows.Forms.GroupBoxTS();
-            this.radVFOSYNC_nothing = new System.Windows.Forms.RadioButtonTS();
             tpAlexAntCtrl = new System.Windows.Forms.TabPage();
             numericUpDownTS3 = new System.Windows.Forms.NumericUpDownTS();
             numericUpDownTS4 = new System.Windows.Forms.NumericUpDownTS();
@@ -4471,6 +4471,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.udQSOTimerMinutes)).BeginInit();
             this.tpOptions3.SuspendLayout();
             this.groupBoxTS57.SuspendLayout();
+            this.groupBoxTS58.SuspendLayout();
             this.tpOptionsStartUp.SuspendLayout();
             this.groupBoxTS37.SuspendLayout();
             this.grpAutoLaunchFiles.SuspendLayout();
@@ -5446,7 +5447,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS35)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS36)).BeginInit();
             this.panelTS4.SuspendLayout();
-            this.groupBoxTS58.SuspendLayout();
             this.SuspendLayout();
             // 
             // tpAlexAntCtrl
@@ -11283,6 +11283,56 @@
             this.groupBoxTS57.TabIndex = 32;
             this.groupBoxTS57.TabStop = false;
             this.groupBoxTS57.Text = "VFOsync will";
+            // 
+            // groupBoxTS58
+            // 
+            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_nothing);
+            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_ab);
+            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_ba);
+            this.groupBoxTS58.Location = new System.Drawing.Point(14, 92);
+            this.groupBoxTS58.Name = "groupBoxTS58";
+            this.groupBoxTS58.Size = new System.Drawing.Size(164, 89);
+            this.groupBoxTS58.TabIndex = 33;
+            this.groupBoxTS58.TabStop = false;
+            this.groupBoxTS58.Text = "do the following initially";
+            // 
+            // radVFOSYNC_nothing
+            // 
+            this.radVFOSYNC_nothing.AutoSize = true;
+            this.radVFOSYNC_nothing.Checked = true;
+            this.radVFOSYNC_nothing.Image = null;
+            this.radVFOSYNC_nothing.Location = new System.Drawing.Point(6, 65);
+            this.radVFOSYNC_nothing.Name = "radVFOSYNC_nothing";
+            this.radVFOSYNC_nothing.Size = new System.Drawing.Size(75, 17);
+            this.radVFOSYNC_nothing.TabIndex = 5;
+            this.radVFOSYNC_nothing.TabStop = true;
+            this.radVFOSYNC_nothing.Text = "do nothing";
+            this.radVFOSYNC_nothing.UseVisualStyleBackColor = true;
+            this.radVFOSYNC_nothing.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
+            // 
+            // radVFOSYNC_ab
+            // 
+            this.radVFOSYNC_ab.AutoSize = true;
+            this.radVFOSYNC_ab.Image = null;
+            this.radVFOSYNC_ab.Location = new System.Drawing.Point(6, 19);
+            this.radVFOSYNC_ab.Name = "radVFOSYNC_ab";
+            this.radVFOSYNC_ab.Size = new System.Drawing.Size(102, 17);
+            this.radVFOSYNC_ab.TabIndex = 3;
+            this.radVFOSYNC_ab.Text = "sync from A to B";
+            this.radVFOSYNC_ab.UseVisualStyleBackColor = true;
+            this.radVFOSYNC_ab.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
+            // 
+            // radVFOSYNC_ba
+            // 
+            this.radVFOSYNC_ba.AutoSize = true;
+            this.radVFOSYNC_ba.Image = null;
+            this.radVFOSYNC_ba.Location = new System.Drawing.Point(6, 42);
+            this.radVFOSYNC_ba.Name = "radVFOSYNC_ba";
+            this.radVFOSYNC_ba.Size = new System.Drawing.Size(102, 17);
+            this.radVFOSYNC_ba.TabIndex = 4;
+            this.radVFOSYNC_ba.Text = "sync from B to A";
+            this.radVFOSYNC_ba.UseVisualStyleBackColor = true;
+            this.radVFOSYNC_ba.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
             // 
             // chkVFOsync_filter
             // 
@@ -69156,56 +69206,6 @@
             this.radioButtonTS6.Text = "Auto";
             this.radioButtonTS6.UseVisualStyleBackColor = true;
             // 
-            // radVFOSYNC_ab
-            // 
-            this.radVFOSYNC_ab.AutoSize = true;
-            this.radVFOSYNC_ab.Image = null;
-            this.radVFOSYNC_ab.Location = new System.Drawing.Point(6, 19);
-            this.radVFOSYNC_ab.Name = "radVFOSYNC_ab";
-            this.radVFOSYNC_ab.Size = new System.Drawing.Size(79, 17);
-            this.radVFOSYNC_ab.TabIndex = 3;
-            this.radVFOSYNC_ab.Text = "sync A to B";
-            this.radVFOSYNC_ab.UseVisualStyleBackColor = true;
-            this.radVFOSYNC_ab.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
-            // 
-            // radVFOSYNC_ba
-            // 
-            this.radVFOSYNC_ba.AutoSize = true;
-            this.radVFOSYNC_ba.Image = null;
-            this.radVFOSYNC_ba.Location = new System.Drawing.Point(6, 42);
-            this.radVFOSYNC_ba.Name = "radVFOSYNC_ba";
-            this.radVFOSYNC_ba.Size = new System.Drawing.Size(79, 17);
-            this.radVFOSYNC_ba.TabIndex = 4;
-            this.radVFOSYNC_ba.Text = "sync B to A";
-            this.radVFOSYNC_ba.UseVisualStyleBackColor = true;
-            this.radVFOSYNC_ba.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
-            // 
-            // groupBoxTS58
-            // 
-            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_nothing);
-            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_ab);
-            this.groupBoxTS58.Controls.Add(this.radVFOSYNC_ba);
-            this.groupBoxTS58.Location = new System.Drawing.Point(14, 92);
-            this.groupBoxTS58.Name = "groupBoxTS58";
-            this.groupBoxTS58.Size = new System.Drawing.Size(164, 89);
-            this.groupBoxTS58.TabIndex = 33;
-            this.groupBoxTS58.TabStop = false;
-            this.groupBoxTS58.Text = "do the following initially";
-            // 
-            // radVFOSYNC_nothing
-            // 
-            this.radVFOSYNC_nothing.AutoSize = true;
-            this.radVFOSYNC_nothing.Checked = true;
-            this.radVFOSYNC_nothing.Image = null;
-            this.radVFOSYNC_nothing.Location = new System.Drawing.Point(6, 65);
-            this.radVFOSYNC_nothing.Name = "radVFOSYNC_nothing";
-            this.radVFOSYNC_nothing.Size = new System.Drawing.Size(75, 17);
-            this.radVFOSYNC_nothing.TabIndex = 5;
-            this.radVFOSYNC_nothing.TabStop = true;
-            this.radVFOSYNC_nothing.Text = "do nothing";
-            this.radVFOSYNC_nothing.UseVisualStyleBackColor = true;
-            this.radVFOSYNC_nothing.CheckedChanged += new System.EventHandler(this.chkVFOsync_settings_changed);
-            // 
             // Setup
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(96F, 96F);
@@ -69371,6 +69371,8 @@
             this.tpOptions3.ResumeLayout(false);
             this.groupBoxTS57.ResumeLayout(false);
             this.groupBoxTS57.PerformLayout();
+            this.groupBoxTS58.ResumeLayout(false);
+            this.groupBoxTS58.PerformLayout();
             this.tpOptionsStartUp.ResumeLayout(false);
             this.groupBoxTS37.ResumeLayout(false);
             this.groupBoxTS37.PerformLayout();
@@ -70564,8 +70566,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS36)).EndInit();
             this.panelTS4.ResumeLayout(false);
             this.panelTS4.PerformLayout();
-            this.groupBoxTS58.ResumeLayout(false);
-            this.groupBoxTS58.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 

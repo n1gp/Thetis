@@ -54903,7 +54903,7 @@ namespace Thetis
                     else
                     {
                         if (_vfo_sync_frequency) VFOBFreq = VFOAFreq;
-                        // set these, even if rx2 not in use, so if rx2 is enabled, it will match
+                        // set these, even if rx2 not in use, so if rx2 is enabled, it will already match
                         if (_vfo_sync_mode) RX2DSPMode = RX1DSPMode;
                         if (_vfo_sync_filter) RX2Filter = RX1Filter;
                     }
