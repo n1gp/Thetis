@@ -1512,10 +1512,14 @@ namespace Thetis
                 }
                 else
                 {
-                    string msg = ex.Message + "\n\n" + ex.StackTrace.ToString();
-                    if (ex.InnerException != null) msg += "\n\n" + ex.InnerException.Message;
+                    //string msg = ex.Message + "\n\n" + ex.StackTrace.ToString();
+                    //if (ex.InnerException != null) msg += "\n\n" + ex.InnerException.Message;
+                    //MessageBox.Show(msg, "Fatal Error",
+                    //    MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+                    string msg = build_exception_text(ex);
                     MessageBox.Show(msg, "Fatal Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
+                        MessageBoxButtons.OK, MessageBoxIcon.Error,
+                        MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
                 }
                 Application.Exit();
             }
@@ -1524,6 +1528,22 @@ namespace Thetis
             {
                 Application.Restart();
             }
+        }
+        static string build_exception_text(Exception ex)
+        {
+            StringBuilder sb = new StringBuilder();
+            Exception current = ex;
+
+            while (current != null)
+            {
+                sb.AppendLine(current.GetType().FullName);
+                sb.AppendLine(current.Message);
+                sb.AppendLine(current.StackTrace);
+                sb.AppendLine();
+                current = current.InnerException;
+            }
+
+            return sb.ToString();
         }
         private static bool a()
         {
@@ -40836,7 +40856,8 @@ namespace Thetis
                     chkX2TR.Checked = chkFWCATU.Checked;
                 }
 
-                txtVFOAFreq_LostFocus(this, EventArgs.Empty);
+                //txtVFOAFreq_LostFocus(this, EventArgs.Empty);
+                handleVfoSyncInitial();
             }
             else
             {
@@ -47268,7 +47289,7 @@ namespace Thetis
             //max bin display
             if (_display_max_bin_enabled[rx-1] && rx == 1) setupDisplayMaxBinDetect(rx, false, true);
 
-            handleVfoSyncFrequency(rx, newFreq, false);
+            handleVfoSyncFrequency(rx, false);
         }
         private void OnVFOBFrequencyChangeHandler(Band oldBand, Band newBand, DSPMode oldMode, DSPMode newMode, Filter oldFilter, Filter newFilter, double oldFreq, double newFreq, double oldCentreF, double newCentreF, bool oldCTUN, bool newCTUN, int oldZoomSlider, int newZoomSlider, double offset, int rx)
         {
@@ -47285,7 +47306,7 @@ namespace Thetis
             //max bin display
             if (_display_max_bin_enabled[rx - 1] && rx == 2) setupDisplayMaxBinDetect(rx, false, true);
 
-            handleVfoSyncFrequency(rx, newFreq, true);
+            handleVfoSyncFrequency(rx, true);
         }
 
         private void OnMoxChangeHandler(int rx, bool oldMox, bool newMox)
@@ -54843,6 +54864,7 @@ namespace Thetis
         private bool _vfo_sync_frequency = false;
         private bool _vfo_sync_mode = false;
         private bool _vfo_sync_filter = false;
+        private VFOSYNCinit _vfo_sync_initial_action = VFOSYNCinit.Nothing; 
         public bool VFOsyncFrequency
         {
             get { return _vfo_sync_frequency; }
@@ -54858,8 +54880,52 @@ namespace Thetis
             get { return _vfo_sync_filter; }
             set { _vfo_sync_filter = value; }
         }
+        public VFOSYNCinit VFOinitialAction
+        {
+            get { return _vfo_sync_initial_action; }
+            set { _vfo_sync_initial_action = value; }
+        }
+        private void handleVfoSyncInitial()
+        {
+            if (!VFOSync || _prevent_vsync_updates) return;
+            _prevent_vsync_updates = true;
+            switch (_vfo_sync_initial_action)
+            {
+                case VFOSYNCinit.Nothing:
+                    break;
+                case VFOSYNCinit.VFO_A_to_B:
+                    if(RX2Enabled)
+                    {
+                        if (_vfo_sync_frequency) VFOBFreq = VFOAFreq;
+                        if (_vfo_sync_mode) RX2DSPMode = RX1DSPMode;
+                        if (_vfo_sync_filter) RX2Filter = RX1Filter;
+                    }
+                    else
+                    {
+                        if (_vfo_sync_frequency) VFOBFreq = VFOAFreq;
+                        // set these, even if rx2 not in use, so if rx2 is enabled, it will match
+                        if (_vfo_sync_mode) RX2DSPMode = RX1DSPMode;
+                        if (_vfo_sync_filter) RX2Filter = RX1Filter;
+                    }
+                    break;
+                case VFOSYNCinit.VFO_B_to_A:
+                    if (RX2Enabled)
+                    {
+                        if (_vfo_sync_frequency) VFOAFreq = VFOBFreq;
+                        if (_vfo_sync_mode) RX1DSPMode = RX2DSPMode;
+                        if (_vfo_sync_filter) RX1Filter = RX2Filter;
+                    }
+                    else
+                    {
+                        if (_vfo_sync_frequency) VFOAFreq = VFOBFreq;
+                        // mode/filter not required as there is only a single mode/filter used for rx1
+                    }
+                    break;
+            }
+            _prevent_vsync_updates = false;
+        }
         private bool _prevent_vsync_updates = false; // to prevent recursive updates
-        private void handleVfoSyncFrequency(int rx, double frequency, bool vfoB)
+        private void handleVfoSyncFrequency(int rx, bool b_to_a)
         {
             if (!VFOSync) return;
             if (!_vfo_sync_frequency || _prevent_vsync_updates) return;
@@ -54868,7 +54934,7 @@ namespace Thetis
             switch (rx)
             {
                 case 1:
-                    if (vfoB)
+                    if (b_to_a)
                     {
                         VFOAFreq = VFOBFreq;
                     }
@@ -54881,7 +54947,7 @@ namespace Thetis
                     handleVfoSyncMode(1, RX1DSPMode);
                     break;
                 case 2:
-                    if (vfoB)
+                    if (b_to_a)
                     {
                         VFOAFreq = VFOBFreq; //vfob will always be changing for rx2
                         _prevent_vsync_updates = false;

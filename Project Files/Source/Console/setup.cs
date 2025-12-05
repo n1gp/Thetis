@@ -35787,6 +35787,18 @@ namespace Thetis
             console.VFOsyncFrequency = chkVFOsync_freq.Checked;
             console.VFOsyncMode = chkVFOsync_mode.Checked;
             console.VFOsyncFilter = chkVFOsync_filter.Checked;
+            if(radVFOSYNC_ab.Checked)
+            {
+                console.VFOinitialAction = VFOSYNCinit.VFO_A_to_B;
+            }
+            else if(radVFOSYNC_ba.Checked)
+            {
+                console.VFOinitialAction = VFOSYNCinit.VFO_B_to_A;
+            }
+            else
+            {
+                console.VFOinitialAction = VFOSYNCinit.Nothing;
+            }
         }
 
         private bool[] _old_n1mm_state = new bool[2] { false, false };
