@@ -81,6 +81,8 @@ namespace Thetis
 
         public const int MAX_FPS = 640;
 
+        
+
         #region Variable Declarations
         // ======================================================
         // Variable Declarations
@@ -15497,32 +15499,18 @@ namespace Thetis
 
         public CheckState VFOLock { get; set; } = CheckState.Unchecked;
 
-        private bool vfoA_lock = false;
+        private bool _vfoA_lock = false;
         public bool VFOALock
         {
-            get { return vfoA_lock; }
+            get { return _vfoA_lock; }
             set
             {
-                bool old_state = vfoA_lock;
-                //bool enabled = true;
-                vfoA_lock = value;
-                //switch (vfoA_lock)
-                //{
-                //    case false:
-                //        txtVFOAFreq.Enabled = true;
-                //        break;
-                //    case true:
-                //        enabled = false;
-                //        txtVFOAFreq.Enabled = false;
-                //        break;
-                //}
-                //[2.3.10.6]MW0LGE whoever did the commented code above needs to step away from the computer, how about if else????
-                bool enabled = !vfoA_lock;
-                txtVFOAFreq.Enabled = enabled;
-                if (vfoA_lock) chkVFOSync.Checked = false;
+                bool old_state = _vfoA_lock;
+                _vfoA_lock = value;
 
-                if (vfoA_lock)
+                if (_vfoA_lock)
                 {
+                    chkVFOSync.Checked = false; // disable vfo sync if locking
                     DisableAllBands();
                     DisableAllModes();
                 }
@@ -15532,61 +15520,51 @@ namespace Thetis
                     EnableAllModes();
                 }
 
+                bool enabled = !_vfoA_lock;
+                txtVFOAFreq.Enabled = enabled;
                 btnVFOBtoA.Enabled = enabled;
                 btnVFOSwap.Enabled = enabled;
-
                 btnMemoryQuickRestore.Enabled = enabled;
 
-                if (vfoA_lock)
+                if (_vfoA_lock)
                     lblLockLabel.BackColor = System.Drawing.Color.Blue;
                 else
                     lblLockLabel.BackColor = System.Drawing.Color.Transparent;
                 lblLockLabel.Invalidate();
 
-                AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, true, vfoA_lock);
+                AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, true, _vfoA_lock);
 
-                chkVFOLock.Checked = vfoA_lock;
+                chkVFOLock.Checked = _vfoA_lock;
 
-                if (vfoA_lock != old_state)
+                if (_vfoA_lock != old_state)
                 {
-                    VfoALockChangedHandlers?.Invoke(1, old_state, vfoA_lock);
-                    old_state = vfoA_lock;
+                    VfoALockChangedHandlers?.Invoke(1, old_state, _vfoA_lock);
+                    old_state = _vfoA_lock;
                 }
 
                 SetGeneralSetting(0, OtherButtonId.LOCK_A, chkVFOLock.Checked);
             }
         }
 
-        private bool vfoB_lock = false;
+        private bool _vfoB_lock = false;
         public bool VFOBLock
         {
-            get { return vfoB_lock; }
+            get { return _vfoB_lock; }
             set
             {
-                bool old_state = vfoB_lock;
-                //bool enabled = true;
-                vfoB_lock = value;
-                //switch (vfoB_lock)
-                //{
-                //    case false:
-                //        txtVFOBFreq.Enabled = true;
-                //        break;
-                //    case true:
-                //        enabled = false;
-                //        txtVFOBFreq.Enabled = false;
-                //        chkVFOSync.Checked = false;
-                //        break;
-                //}
-                //[2.3.10.6]MW0LGE whoever did the commented code above needs to step away from the computer, how about if else????
-                bool enabled = !vfoB_lock;
-                txtVFOBFreq.Enabled = enabled;
-                if (vfoB_lock) chkVFOSync.Checked = false;
+                bool old_state = _vfoB_lock;
+                _vfoB_lock = value;
 
+                if (_vfoB_lock)
+                {
+                    chkVFOSync.Checked = false;
+                }
+
+                bool enabled = !_vfoB_lock;
+                txtVFOBFreq.Enabled = enabled;
                 comboRX2Band.Enabled = enabled;
                 btnVFOAtoB.Enabled = enabled;
                 chkVFOSync.Enabled = enabled;
-
-
                 radRX2ModeLSB.Enabled = enabled;
                 radRX2ModeUSB.Enabled = enabled;
                 radRX2ModeDSB.Enabled = enabled;
@@ -15600,20 +15578,19 @@ namespace Thetis
                 radRX2ModeDIGU.Enabled = enabled;
                 radRX2ModeDRM.Enabled = enabled;
 
-                if (vfoB_lock)
+                if (_vfoB_lock)
                     lblRX2LockLabel.BackColor = System.Drawing.Color.Blue;
                 else
                     lblRX2LockLabel.BackColor = System.Drawing.Color.Transparent;
 
-                AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, false, vfoB_lock); // <- this use of false is totally wrong, because if RX2 is in use, then lock B is RX2.
-                                                                                         // I just cba to fix it, as this sort of thing keeps being done. -LGE
+                AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, !RX2Enabled, _vfoB_lock);                                                                                          
 
-                chkVFOBLock.Checked = vfoB_lock;
+                chkVFOBLock.Checked = _vfoB_lock;
 
-                if (vfoB_lock != old_state)
+                if (_vfoB_lock != old_state)
                 {
-                    VfoBLockChangedHandlers?.Invoke(RX2Enabled ? 2 : 1, old_state, vfoB_lock);
-                    old_state = vfoB_lock;
+                    VfoBLockChangedHandlers?.Invoke(RX2Enabled ? 2 : 1, old_state, _vfoB_lock);
+                    old_state = _vfoB_lock;
                 }
 
                 SetGeneralSetting(0, OtherButtonId.LOCK_B, chkVFOBLock.Checked);
@@ -17959,33 +17936,19 @@ namespace Thetis
         // Added 06/24/05 BT for CAT commands
         public bool CATVFOLock
         {
-            get { return chkVFOLock.Checked; }
+            get { return VFOALock; }
             set
             {
-                //[2.10.3.5]MW0LGE has to be a joke, just dupe code why not
                 VFOALock = value;
-
-                //chkVFOLock.Checked = value;
-                //if (value == true)
-                //    lblLockLabel.BackColor = System.Drawing.Color.Blue;
-                //else
-                //    lblLockLabel.BackColor = System.Drawing.Color.Transparent;
             }
         }
 
         public bool CATVFOBLock
         {
-            get { return chkVFOBLock.Checked; }
+            get { return VFOBLock; }
             set
             {
-                //[2.10.3.5]MW0LGE has to be a joke, just dupe code why not
                 VFOBLock = value;
-
-                //chkVFOBLock.Checked = value;
-                //if (value == true)
-                //    lblRX2LockLabel.BackColor = System.Drawing.Color.Blue;
-                //else
-                //    lblRX2LockLabel.BackColor = System.Drawing.Color.Transparent;
             }
         }
 
@@ -18784,7 +18747,7 @@ namespace Thetis
             }
             set
             {
-                if (!_force_vfo_update && vfoA_lock || IsSetupFormNull) return; //[2.10.3.5]MW0LGE removed the state check //[2.10.3.7]MW0LGE always process if initialising
+                if ((!_force_vfo_update && _vfoA_lock) || IsSetupFormNull) return; //[2.10.3.5]MW0LGE removed the state check //[2.10.3.7]MW0LGE always process if initialising
                 if (!this.InvokeRequired)
                 {
                     VFOAUpdate(value);
@@ -18844,7 +18807,7 @@ namespace Thetis
 
             set
             {
-                if (!_force_vfo_update && vfoA_lock || IsSetupFormNull) return; //[2.10.3.6]MW0LGE removed the state check //[2.10.3.7]MW0LGE always process if initialising
+                if ((!_force_vfo_update && _vfoA_lock) || IsSetupFormNull) return; //[2.10.3.6]MW0LGE removed the state check //[2.10.3.7]MW0LGE always process if initialising
                 if (!this.InvokeRequired)
                 {
                     VFOASubUpdate(value);
@@ -18866,7 +18829,7 @@ namespace Thetis
             }
             set
             {
-                if (!_force_vfo_update && (vfoB_lock || IsSetupFormNull)) return; //[2.10.3.5]MW0LGE removed state check //[2.10.3.7]MW0LGE always process if initialising
+                if ((!_force_vfo_update && _vfoB_lock) || IsSetupFormNull) return; //[2.10.3.5]MW0LGE removed state check //[2.10.3.7]MW0LGE always process if initialising
                 value = Math.Max(0, value);
                 if (!this.InvokeRequired)
                 {
@@ -31298,22 +31261,12 @@ namespace Thetis
         {
             if (chkVFOLock.Checked == VFOALock) return;
             VFOALock = chkVFOLock.Checked;
-            //if (chkVFOLock.Checked == true)//[2.10.3.6]MW0LGE moved this to vfoalock property
-            //    lblLockLabel.BackColor = System.Drawing.Color.Blue;
-            //else
-            //    lblLockLabel.BackColor = System.Drawing.Color.Transparent;
-            //AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, true, chkVFOLock.Checked); 
         }
 
         private void chkVFOBLock_CheckedChanged(object sender, EventArgs e)
         {
             if (chkVFOBLock.Checked == VFOBLock) return;
             VFOBLock = chkVFOBLock.Checked;
-            //if (chkVFOBLock.Checked == true)//[2.10.3.6]MW0LGE moved this to vfoblock property
-            //    lblRX2LockLabel.BackColor = System.Drawing.Color.Blue;
-            //else
-            //    lblRX2LockLabel.BackColor = System.Drawing.Color.Transparent;
-            //AndromedaIndicatorCheck(EIndicatorActions.eINVFOLock, false, chkVFOBLock.Checked);
         }
         private void repopulateForms()
         {
