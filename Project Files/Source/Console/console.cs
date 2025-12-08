@@ -29762,9 +29762,9 @@ namespace Thetis
         }
 
         private volatile bool _mic_muted = false;
-        public bool MicMute
+        public bool MicMute // NOTE: although called MicMute, true = mic in use
         {
-            get { return _mic_muted; }
+            get { return chkMicMute.Checked; }
             set 
             {
                 if (value != chkMicMute.Checked)
@@ -29779,10 +29779,7 @@ namespace Thetis
         }
         private void chkMicMute_CheckedChanged(object sender, System.EventArgs e)
         {
-            //if (chkMicMute.Checked)  //[2.10.3.9]MW0LGE mic_scroll now handles all of this
             ptbMic_Scroll(this, EventArgs.Empty);
-            //else 
-            //    Audio.MicPreamp = 0.0;
 
             SetGeneralSetting(0, OtherButtonId.MIC, chkMicMute.Checked);
         }
@@ -54278,7 +54275,7 @@ namespace Thetis
             switch (id)
             {
                 case OtherButtonId.MIC:
-                    MicMute = state;
+                    MicMute = state; // NOTE: although called MicMute, true = mic in use
                     return true;
                 case OtherButtonId.COMP:
                     CPDR = state;

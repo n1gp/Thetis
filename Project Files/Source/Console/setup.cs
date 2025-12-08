@@ -3639,7 +3639,7 @@ namespace Thetis
             dr["CompanderLevel"] = console.CPDRLevel;
             dr["MicGain"] = console.Mic;
             dr["FMMicGain"] = console.FMMic;
-            dr["MicMute"] = console.MicMute;
+            dr["MicMute"] = console.MicMute; // NOTE: although called MicMute, true = mic in use
 
             dr["Lev_On"] = chkDSPLevelerEnabled.Checked;
             //dr["Lev_Slope"] = (int)udDSPLevelerSlope.Value;
@@ -9402,7 +9402,7 @@ namespace Thetis
 
             console.Mic = (int)dr["MicGain"];
             console.FMMic = (int)dr["FMMicGain"];
-            console.MicMute = (bool)dr["MicMute"]; //MW0LGE_21f
+            console.MicMute = (bool)dr["MicMute"]; //MW0LGE_21f // NOTE: although called MicMute, true = mic in use
 
             chkDSPLevelerEnabled.Checked = (bool)dr["Lev_On"];
             //udDSPLevelerSlope.Value = (int)dr["Lev_Slope"];
