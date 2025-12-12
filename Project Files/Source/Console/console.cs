@@ -2446,87 +2446,6 @@ namespace Thetis
         {
             Debug.Print("TCI Server Error : " + se.Message);
         }
-
-        private bool m_bTCICWbecomesCWUabove10mhz = false;
-        public bool TCICWbecomesCWUabove10mhz
-        {
-            get { return m_bTCICWbecomesCWUabove10mhz; }
-            set
-            {
-                m_bTCICWbecomesCWUabove10mhz = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.CWbecomesCWUabove10mhz = m_bTCICWbecomesCWUabove10mhz;
-            }
-        }
-        private bool m_bTCICWLUbecomesCW = false;
-        public bool TCICWLUbecomesCW
-        {
-            get { return m_bTCICWLUbecomesCW; }
-            set
-            {
-                m_bTCICWLUbecomesCW = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.CWLUbecomesCW = m_bTCICWLUbecomesCW;
-            }
-        }
-        private bool m_bEmulateSunSDR2Pro = false;
-        public bool EmulateSunSDR2Pro
-        {
-            get { return m_bEmulateSunSDR2Pro; }
-            set
-            {
-                m_bEmulateSunSDR2Pro = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.EmulateSunSDR2Pro = m_bEmulateSunSDR2Pro;
-            }
-        }
-        private bool m_bEmulateExpertSDR3Protocol = false;
-        public bool EmulateExpertSDR3Protocol
-        {
-            get { return m_bEmulateExpertSDR3Protocol; }
-            set
-            {
-                m_bEmulateExpertSDR3Protocol = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.EmulateExpertSDR3Protocol = m_bEmulateExpertSDR3Protocol;
-            }
-        }
-        private bool m_bTCIuseRX1vfoaForRX2vfoa = false;
-        public bool TCIuseRX1vfoaForRX2vfoa
-        {
-            get { return m_bTCIuseRX1vfoaForRX2vfoa; }
-            set
-            {
-                m_bTCIuseRX1vfoaForRX2vfoa = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.UseRX1VFOaForRX2VFOa = m_bTCIuseRX1vfoaForRX2vfoa;
-            }
-        }
-        private bool m_bTCIcopyRX2VFObToVFOa = false;
-        public bool TCIcopyRX2VFObToVFOa
-        {
-            get { return m_bTCIcopyRX2VFObToVFOa; }
-            set
-            {
-                m_bTCIcopyRX2VFObToVFOa = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.CopyRX2VFObToVFOa = m_bTCIcopyRX2VFObToVFOa;
-            }
-        }
-        private bool m_bTCIreplaceRX2VFObToVFOa = false;
-        public bool TCIreplaceRX2VFObToVFOa
-        {
-            get { return m_bTCIreplaceRX2VFObToVFOa; }
-            set
-            {
-                m_bTCIreplaceRX2VFObToVFOa = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.ReplaceRX2VFObToVFOa = m_bTCIreplaceRX2VFObToVFOa;
-            }
-        }
-        private bool m_bTCIsendInitialStateOnConnect = true;
-        public bool TCIsendInitialStateOnConnect
-        {
-            get { return m_bTCIsendInitialStateOnConnect; }
-            set
-            {
-                m_bTCIsendInitialStateOnConnect = value;
-                if (m_tcpTCIServer != null) m_tcpTCIServer.SendInitialFrequencyStateOnConnect = m_bTCIsendInitialStateOnConnect;
-            }
-        }
         public void ShowTCILog()
         {
             if (m_tcpTCIServer != null) m_tcpTCIServer.ShowLog();
@@ -2546,7 +2465,7 @@ namespace Thetis
 
                     addTCIDelegates();
 
-                    m_tcpTCIServer.StartServer(this, rateLimit, m_bTCIcopyRX2VFObToVFOa, m_bTCIuseRX1vfoaForRX2vfoa, m_bTCIsendInitialStateOnConnect, m_bTCICWLUbecomesCW, m_bEmulateSunSDR2Pro, m_bEmulateExpertSDR3Protocol, m_bTCIreplaceRX2VFObToVFOa, m_bTCICWbecomesCWUabove10mhz);
+                    m_tcpTCIServer.StartServer(this, rateLimit);
 
                     if (!m_tcpTCIServer.IsServerRunning)
                     {
@@ -2568,6 +2487,10 @@ namespace Thetis
                 }
             }
             UpdateStatusBarStatusIcons(StatusBarIconGroup.TCI);
+        }
+        public TCPIPtciServer TCIServer
+        {
+            get { return m_tcpTCIServer; }
         }
         //
 
