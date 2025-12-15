@@ -4543,8 +4543,28 @@ namespace Thetis
             //Will inform the display engine of the ctun state via the delegate
             //NOTE: ideally _click_tune_display will already equal bClickTuneRX1 as the chk will have happened in the loop above,
             //so this should not be needed, but here for belts/braces
-            if (_click_tune_display != bClickTuneRX1) ClickTuneDisplay = bClickTuneRX1;
-            if (_click_tune_rx2_display != bClickTuneRX2) ClickTuneRX2Display = bClickTuneRX2;
+            if (_click_tune_display != bClickTuneRX1)
+            {
+                if (chkFWCATU.Checked == bClickTuneRX1)
+                {
+                    chkFWCATU_CheckedChanged(this, EventArgs.Empty);
+                }
+                else
+                {
+                    chkFWCATU.Checked = bClickTuneRX1;
+                }
+            }
+            if (_click_tune_rx2_display != bClickTuneRX2)
+            {
+                if (chkX2TR.Checked == bClickTuneRX2)
+                {
+                    chkX2TR_CheckedChanged(this, EventArgs.Empty);
+                }
+                else
+                {
+                    chkX2TR.Checked = bClickTuneRX2;
+                }
+            }
 
             //MW0LGE_21c
             //all this is down here now, so that we have the correct centers
