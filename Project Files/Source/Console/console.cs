@@ -3400,6 +3400,9 @@ namespace Thetis
             double dRX1_centre_freq = 7.1;
             double dRX2_centre_freq = 7.1;
 
+            bool bClickTuneRX1 = false;
+            bool bClickTuneRX2 = false;
+
             foreach (string s in a)				// string is in the format "name,value"
             {
                 int start, length, index, filter_mode;
@@ -3636,7 +3639,8 @@ namespace Thetis
                         rx2_voice_squelch_threshold_scroll = int.Parse(val);
                         break;
                     case "click_tune_display":
-                        _click_tune_display = bool.Parse(val);
+                        //_click_tune_display = bool.Parse(val); // now done below
+                        bClickTuneRX1 = bool.Parse(val);
                         break;
                     case "VFOAFreq":
                         dVFOAFreq = double.Parse(val); // MW0LGE_21c need to do this at end, as we used center_freq etc
@@ -3645,7 +3649,8 @@ namespace Thetis
                         dRX1_centre_freq = double.Parse(val);
                         break;
                     case "click_tune_rx2_display":
-                        _click_tune_rx2_display = bool.Parse(val);
+                        //_click_tune_rx2_display = bool.Parse(val); // now done below
+                        bClickTuneRX2 = bool.Parse(val);
                         break;
                     case "VFOBFreq":
                         dVFOBFreq = double.Parse(val); // MW0LGE_21c need to do this at end, as we used center_freq etc
@@ -4533,6 +4538,13 @@ namespace Thetis
                         break;
                 }
             }
+
+            //[2.10.1.12]MW0LGE - apply CTUN state, and done above CentreFrequency assignment below
+            //Will inform the display engine of the ctun state via the delegate
+            //NOTE: ideally _click_tune_display will already equal bClickTuneRX1 as the chk will have happened in the loop above,
+            //so this should not be needed, but here for belts/braces
+            if (_click_tune_display != bClickTuneRX1) ClickTuneDisplay = bClickTuneRX1;
+            if (_click_tune_rx2_display != bClickTuneRX2) ClickTuneRX2Display = bClickTuneRX2;
 
             //MW0LGE_21c
             //all this is down here now, so that we have the correct centers
