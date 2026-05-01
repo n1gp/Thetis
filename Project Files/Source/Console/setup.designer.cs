@@ -8568,7 +8568,7 @@
             "ANAN-200D",
             "ANAN-7000DLE",
             "ANAN-8000DLE",
-            "ANAN-G1",
+            "ANAN-G2E",
             "ANAN-G2",
             "ANAN-G2-1K",
             "ANVELINA-PRO3",
@@ -33139,7 +33139,7 @@
             this.grpDisplay8000DLE.Size = new System.Drawing.Size(215, 47);
             this.grpDisplay8000DLE.TabIndex = 44;
             this.grpDisplay8000DLE.TabStop = false;
-            this.grpDisplay8000DLE.Text = "7000/8000/G2/ANV/RP";
+            this.grpDisplay8000DLE.Text = "7000/8000/G1/G2/ANV/RP";
             // 
             // chkANAN8000DLEDisplayVoltsAmps
             // 

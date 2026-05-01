@@ -8,8 +8,11 @@ Please report any issue over on [GitHub here](https://github.com/ramdor/Thetis/i
 
 ## Join us on Discord for active test builds and much more : [Click Here](https://discord.gg/6fHCRKnDc9)
 
-This version, v2.10.3.14, will be the last version released publicly by MW0LGE - Richard Samphire.
+The version, v2.10.3.14, will be the last version released publicly by MW0LGE - Richard Samphire.
 This repo will no longer be updated or monitored.
+
+## v2.10.3.15 N1GP_dev1 - Change Log
+- [change] ApacheLabs ANAN-G1 model changed to ANAN-G2E - Rick N1GP
 
 ## v2.10.3.14 - Change Log
 - [add] otherbutton wave record now supported. Extra folder called 'waverecord' will store these. Right click to open folder or via Setup->Audio->Recording. Similar to the [Record] button from the WaveForm of old. Note: tx/rx transition will terminate recording
