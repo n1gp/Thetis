@@ -33139,7 +33139,7 @@
             this.grpDisplay8000DLE.Size = new System.Drawing.Size(215, 47);
             this.grpDisplay8000DLE.TabIndex = 44;
             this.grpDisplay8000DLE.TabStop = false;
-            this.grpDisplay8000DLE.Text = "7000/8000/G1/G2/ANV/RP";
+            this.grpDisplay8000DLE.Text = "7000/8000/G2/G2E/ANV/RP";
             // 
             // chkANAN8000DLEDisplayVoltsAmps
             // 
